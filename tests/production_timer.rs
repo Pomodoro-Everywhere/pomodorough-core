@@ -90,6 +90,50 @@ fn assert_outcome(result: &Value, command_id: &str, outcome: &str, reason: &str)
 }
 
 #[test]
+fn timer_reduce_v1_latest_action_wins_for_existing_timer() {
+    let cases = [
+        ("finish", "pause", "paused"),
+        ("finish", "resume", "running"),
+        ("finish", "cancel", "cancelled"),
+        ("cancel", "finish", "completed"),
+        ("finish", "start", "running"),
+    ];
+
+    for (earlier, latest, expected_status) in cases {
+        let result = reduce(
+            vec![
+                command("start", "device-a", "timer-a", "start", 1, 100, 0, 0),
+                command(
+                    "earlier", "device-a", "timer-a", earlier, 2, 200, 1_000, 1_000,
+                ),
+                command(
+                    "latest", "device-b", "timer-a", latest, 1, 300, 2_000, 2_000,
+                ),
+            ],
+            3_000,
+        );
+        assert_outcome(&result, "latest", "applied", "");
+        assert_eq!(result["canonicalTimer"]["status"], expected_status);
+        assert_eq!(
+            result["canonicalTimer"]["lastIntent"]["commandId"],
+            "latest"
+        );
+    }
+
+    let cleared = reduce(
+        vec![
+            command("start", "device-a", "timer-a", "start", 1, 100, 0, 0),
+            command(
+                "clear", "device-b", "timer-a", "clear", 1, 200, 1_000, 1_000,
+            ),
+        ],
+        2_000,
+    );
+    assert_outcome(&cleared, "clear", "applied", "");
+    assert!(cleared["canonicalTimer"].is_null());
+}
+
+#[test]
 fn timer_reduce_v1_is_deterministic_across_server_arrival_cases() {
     let cases = [
         vec![
@@ -291,7 +335,7 @@ fn timer_reduce_v1_uses_complete_hybrid_clock_ordering_not_device_sequence() {
                     0,
                 ),
             ],
-            "wall-low",
+            "wall-high",
         ),
         (
             vec![
@@ -319,7 +363,7 @@ fn timer_reduce_v1_uses_complete_hybrid_clock_ordering_not_device_sequence() {
                     0,
                 ),
             ],
-            "counter-low",
+            "counter-high",
         ),
         (
             vec![
@@ -344,7 +388,7 @@ fn timer_reduce_v1_uses_complete_hybrid_clock_ordering_not_device_sequence() {
                     0,
                 ),
             ],
-            "command-z",
+            "command-a",
         ),
         (
             vec![
@@ -369,21 +413,16 @@ fn timer_reduce_v1_uses_complete_hybrid_clock_ordering_not_device_sequence() {
                     0,
                 ),
             ],
-            "command-a",
+            "command-b",
         ),
     ];
 
     for (commands, winner) in cases {
         let result = reduce(commands.clone(), 0);
         for input in commands {
-            let expected = if input["id"] == winner {
-                "applied"
-            } else {
-                "ignored"
-            };
             assert_eq!(
                 result["outcomes"][input["id"].as_str().unwrap()]["outcome"],
-                expected
+                "applied"
             );
         }
         assert_eq!(result["canonicalTimer"]["lastIntent"]["commandId"], winner);
@@ -671,7 +710,7 @@ fn timer_reduce_v1_task_association_comes_only_from_start() {
 }
 
 #[test]
-fn timer_reduce_v1_matches_server_invalid_transition_outcomes() {
+fn timer_reduce_v1_matches_server_command_outcomes() {
     let start = command("start", "device-a", "timer-a", "start", 1, 100, 0, 0);
     let cases = [
         (
@@ -689,8 +728,8 @@ fn timer_reduce_v1_matches_server_invalid_transition_outcomes() {
                 ),
             ],
             "duplicate",
-            "ignored",
-            "timer already exists",
+            "applied",
+            "",
         ),
         (
             vec![command(
@@ -706,8 +745,8 @@ fn timer_reduce_v1_matches_server_invalid_transition_outcomes() {
                 command("resume", "device-a", "timer-a", "resume", 2, 200, 1_000, 0),
             ],
             "resume",
-            "ignored",
-            "timer cannot be resumed",
+            "applied",
+            "",
         ),
         (
             vec![command(
@@ -723,8 +762,8 @@ fn timer_reduce_v1_matches_server_invalid_transition_outcomes() {
                 command("clear", "device-a", "timer-a", "clear", 2, 200, 1_000, 0),
             ],
             "clear",
-            "ignored",
-            "timer cannot be cleared",
+            "applied",
+            "",
         ),
         (
             vec![command(
@@ -836,16 +875,13 @@ fn matrix_setup(state: &str) -> Vec<Value> {
 
 fn matrix_outcome(state: &str, kind: &str, target: &str) -> (&'static str, &'static str) {
     let same = target == "same";
+    if kind == "start" || (same && state != "absent") {
+        return ("applied", "");
+    }
     match kind {
-        "start" if same && state != "absent" => ("ignored", "timer already exists"),
-        "start" => ("applied", ""),
-        "pause" if same && state == "running" => ("applied", ""),
         "pause" => ("ignored", "timer is not the active running timer"),
-        "resume" if same && matches!(state, "paused" | "superseded") => ("applied", ""),
         "resume" => ("ignored", "timer cannot be resumed"),
-        "finish" | "cancel" if same && matches!(state, "running" | "paused") => ("applied", ""),
         "finish" | "cancel" => ("ignored", "timer is not active"),
-        "clear" if same && matches!(state, "completed" | "cancelled") => ("applied", ""),
         "clear" => ("ignored", "timer cannot be cleared"),
         _ => panic!("unknown matrix command"),
     }
@@ -868,35 +904,36 @@ fn matrix_state_session(state: &str, kind: &str, target: &str) -> Option<&'stati
             _ => unreachable!(),
         });
     }
-    match (kind, state) {
-        ("pause", "running") => Some("paused"),
-        ("resume", "paused" | "superseded") => Some("running"),
-        ("finish", "running" | "paused") => Some("completed"),
-        ("cancel", "running" | "paused") => Some("cancelled"),
+    match kind {
+        "start" => Some("running"),
+        "pause" => Some("paused"),
+        "resume" => Some("running"),
+        "finish" => Some("completed"),
+        "cancel" => Some("cancelled"),
         _ => matrix_state_session(state, "unchanged", "foreign"),
     }
 }
 
 fn matrix_canonical(state: &str, kind: &str, target: &str) -> Option<(&'static str, &'static str)> {
-    if kind == "start" && (target == "foreign" || state == "absent") {
-        return Some(if target == "foreign" {
-            ("timer-foreign", "running")
-        } else {
-            ("timer-state", "running")
-        });
+    if target == "foreign" {
+        if kind == "start" {
+            return Some(("timer-foreign", "running"));
+        }
+        return match state {
+            "absent" => None,
+            "superseded" => Some(("timer-current", "running")),
+            "running" => Some(("timer-state", "running")),
+            "paused" => Some(("timer-state", "paused")),
+            "completed" => Some(("timer-state", "completed")),
+            "cancelled" => Some(("timer-state", "cancelled")),
+            _ => unreachable!(),
+        };
     }
     if state == "absent" {
-        return None;
+        return (kind == "start").then_some(("timer-state", "running"));
     }
-    if state == "superseded" {
-        return Some(if kind == "resume" && target == "same" {
-            ("timer-state", "running")
-        } else {
-            ("timer-current", "running")
-        });
-    }
-    if kind == "clear" && target == "same" && matches!(state, "completed" | "cancelled") {
-        return None;
+    if kind == "clear" {
+        return (state == "superseded").then_some(("timer-current", "running"));
     }
     Some((
         "timer-state",

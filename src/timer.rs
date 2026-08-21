@@ -369,12 +369,8 @@ fn reduce_from_state(
 
         match command.kind.as_str() {
             "start" => {
-                if sessions.contains_key(&command.timer_id) {
-                    outcomes.insert(command.id, Outcome::ignored("timer already exists"));
-                    continue;
-                }
                 if let Some(current) = current_id.as_ref().and_then(|id| sessions.get_mut(id)) {
-                    if is_active(current) {
+                    if current.timer_id != command.timer_id && is_active(current) {
                         supersede(
                             current,
                             &command.occurred_at,
@@ -408,35 +404,38 @@ fn reduce_from_state(
                 outcomes.insert(command.id, Outcome::applied());
             }
             "pause" => {
-                let Some(target) = sessions.get_mut(&command.timer_id) else {
-                    outcomes.insert(
-                        command.id,
-                        Outcome::ignored("timer is not the active running timer"),
-                    );
-                    continue;
-                };
-                if current_id.as_deref() != Some(command.timer_id.as_str())
-                    || target.status != "running"
-                {
+                if !sessions.contains_key(&command.timer_id) {
                     outcomes.insert(
                         command.id,
                         Outcome::ignored("timer is not the active running timer"),
                     );
                     continue;
                 }
+                if let Some(current) = current_id.as_ref().and_then(|id| sessions.get_mut(id)) {
+                    if current.timer_id != command.timer_id && is_active(current) {
+                        supersede(
+                            current,
+                            &command.occurred_at,
+                            &command.timer_id,
+                            &command.id,
+                        );
+                    }
+                }
+                let target = sessions.get_mut(&command.timer_id).expect("checked above");
                 target.status = "paused".into();
                 target.elapsed_at_anchor_ms =
                     clamp(command.observed_elapsed_ms, 0, target.planned_duration_ms);
                 target.anchor_at = command.occurred_at;
+                target.ended_at = None;
+                target.terminal_command_id = None;
+                target.superseded_by_timer_id = None;
                 target.last_command_id = command.id.clone();
                 target.last_intent = Some(intent);
+                current_id = Some(target.timer_id.clone());
                 outcomes.insert(command.id, Outcome::applied());
             }
             "resume" => {
-                let resumable = sessions.get(&command.timer_id).is_some_and(|target| {
-                    matches!(target.status.as_str(), "paused" | "superseded")
-                });
-                if !resumable {
+                if !sessions.contains_key(&command.timer_id) {
                     outcomes.insert(command.id, Outcome::ignored("timer cannot be resumed"));
                     continue;
                 }
@@ -464,25 +463,21 @@ fn reduce_from_state(
                 outcomes.insert(command.id, Outcome::applied());
             }
             "finish" | "cancel" => {
-                let Some(target) = sessions.get_mut(&command.timer_id) else {
-                    outcomes.insert(command.id, Outcome::ignored("timer is not active"));
-                    continue;
-                };
-                if command.kind == "finish"
-                    && current_id.as_deref() == Some(command.timer_id.as_str())
-                    && target.status == "completed"
-                    && target.terminal_command_id.is_none()
-                {
-                    target.last_command_id = command.id.clone();
-                    target.terminal_command_id = Some(command.id.clone());
-                    target.last_intent = Some(intent);
-                    outcomes.insert(command.id, Outcome::applied());
-                    continue;
-                }
-                if current_id.as_deref() != Some(command.timer_id.as_str()) || !is_active(target) {
+                if !sessions.contains_key(&command.timer_id) {
                     outcomes.insert(command.id, Outcome::ignored("timer is not active"));
                     continue;
                 }
+                if let Some(current) = current_id.as_ref().and_then(|id| sessions.get_mut(id)) {
+                    if current.timer_id != command.timer_id && is_active(current) {
+                        supersede(
+                            current,
+                            &command.occurred_at,
+                            &command.timer_id,
+                            &command.id,
+                        );
+                    }
+                }
+                let target = sessions.get_mut(&command.timer_id).expect("checked above");
                 if command.kind == "finish" {
                     target.status = "completed".into();
                     target.elapsed_at_anchor_ms = target.planned_duration_ms;
@@ -495,7 +490,9 @@ fn reduce_from_state(
                 target.ended_at = Some(command.occurred_at);
                 target.last_command_id = command.id.clone();
                 target.terminal_command_id = Some(command.id.clone());
+                target.superseded_by_timer_id = None;
                 target.last_intent = Some(intent);
+                current_id = Some(target.timer_id.clone());
                 outcomes.insert(command.id, Outcome::applied());
             }
             "clear" => {
@@ -503,13 +500,11 @@ fn reduce_from_state(
                     outcomes.insert(command.id, Outcome::ignored("timer cannot be cleared"));
                     continue;
                 };
-                if current_id.as_deref() != Some(command.timer_id.as_str()) || is_active(target) {
-                    outcomes.insert(command.id, Outcome::ignored("timer cannot be cleared"));
-                    continue;
-                }
                 target.last_command_id = command.id.clone();
                 target.last_intent = Some(intent);
-                current_id = None;
+                if current_id.as_deref() == Some(command.timer_id.as_str()) {
+                    current_id = None;
+                }
                 outcomes.insert(command.id, Outcome::applied());
             }
             _ => {
