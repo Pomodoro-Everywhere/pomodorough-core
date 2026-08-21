@@ -5,6 +5,7 @@ use thiserror::Error;
 
 mod clock;
 mod sync_projection;
+mod task;
 mod timer;
 
 #[cfg(target_arch = "wasm32")]
@@ -110,6 +111,7 @@ pub fn dispatch_json(operation: &str, input: &str) -> Result<String, CoreError> 
         "timer.reduce.v1" => timer::reduce_timer_v1_json(input),
         "projection.reduce" => reduce_projection_fixture_case_json(input),
         "task.reduce.v1" => sync_projection::reduce_tasks_v1_json(input),
+        "task.identity.v1" => task::identity_json(input),
         "duration.reduce.v1" => sync_projection::reduce_durations_v1_json(input),
         "autoStart.reduce.v1" => sync_projection::reduce_auto_start_v1_json(input),
         "selectedTask.reduce" => reduce_selected_task_json(input),
