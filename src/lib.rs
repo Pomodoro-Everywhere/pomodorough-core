@@ -3,6 +3,9 @@ use std::collections::{BTreeMap, BTreeSet};
 use serde::{Deserialize, Deserializer, Serialize};
 use thiserror::Error;
 
+#[cfg(target_arch = "wasm32")]
+mod wasm_abi;
+
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub enum SelectedTaskField {
     #[default]
@@ -71,6 +74,34 @@ pub enum CoreError {
     Json(#[from] serde_json::Error),
     #[error("missing required projection value: {0}")]
     MissingProjection(&'static str),
+    #[error("unsupported shared-core operation: {0}")]
+    UnsupportedOperation(String),
+}
+
+pub fn dispatch_envelope_json(operation: &str, input: &str) -> String {
+    match dispatch_json(operation, input) {
+        Ok(value) => {
+            let value = serde_json::from_str::<serde_json::Value>(&value)
+                .unwrap_or(serde_json::Value::String(value));
+            serde_json::json!({"ok": true, "value": value}).to_string()
+        }
+        Err(error) => serde_json::json!({"ok": false, "error": error.to_string()}).to_string(),
+    }
+}
+
+pub fn dispatch_json(operation: &str, input: &str) -> Result<String, CoreError> {
+    match operation {
+        "core.version" => Ok(serde_json::json!({
+            "schemaVersion": 1,
+            "coreVersion": env!("CARGO_PKG_VERSION"),
+        })
+        .to_string()),
+        "timer.reduce" => reduce_timer_fixture_case_json(input),
+        "projection.reduce" => reduce_projection_fixture_case_json(input),
+        "selectedTask.reduce" => reduce_selected_task_json(input),
+        "selectedTask.classify" => classify_selected_task_field_json(input),
+        other => Err(CoreError::UnsupportedOperation(other.to_owned())),
+    }
 }
 
 #[derive(Clone, Debug, Deserialize)]

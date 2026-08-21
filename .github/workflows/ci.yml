@@ -19,10 +19,14 @@ jobs:
         with:
           persist-credentials: false
       - name: Install pinned Rust toolchain
-        run: rustup toolchain install 1.97.1 --profile minimal --component clippy,rustfmt
+        run: |
+          rustup toolchain install 1.97.1 --profile minimal --component clippy,rustfmt
+          rustup target add wasm32-unknown-unknown --toolchain 1.97.1
       - name: Check formatting
         run: cargo +1.97.1 fmt --all -- --check
       - name: Test all targets
         run: cargo +1.97.1 test --all-targets --locked
       - name: Lint all targets
         run: cargo +1.97.1 clippy --all-targets --locked -- -D warnings
+      - name: Build portable WebAssembly core
+        run: cargo +1.97.1 build --release --target wasm32-unknown-unknown --locked
