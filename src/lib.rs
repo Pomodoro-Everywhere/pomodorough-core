@@ -3,6 +3,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use serde::{Deserialize, Deserializer, Serialize};
 use thiserror::Error;
 
+mod clock;
 mod sync_projection;
 mod timer;
 
@@ -83,6 +84,8 @@ pub enum CoreError {
     MissingProjection(&'static str),
     #[error("unsupported shared-core operation: {0}")]
     UnsupportedOperation(String),
+    #[error("invalid shared-core input: {0}")]
+    InvalidInput(String),
 }
 
 pub fn dispatch_envelope_json(operation: &str, input: &str) -> String {
@@ -112,6 +115,8 @@ pub fn dispatch_json(operation: &str, input: &str) -> Result<String, CoreError> 
         "selectedTask.reduce" => reduce_selected_task_json(input),
         "selectedTask.reduce.v1" => sync_projection::reduce_selected_task_v1_json(input),
         "selectedTask.classify" => classify_selected_task_field_json(input),
+        "hlc.tick.v1" => clock::tick_json(input),
+        "uuidv7.fromParts.v1" => clock::uuid_v7_from_parts_json(input),
         other => Err(CoreError::UnsupportedOperation(other.to_owned())),
     }
 }
