@@ -1,40 +1,57 @@
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
 use chrono::{DateTime, Duration, Timelike, Utc};
 use serde::{Deserialize, Serialize};
 
 use crate::CoreError;
 
+const MAX_SAFE_INTEGER: i64 = 9_007_199_254_740_991;
+
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct TimerReductionInput {
     #[serde(default)]
     commands: Vec<WireCommand>,
+    #[serde(default)]
+    canonical_timer: Option<CanonicalTimer>,
+    #[serde(default)]
+    history: Vec<HistoryItem>,
     now: String,
 }
 
-#[derive(Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
-struct WireCommand {
-    id: String,
-    device_id: String,
-    device_sequence: i64,
-    timer_id: String,
-    #[serde(default)]
-    task_id: Option<String>,
+pub(crate) struct WireCommand {
+    pub(crate) id: String,
+    pub(crate) device_id: String,
+    pub(crate) device_sequence: i64,
+    pub(crate) timer_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub(crate) task_id: Option<String>,
     #[serde(rename = "type")]
-    kind: String,
-    phase: String,
-    planned_duration_ms: i64,
-    occurred_at: String,
-    hlc_wall_ms: i64,
-    hlc_counter: i64,
-    observed_elapsed_ms: i64,
+    pub(crate) kind: String,
+    pub(crate) phase: String,
+    pub(crate) planned_duration_ms: i64,
+    pub(crate) occurred_at: String,
+    pub(crate) hlc_wall_ms: i64,
+    pub(crate) hlc_counter: i64,
+    pub(crate) observed_elapsed_ms: i64,
 }
 
 impl WireCommand {
     fn into_command(self) -> Result<Command, CoreError> {
-        let _ = self.device_sequence;
+        if self.id.is_empty()
+            || self.device_id.is_empty()
+            || self.timer_id.is_empty()
+            || !(1..=MAX_SAFE_INTEGER).contains(&self.device_sequence)
+            || !matches!(self.phase.as_str(), "focus" | "short_break" | "long_break")
+            || !(60_000..=14_400_000).contains(&self.planned_duration_ms)
+            || !(1..=MAX_SAFE_INTEGER).contains(&self.hlc_wall_ms)
+            || !(0..=MAX_SAFE_INTEGER).contains(&self.hlc_counter)
+            || !(-MAX_SAFE_INTEGER..=MAX_SAFE_INTEGER).contains(&self.observed_elapsed_ms)
+        {
+            return Err(CoreError::InvalidInput("invalid timer command".into()));
+        }
         Ok(Command {
             id: self.id,
             device_id: self.device_id,
@@ -66,17 +83,18 @@ struct Command {
     observed_elapsed_ms: i64,
 }
 
-#[derive(Clone, Debug, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
-struct Intent {
+pub(crate) struct Intent {
     #[serde(rename = "type")]
-    kind: String,
-    command_id: String,
-    occurred_at: String,
+    pub(crate) kind: String,
+    pub(crate) command_id: String,
+    pub(crate) occurred_at: String,
 }
 
 #[derive(Clone, Debug)]
 struct Session {
+    history_id: String,
     timer_id: String,
     task_id: Option<String>,
     phase: String,
@@ -124,46 +142,47 @@ impl Outcome {
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
-struct TimerReductionOutput {
-    canonical_timer: Option<CanonicalTimer>,
-    history: Vec<HistoryItem>,
+pub(crate) struct TimerReductionOutput {
+    pub(crate) canonical_timer: Option<CanonicalTimer>,
+    pub(crate) history: Vec<HistoryItem>,
     sessions: Vec<WireSession>,
     outcomes: BTreeMap<String, Outcome>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
-struct CanonicalTimer {
-    id: String,
+pub(crate) struct CanonicalTimer {
+    pub(crate) id: String,
     #[serde(skip_serializing_if = "Option::is_none")]
-    task_id: Option<String>,
-    phase: String,
-    status: String,
-    planned_duration_ms: i64,
-    elapsed_at_anchor_ms: i64,
-    anchor_at: String,
+    pub(crate) task_id: Option<String>,
+    pub(crate) phase: String,
+    pub(crate) status: String,
+    pub(crate) planned_duration_ms: i64,
+    pub(crate) elapsed_at_anchor_ms: i64,
+    pub(crate) anchor_at: String,
+    #[serde(default)]
     #[serde(skip_serializing_if = "String::is_empty")]
-    started_by_device_id: String,
+    pub(crate) started_by_device_id: String,
     #[serde(skip_serializing_if = "Option::is_none")]
-    last_intent: Option<Intent>,
+    pub(crate) last_intent: Option<Intent>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
-struct HistoryItem {
-    id: String,
-    timer_id: String,
+pub(crate) struct HistoryItem {
+    pub(crate) id: String,
+    pub(crate) timer_id: String,
     #[serde(skip_serializing_if = "Option::is_none")]
-    task_id: Option<String>,
+    pub(crate) task_id: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    command_id: Option<String>,
-    phase: String,
-    status: String,
-    planned_duration_ms: i64,
+    pub(crate) command_id: Option<String>,
+    pub(crate) phase: String,
+    pub(crate) status: String,
+    pub(crate) planned_duration_ms: i64,
     #[serde(skip_serializing_if = "Option::is_none")]
-    completed_at: Option<String>,
+    pub(crate) completed_at: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    ended_at: Option<String>,
+    pub(crate) ended_at: Option<String>,
 }
 
 #[derive(Debug, Serialize)]
@@ -193,16 +212,134 @@ struct WireSession {
 
 pub(crate) fn reduce_timer_v1_json(input: &str) -> Result<String, CoreError> {
     let input: TimerReductionInput = serde_json::from_str(input)?;
+    validate_replay_state(&input.canonical_timer, &input.history)?;
     let now = parse_time(&input.now)?;
     let commands = input
         .commands
         .into_iter()
         .map(WireCommand::into_command)
         .collect::<Result<Vec<_>, _>>()?;
-    Ok(serde_json::to_string(&reduce(commands, now))?)
+    Ok(serde_json::to_string(&replay_parsed(
+        input.canonical_timer,
+        input.history,
+        commands,
+        now,
+    )?)?)
 }
 
-fn reduce(mut commands: Vec<Command>, now: DateTime<Utc>) -> TimerReductionOutput {
+fn reduce(commands: Vec<Command>, now: DateTime<Utc>) -> TimerReductionOutput {
+    reduce_from_state(commands, now, BTreeMap::new(), None)
+}
+
+pub(crate) fn replay(
+    canonical_timer: Option<CanonicalTimer>,
+    history: Vec<HistoryItem>,
+    commands: Vec<WireCommand>,
+    now: &str,
+) -> Result<TimerReductionOutput, CoreError> {
+    validate_replay_state(&canonical_timer, &history)?;
+    let now = parse_time(now)?;
+    let commands = commands
+        .into_iter()
+        .map(WireCommand::into_command)
+        .collect::<Result<Vec<_>, _>>()?;
+    replay_parsed(canonical_timer, history, commands, now)
+}
+
+pub(crate) fn validate_replay_state(
+    canonical_timer: &Option<CanonicalTimer>,
+    history: &[HistoryItem],
+) -> Result<(), CoreError> {
+    if let Some(timer) = canonical_timer {
+        if timer.id.is_empty()
+            || !matches!(timer.phase.as_str(), "focus" | "short_break" | "long_break")
+            || !matches!(
+                timer.status.as_str(),
+                "running" | "paused" | "completed" | "cancelled" | "superseded"
+            )
+            || !(60_000..=14_400_000).contains(&timer.planned_duration_ms)
+            || !(0..=timer.planned_duration_ms).contains(&timer.elapsed_at_anchor_ms)
+            || parse_time(&timer.anchor_at).is_err()
+        {
+            return Err(CoreError::InvalidInput("invalid canonical timer".into()));
+        }
+        if let Some(intent) = &timer.last_intent {
+            if intent.kind.is_empty()
+                || intent.command_id.is_empty()
+                || parse_time(&intent.occurred_at).is_err()
+            {
+                return Err(CoreError::InvalidInput(
+                    "invalid canonical timer intent".into(),
+                ));
+            }
+        }
+    }
+
+    let mut history_ids = BTreeSet::new();
+    let mut timer_ids = BTreeSet::new();
+    for item in history {
+        let completed_at_valid = item
+            .completed_at
+            .as_deref()
+            .is_some_and(|value| parse_time(value).is_ok());
+        let ended_at_valid = item
+            .ended_at
+            .as_deref()
+            .is_some_and(|value| parse_time(value).is_ok());
+        if item.id.is_empty()
+            || item.timer_id.is_empty()
+            || !history_ids.insert(item.id.as_str())
+            || !timer_ids.insert(item.timer_id.as_str())
+            || !matches!(item.phase.as_str(), "focus" | "short_break" | "long_break")
+            || !matches!(
+                item.status.as_str(),
+                "completed" | "cancelled" | "superseded"
+            )
+            || !(60_000..=14_400_000).contains(&item.planned_duration_ms)
+            || (item.status == "completed" && !completed_at_valid)
+            || (item.status != "completed" && !ended_at_valid)
+            || (item.completed_at.is_some() && !completed_at_valid)
+            || (item.ended_at.is_some() && !ended_at_valid)
+        {
+            return Err(CoreError::InvalidInput("invalid timer history".into()));
+        }
+    }
+    if canonical_timer
+        .as_ref()
+        .is_some_and(|timer| timer_ids.contains(timer.id.as_str()))
+    {
+        return Err(CoreError::InvalidInput(
+            "canonical timer overlaps timer history".into(),
+        ));
+    }
+    Ok(())
+}
+
+fn replay_parsed(
+    canonical_timer: Option<CanonicalTimer>,
+    history: Vec<HistoryItem>,
+    commands: Vec<Command>,
+    now: DateTime<Utc>,
+) -> Result<TimerReductionOutput, CoreError> {
+    let mut sessions = BTreeMap::new();
+    for item in history {
+        let session = session_from_history(item)?;
+        sessions.insert(session.timer_id.clone(), session);
+    }
+    let current_id = canonical_timer.as_ref().map(|timer| timer.id.clone());
+    if let Some(timer) = canonical_timer {
+        let session = session_from_canonical(timer)?;
+        sessions.insert(session.timer_id.clone(), session);
+    }
+    Ok(reduce_from_state(commands, now, sessions, current_id))
+}
+
+fn reduce_from_state(
+    mut commands: Vec<Command>,
+    now: DateTime<Utc>,
+    mut sessions: BTreeMap<String, Session>,
+    mut current_id: Option<String>,
+) -> TimerReductionOutput {
     commands.sort_by(|left, right| {
         (
             left.hlc_wall_ms,
@@ -218,9 +355,7 @@ fn reduce(mut commands: Vec<Command>, now: DateTime<Utc>) -> TimerReductionOutpu
             ))
     });
 
-    let mut sessions: BTreeMap<String, Session> = BTreeMap::new();
     let mut outcomes = BTreeMap::new();
-    let mut current_id: Option<String> = None;
 
     for command in commands {
         if let Some(current) = current_id.as_ref().and_then(|id| sessions.get_mut(id)) {
@@ -252,6 +387,7 @@ fn reduce(mut commands: Vec<Command>, now: DateTime<Utc>) -> TimerReductionOutpu
                 sessions.insert(
                     timer_id.clone(),
                     Session {
+                        history_id: timer_id.clone(),
                         timer_id: timer_id.clone(),
                         task_id: command.task_id,
                         phase: command.phase,
@@ -411,7 +547,7 @@ fn reduce(mut commands: Vec<Command>, now: DateTime<Utc>) -> TimerReductionOutpu
         .map(|session| {
             let ended_at = session.ended_at.as_ref().map(format_time);
             HistoryItem {
-                id: session.timer_id.clone(),
+                id: session.history_id.clone(),
                 timer_id: session.timer_id.clone(),
                 task_id: session.task_id.clone(),
                 command_id: session.terminal_command_id.clone(),
@@ -435,6 +571,74 @@ fn reduce(mut commands: Vec<Command>, now: DateTime<Utc>) -> TimerReductionOutpu
         sessions,
         outcomes,
     }
+}
+
+fn session_from_canonical(timer: CanonicalTimer) -> Result<Session, CoreError> {
+    let anchor_at = parse_time(&timer.anchor_at)?;
+    if let Some(intent) = &timer.last_intent {
+        parse_time(&intent.occurred_at)?;
+    }
+    let terminal = matches!(
+        timer.status.as_str(),
+        "completed" | "cancelled" | "superseded"
+    );
+    let last_command_id = timer
+        .last_intent
+        .as_ref()
+        .map(|intent| intent.command_id.clone())
+        .unwrap_or_default();
+    let terminal_command_id = terminal
+        .then(|| last_command_id.clone())
+        .filter(|command_id| !command_id.is_empty());
+    Ok(Session {
+        history_id: timer.id.clone(),
+        timer_id: timer.id,
+        task_id: timer.task_id,
+        phase: timer.phase,
+        status: timer.status,
+        planned_duration_ms: timer.planned_duration_ms,
+        elapsed_at_anchor_ms: timer.elapsed_at_anchor_ms,
+        anchor_at,
+        started_at: anchor_at,
+        started_by_device_id: timer.started_by_device_id,
+        ended_at: terminal.then_some(anchor_at),
+        last_command_id,
+        terminal_command_id,
+        superseded_by_timer_id: None,
+        last_intent: timer.last_intent,
+    })
+}
+
+fn session_from_history(item: HistoryItem) -> Result<Session, CoreError> {
+    let ended_at = if item.status == "completed" {
+        item.completed_at.as_deref().or(item.ended_at.as_deref())
+    } else {
+        item.ended_at.as_deref()
+    }
+    .ok_or(CoreError::MissingProjection("history.endedAt"))?;
+    let ended_at = parse_time(ended_at)?;
+    let elapsed_at_anchor_ms = if item.status == "completed" {
+        item.planned_duration_ms
+    } else {
+        0
+    };
+    Ok(Session {
+        history_id: item.id,
+        timer_id: item.timer_id,
+        task_id: item.task_id,
+        phase: item.phase,
+        status: item.status,
+        planned_duration_ms: item.planned_duration_ms,
+        elapsed_at_anchor_ms,
+        anchor_at: ended_at,
+        started_at: ended_at,
+        started_by_device_id: String::new(),
+        ended_at: Some(ended_at),
+        last_command_id: item.command_id.clone().unwrap_or_default(),
+        terminal_command_id: item.command_id,
+        superseded_by_timer_id: None,
+        last_intent: None,
+    })
 }
 
 fn canonical(session: &Session) -> CanonicalTimer {
@@ -502,7 +706,7 @@ fn elapsed_at(session: &Session, at: &DateTime<Utc>) -> i64 {
         0
     };
     clamp(
-        session.elapsed_at_anchor_ms + delta,
+        session.elapsed_at_anchor_ms.saturating_add(delta),
         0,
         session.planned_duration_ms,
     )

@@ -1085,3 +1085,59 @@ fn timer_reduce_v1_matches_every_server_convergence_fixture_permutation() {
         }
     }
 }
+
+#[test]
+fn timer_reduce_v1_rejects_invalid_supplied_state() {
+    let now = timestamp(15, 10, 0);
+    let unsafe_timer = json!({
+        "id": "unsafe",
+        "phase": "focus",
+        "status": "running",
+        "plannedDurationMs": i64::MAX,
+        "elapsedAtAnchorMs": 0,
+        "anchorAt": now
+    });
+    assert!(
+        dispatch_json(
+            "timer.reduce.v1",
+            &json!({
+                "commands": [],
+                "canonicalTimer": unsafe_timer,
+                "history": [],
+                "now": now
+            })
+            .to_string()
+        )
+        .is_err()
+    );
+
+    let valid_timer = json!({
+        "id": "overlap",
+        "phase": "focus",
+        "status": "running",
+        "plannedDurationMs": 60_000,
+        "elapsedAtAnchorMs": 0,
+        "anchorAt": now
+    });
+    let history = json!([{
+        "id": "history-overlap",
+        "timerId": "overlap",
+        "phase": "focus",
+        "status": "completed",
+        "plannedDurationMs": 60_000,
+        "completedAt": now
+    }]);
+    assert!(
+        dispatch_json(
+            "timer.reduce.v1",
+            &json!({
+                "commands": [],
+                "canonicalTimer": valid_timer,
+                "history": history,
+                "now": now
+            })
+            .to_string()
+        )
+        .is_err()
+    );
+}

@@ -19,14 +19,15 @@ Persistence, authentication, HTTP/SSE, Iroh transport lifecycle, alarms, notific
 
 The stable binding boundary uses UTF-8 JSON so every language observes exactly the same omission/null and integer semantics. Rust owns the typed decoder and reducer. Native bindings are thin transport adapters and must not duplicate domain decisions.
 
-Planned consumers:
+Current host adapters:
 
-- Swift and Kotlin through UniFFI/native libraries;
-- Python through PyO3;
-- browsers through WebAssembly;
-- Go server through the same WebAssembly module embedded with `go:embed` and executed by a pure-Go runtime.
+- Swift through WasmKit;
+- Kotlin through Chicory;
+- Python through wasmtime;
+- browsers through the native WebAssembly API;
+- Go through wazero.
 
-The Go/WASM route keeps server cross-compilation reproducible and avoids CGO while still executing the same Rust reducer.
+Every consumer runs the same WebAssembly artifact. The server route remains pure Go and does not require CGO.
 
 ## Development
 

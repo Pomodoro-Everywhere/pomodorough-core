@@ -1,9 +1,11 @@
 use std::collections::{BTreeMap, BTreeSet};
 
-use serde::{Deserialize, Deserializer, Serialize};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use thiserror::Error;
 
+mod bootstrap;
 mod clock;
+mod reconciliation;
 mod sync_projection;
 mod task;
 mod timer;
@@ -56,6 +58,24 @@ impl<'de> Deserialize<'de> for SelectedTaskField {
         }
 
         deserializer.deserialize_any(Visitor)
+    }
+}
+
+impl Serialize for SelectedTaskField {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        match self {
+            Self::Omitted | Self::Deselected => serializer.serialize_none(),
+            Self::Selected(task_id) => serializer.serialize_str(task_id),
+        }
+    }
+}
+
+impl SelectedTaskField {
+    fn is_omitted(&self) -> bool {
+        self == &Self::Omitted
     }
 }
 
@@ -117,6 +137,8 @@ pub fn dispatch_json(operation: &str, input: &str) -> Result<String, CoreError> 
         "selectedTask.reduce" => reduce_selected_task_json(input),
         "selectedTask.reduce.v1" => sync_projection::reduce_selected_task_v1_json(input),
         "selectedTask.classify" => classify_selected_task_field_json(input),
+        "reconcile.rebase.v1" => reconciliation::rebase_v1_json(input),
+        "bootstrap.plan.v1" => bootstrap::plan_v1_json(input),
         "hlc.tick.v1" => clock::tick_json(input),
         "uuidv7.fromParts.v1" => clock::uuid_v7_from_parts_json(input),
         other => Err(CoreError::UnsupportedOperation(other.to_owned())),
