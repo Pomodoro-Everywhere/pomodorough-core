@@ -1,0 +1,20 @@
+[package]
+name = "pomodorough-core"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+license = "MIT"
+description = "Shared deterministic domain models and synchronization reducers for Pomodorough"
+repository = "https://github.com/Pomodoro-Everywhere/pomodorough-core"
+
+[lib]
+name = "pomodorough_core"
+crate-type = ["rlib", "cdylib", "staticlib"]
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "2"
+
+[dev-dependencies]
+sha2 = "0.10"
