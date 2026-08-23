@@ -21,9 +21,8 @@ struct TaskIdentityOutput {
     utf8_bytes: usize,
 }
 
-pub(crate) fn identity_json(input: &str) -> Result<String, CoreError> {
-    let input: TaskIdentityInput = serde_json::from_str(input)?;
-    let title = normalize_title(&input.title);
+pub(crate) fn identity(title: &str) -> Result<(String, String), CoreError> {
+    let title = normalize_title(title);
     let utf8_bytes = title.len();
     if title.is_empty() {
         return Err(CoreError::InvalidInput(
@@ -36,6 +35,13 @@ pub(crate) fn identity_json(input: &str) -> Result<String, CoreError> {
         )));
     }
     let id = task_id(&title);
+    Ok((id, title))
+}
+
+pub(crate) fn identity_json(input: &str) -> Result<String, CoreError> {
+    let input: TaskIdentityInput = serde_json::from_str(input)?;
+    let (id, title) = identity(&input.title)?;
+    let utf8_bytes = title.len();
     Ok(serde_json::to_string(&TaskIdentityOutput {
         id,
         title,

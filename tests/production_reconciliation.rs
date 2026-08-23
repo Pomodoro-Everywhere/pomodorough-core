@@ -34,6 +34,34 @@ fn command(id: &str, timer_id: &str, sequence: i64, wall_offset_ms: i64) -> Valu
     })
 }
 
+fn completed_focus(id: &str, timer_id: &str, command_id: &str, wall_offset_ms: i64) -> Value {
+    json!({
+        "id": id,
+        "timerId": timer_id,
+        "commandId": command_id,
+        "phase": "focus",
+        "status": "completed",
+        "plannedDurationMs": 1_500_000,
+        "completedAt": timestamp(wall_offset_ms)
+    })
+}
+
+fn generated_break_dependencies() -> Value {
+    json!([
+        {
+            "operationId": "generated-start",
+            "dependsOnOperationId": "finish-sent",
+            "generatedBreak": true,
+            "sourceDayStart": "2026-07-20T00:00:00Z",
+            "sourceDayEnd": "2026-07-21T00:00:00Z"
+        },
+        {
+            "operationId": "generated-pause",
+            "dependsOnOperationId": "generated-start"
+        }
+    ])
+}
+
 fn task_operation(id: &str, task_id: &str, title: &str, wall_offset_ms: i64) -> Value {
     json!({
         "id": id,
@@ -353,17 +381,225 @@ fn reconcile_rebase_v1_drops_transitive_timer_dependencies_after_non_applied_par
         dependencies.clone(),
     )
     .unwrap();
-    assert_eq!(barrier["pending"], json!([generated_pause.clone()]));
+    assert_eq!(
+        barrier["pending"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|command| &command["id"])
+            .collect::<Vec<_>>(),
+        vec![&generated_pause["id"]]
+    );
     assert_eq!(barrier["droppedTimerOperationIds"], json!([]));
 
     let applied =
         reconcile_with_dependencies(local, sent.clone(), canonical_response(&sent), dependencies)
             .unwrap();
     assert_eq!(
-        applied["pending"],
-        json!([generated_start, generated_pause])
+        applied["pending"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|command| &command["id"])
+            .collect::<Vec<_>>(),
+        vec![&generated_start["id"], &generated_pause["id"]]
     );
     assert_eq!(applied["droppedTimerOperationIds"], json!([]));
+}
+
+#[test]
+fn reconcile_rebase_v1_promotes_generated_long_break_after_fourth_canonical_focus() {
+    let mut finish = command("finish-sent", "focus-four", 1, 4_000);
+    finish["type"] = json!("finish");
+    finish["phase"] = json!("focus");
+    finish["plannedDurationMs"] = json!(1_500_000);
+    let generated_start = command("generated-start", "break-generated", 2, 5_000);
+    let mut generated_pause = command("generated-pause", "break-generated", 3, 6_000);
+    generated_pause["type"] = json!("pause");
+    generated_pause["observedElapsedMs"] = json!(1_200_000);
+
+    let mut sent = empty_queues();
+    sent["commands"] = json!([finish.clone()]);
+    let mut local = empty_queues();
+    local["commands"] = json!([finish, generated_start, generated_pause]);
+    let mut response = canonical_response(&sent);
+    response["acknowledgements"][0]["outcome"] = json!("ignored");
+    response["acknowledgements"][0]["reason"] = json!("already completed");
+    response["history"] = json!([
+        completed_focus("history-one", "focus-one", "finish-one", 1_000),
+        completed_focus("history-two", "focus-two", "finish-two", 2_000),
+        completed_focus("history-three", "focus-three", "finish-three", 3_000),
+        completed_focus("history-four", "focus-four", "finish-sent", 4_000)
+    ]);
+
+    let output =
+        reconcile_with_dependencies(local, sent, response, generated_break_dependencies()).unwrap();
+    assert_eq!(
+        output["promotedTimerOperationIds"],
+        json!(["generated-pause", "generated-start"])
+    );
+    assert_eq!(output["pendingTimerDependencies"], json!([]));
+    assert_eq!(output["droppedTimerOperationIds"], json!([]));
+    assert_eq!(output["droppedTimerIds"], json!([]));
+    for command in output["pending"].as_array().unwrap() {
+        assert_eq!(command["phase"], "long_break");
+        assert_eq!(command["plannedDurationMs"], 900_000);
+        assert!(command["observedElapsedMs"].as_i64().unwrap() <= 900_000);
+    }
+}
+
+#[test]
+fn reconcile_rebase_v1_preserves_a_completed_generated_break_phase_and_duration() {
+    let mut finish = command("finish-sent", "focus-four", 1, 4_000);
+    finish["type"] = json!("finish");
+    finish["phase"] = json!("focus");
+    finish["plannedDurationMs"] = json!(1_500_000);
+    let generated_start = command("generated-start", "break-generated", 2, 5_000);
+    let mut generated_finish = command("generated-pause", "break-generated", 3, 6_000);
+    generated_finish["type"] = json!("finish");
+    generated_finish["observedElapsedMs"] = json!(300_000);
+
+    let mut sent = empty_queues();
+    sent["commands"] = json!([finish.clone()]);
+    let mut local = empty_queues();
+    local["commands"] = json!([finish, generated_start, generated_finish]);
+    let mut response = canonical_response(&sent);
+    response["history"] = json!([
+        completed_focus("history-one", "focus-one", "finish-one", 1_000),
+        completed_focus("history-two", "focus-two", "finish-two", 2_000),
+        completed_focus("history-three", "focus-three", "finish-three", 3_000),
+        completed_focus("history-four", "focus-four", "finish-sent", 4_000)
+    ]);
+
+    let output =
+        reconcile_with_dependencies(local, sent, response, generated_break_dependencies()).unwrap();
+    for command in output["pending"].as_array().unwrap() {
+        assert_eq!(command["phase"], "short_break");
+        assert_eq!(command["plannedDurationMs"], 300_000);
+    }
+}
+
+#[test]
+fn reconcile_rebase_v1_drops_generated_break_without_exact_evidence_or_after_manual_start() {
+    for include_exact_evidence in [false, true] {
+        let mut finish = command("finish-sent", "focus-source", 1, 1_000);
+        finish["type"] = json!("finish");
+        finish["phase"] = json!("focus");
+        finish["plannedDurationMs"] = json!(1_500_000);
+        let generated_start = command("generated-start", "break-generated", 2, 2_000);
+        let mut generated_pause = command("generated-pause", "break-generated", 3, 3_000);
+        generated_pause["type"] = json!("pause");
+        let manual_start = command("manual-start", "manual-timer", 4, 4_000);
+
+        let mut sent = empty_queues();
+        sent["commands"] = json!([finish.clone()]);
+        let mut local = empty_queues();
+        local["commands"] = if include_exact_evidence {
+            json!([finish, generated_start, generated_pause, manual_start])
+        } else {
+            json!([finish, generated_start, generated_pause])
+        };
+        let mut response = canonical_response(&sent);
+        if include_exact_evidence {
+            response["history"] = json!([completed_focus(
+                "history-source",
+                "focus-source",
+                "finish-sent",
+                1_000
+            )]);
+        }
+
+        let output =
+            reconcile_with_dependencies(local, sent, response, generated_break_dependencies())
+                .unwrap();
+        assert_eq!(
+            output["droppedTimerOperationIds"],
+            json!(["generated-pause", "generated-start"])
+        );
+        assert_eq!(output["droppedTimerIds"], json!(["break-generated"]));
+        assert_eq!(output["promotedTimerOperationIds"], json!([]));
+        assert_eq!(output["pendingTimerDependencies"], json!([]));
+        if include_exact_evidence {
+            assert_eq!(output["pending"][0]["id"], "manual-start");
+        } else {
+            assert_eq!(output["pending"], json!([]));
+        }
+    }
+}
+
+#[test]
+fn reconcile_rebase_v1_retains_unresolved_generated_break_context() {
+    let mut finish = command("finish-sent", "focus-source", 1, 1_000);
+    finish["type"] = json!("finish");
+    finish["phase"] = json!("focus");
+    finish["plannedDurationMs"] = json!(1_500_000);
+    let generated_start = command("generated-start", "break-generated", 2, 2_000);
+    let mut generated_pause = command("generated-pause", "break-generated", 3, 3_000);
+    generated_pause["type"] = json!("pause");
+    let mut local = empty_queues();
+    local["commands"] = json!([finish, generated_start, generated_pause]);
+    let sent = empty_queues();
+
+    let dependencies = generated_break_dependencies();
+    let output = reconcile_with_dependencies(
+        local,
+        sent.clone(),
+        canonical_response(&sent),
+        dependencies.clone(),
+    )
+    .unwrap();
+    assert_eq!(output["pendingTimerDependencies"], dependencies);
+    assert_eq!(output["promotedTimerOperationIds"], json!([]));
+    assert_eq!(output["droppedTimerOperationIds"], json!([]));
+}
+
+#[test]
+fn reconcile_rebase_v1_rebases_each_retained_queue_after_the_server_clock() {
+    let sent = empty_queues();
+    let mut local = json!({
+        "commands": [command("command-stale", "timer-stale", 1, 1_000)],
+        "taskOperations": [task_operation("task-stale", "task-stale", "Task", 1_000)],
+        "durationOperations": [duration_operation("duration-stale", "focus", 1_800_000, 1_000)],
+        "autoStartOperations": [auto_start_operation("auto-stale", true, 1_000)],
+        "selectedTaskOperations": [selected_task_operation("selected-stale", None, 1_000)]
+    });
+    local["commands"][0]["occurredAt"] = json!("2026-07-20T11:53:20Z");
+    local["commands"][0]["hlcWallMs"] = json!(SERVER_WALL_MS - 400_000);
+    let mut response = canonical_response(&sent);
+    response["serverHlcCounter"] = json!(7);
+
+    let output = reconcile(local, sent, response).unwrap();
+    for field in [
+        "pending",
+        "pendingTaskOperations",
+        "pendingDurationOperations",
+        "pendingAutoStartOperations",
+        "pendingSelectedTaskOperations",
+    ] {
+        assert_eq!(output[field][0]["hlcWallMs"], SERVER_WALL_MS + 10_000);
+        assert_eq!(output[field][0]["hlcCounter"], 8);
+    }
+    assert_eq!(
+        output["pending"][0]["occurredAt"],
+        "2026-07-20T12:00:10.000Z"
+    );
+    assert_eq!(
+        output["pendingTaskOperations"][0]["occurredAt"],
+        timestamp(1_000)
+    );
+}
+
+#[test]
+fn reconcile_rebase_v1_rejects_a_queue_when_the_server_clock_has_no_headroom() {
+    let sent = empty_queues();
+    let mut local = empty_queues();
+    local["commands"] = json!([command("command-stale", "timer-stale", 1, 1_000)]);
+    let mut response = canonical_response(&sent);
+    response["serverHlcWallMs"] = json!(SERVER_WALL_MS + 310_000);
+    response["serverHlcCounter"] = json!(9_007_199_254_740_991_i64);
+
+    let error = reconcile(local, sent, response).unwrap_err();
+    assert!(error.contains("headroom"), "unexpected error: {error}");
 }
 
 #[test]

@@ -112,9 +112,9 @@ struct Session {
 }
 
 #[derive(Clone, Debug, Serialize, PartialEq, Eq)]
-struct Outcome {
-    outcome: String,
-    reason: String,
+pub(crate) struct Outcome {
+    pub(crate) outcome: String,
+    pub(crate) reason: String,
 }
 
 impl Outcome {
@@ -146,7 +146,7 @@ pub(crate) struct TimerReductionOutput {
     pub(crate) canonical_timer: Option<CanonicalTimer>,
     pub(crate) history: Vec<HistoryItem>,
     sessions: Vec<WireSession>,
-    outcomes: BTreeMap<String, Outcome>,
+    pub(crate) outcomes: BTreeMap<String, Outcome>,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]

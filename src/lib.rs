@@ -5,6 +5,7 @@ use thiserror::Error;
 
 mod bootstrap;
 mod clock;
+mod projection;
 mod reconciliation;
 mod sync_projection;
 mod task;
@@ -130,6 +131,7 @@ pub fn dispatch_json(operation: &str, input: &str) -> Result<String, CoreError> 
         "timer.reduce" => reduce_timer_fixture_case_json(input),
         "timer.reduce.v1" => timer::reduce_timer_v1_json(input),
         "projection.reduce" => reduce_projection_fixture_case_json(input),
+        "projection.apply.v2" => projection::apply_v2_json(input),
         "task.reduce.v1" => sync_projection::reduce_tasks_v1_json(input),
         "task.identity.v1" => task::identity_json(input),
         "duration.reduce.v1" => sync_projection::reduce_durations_v1_json(input),
