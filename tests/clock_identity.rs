@@ -52,6 +52,38 @@ fn hlc_rejects_negative_and_javascript_unsafe_values() {
 }
 
 #[test]
+fn hlc_rejects_invalid_remote_physical_time_and_counter_exhaustion() {
+    for input in [
+        r#"{"local":{"wallMs":0,"counter":0},"remote":{"wallMs":-1,"counter":0},"physicalNowMs":0}"#,
+        r#"{"local":{"wallMs":0,"counter":0},"remote":{"wallMs":0,"counter":9007199254740992},"physicalNowMs":0}"#,
+        r#"{"local":{"wallMs":0,"counter":0},"physicalNowMs":-1}"#,
+        r#"{"local":{"wallMs":1,"counter":9007199254740991},"physicalNowMs":1}"#,
+    ] {
+        assert!(
+            dispatch_json("hlc.tick.v1", input).is_err(),
+            "input {input}"
+        );
+    }
+}
+
+#[test]
+fn uuidv7_from_parts_rejects_out_of_contract_components() {
+    for input in [
+        r#"{"timestampMs":-1,"randomValueHex":"0"}"#,
+        r#"{"timestampMs":281474976710656,"randomValueHex":"0"}"#,
+        r#"{"timestampMs":0,"randomValueHex":""}"#,
+        r#"{"timestampMs":0,"randomValueHex":"00000000000000000000"}"#,
+        r#"{"timestampMs":0,"randomValueHex":"not-hex"}"#,
+        r#"{"timestampMs":0,"randomValueHex":"4000000000000000000"}"#,
+    ] {
+        assert!(
+            dispatch_json("uuidv7.fromParts.v1", input).is_err(),
+            "input {input}"
+        );
+    }
+}
+
+#[test]
 fn uuidv7_from_parts_matches_rfc9562_fixture() {
     let fixture: Value =
         serde_json::from_slice(include_bytes!("../fixtures/uuidv7-v1.json")).unwrap();

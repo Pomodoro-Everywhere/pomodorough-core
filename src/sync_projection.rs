@@ -1,9 +1,31 @@
+use std::cmp::Ordering;
 use std::collections::{BTreeMap, BTreeSet};
 
 use chrono::DateTime;
 use serde::{Deserialize, Serialize};
 
 use crate::{CoreError, SelectedTaskField};
+
+fn select_clock_winners<T, K>(
+    operations: Vec<T>,
+    group_key: impl Fn(&T) -> K,
+    compare_clocks: impl Fn(&T, &T) -> Ordering,
+) -> BTreeMap<K, T>
+where
+    K: Ord,
+{
+    let mut winners = BTreeMap::new();
+    for operation in operations {
+        let key = group_key(&operation);
+        let replace = winners
+            .get(&key)
+            .is_none_or(|current| compare_clocks(&operation, current).is_gt());
+        if replace {
+            winners.insert(key, operation);
+        }
+    }
+    winners
+}
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -78,20 +100,34 @@ pub(crate) fn replay_tasks(
         validate_operation_clock(&operation.clock)?;
     }
 
-    let mut winners: BTreeMap<String, TaskOperation> = BTreeMap::new();
-    for operation in operations {
-        let replace = winners.get(&operation.task_id).is_none_or(|current| {
-            operation_clock_key(&operation.clock) > operation_clock_key(&current.clock)
-        });
-        if replace {
-            winners.insert(operation.task_id.clone(), operation);
-        }
-    }
-
+    let winners = select_clock_winners(
+        operations,
+        |operation| operation.task_id.clone(),
+        |left, right| operation_clock_key(&left.clock).cmp(&operation_clock_key(&right.clock)),
+    );
     let winning_operation_ids = winners
         .iter()
         .map(|(task_id, operation)| (task_id.clone(), operation.clock.id.clone()))
         .collect();
+    let mut tasks = apply_task_operations(base_tasks, winners)
+        .into_values()
+        .collect::<Vec<_>>();
+    tasks.sort_by(|left, right| {
+        left.title
+            .cmp(&right.title)
+            .then_with(|| left.id.cmp(&right.id))
+    });
+
+    Ok(TaskReductionOutput {
+        tasks,
+        winning_operation_ids,
+    })
+}
+
+fn apply_task_operations(
+    base_tasks: Vec<Task>,
+    winners: BTreeMap<String, TaskOperation>,
+) -> BTreeMap<String, Task> {
     let mut tasks_by_id = base_tasks
         .into_iter()
         .map(|task| (task.id.clone(), task))
@@ -113,17 +149,7 @@ pub(crate) fn replay_tasks(
             _ => {}
         }
     }
-    let mut tasks = tasks_by_id.into_values().collect::<Vec<_>>();
-    tasks.sort_by(|left, right| {
-        left.title
-            .cmp(&right.title)
-            .then_with(|| left.id.cmp(&right.id))
-    });
-
-    Ok(TaskReductionOutput {
-        tasks,
-        winning_operation_ids,
-    })
+    tasks_by_id
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -158,15 +184,11 @@ pub(crate) fn replay_durations(
         validate_operation_clock(&operation.clock)?;
     }
 
-    let mut winners: BTreeMap<String, DurationOperation> = BTreeMap::new();
-    for operation in operations {
-        let replace = winners.get(&operation.phase).is_none_or(|current| {
-            operation_clock_key(&operation.clock) > operation_clock_key(&current.clock)
-        });
-        if replace {
-            winners.insert(operation.phase.clone(), operation);
-        }
-    }
+    let winners = select_clock_winners(
+        operations,
+        |operation| operation.phase.clone(),
+        |left, right| operation_clock_key(&left.clock).cmp(&operation_clock_key(&right.clock)),
+    );
 
     let mut durations_ms = base_durations_ms.unwrap_or_else(|| {
         BTreeMap::from([

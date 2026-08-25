@@ -118,8 +118,17 @@ pub(crate) fn apply_v2_json(input: &str) -> Result<String, CoreError> {
 }
 
 fn validate_projection_input(input: &ProjectionApplyInput) -> Result<(), CoreError> {
+    validate_base_tasks(&input.base.tasks)?;
+    validate_base_selected_task(&input.base.selected_task_id)?;
+    validate_task_operations(&input.pending.task_operations)?;
+    validate_duration_operations(&input.pending.duration_operations)?;
+    validate_auto_start_operations(&input.pending.auto_start_operations)?;
+    validate_selected_task_operations(&input.pending.selected_task_operations)
+}
+
+fn validate_base_tasks(tasks: &[Task]) -> Result<(), CoreError> {
     let mut task_ids = BTreeSet::new();
-    for task in &input.base.tasks {
+    for task in tasks {
         let (expected_id, normalized_title) = crate::task::identity(&task.title)?;
         if task.id != expected_id || task.title != normalized_title || !task_ids.insert(&task.id) {
             return Err(CoreError::InvalidInput(
@@ -127,9 +136,11 @@ fn validate_projection_input(input: &ProjectionApplyInput) -> Result<(), CoreErr
             ));
         }
     }
-    if input
-        .base
-        .selected_task_id
+    Ok(())
+}
+
+fn validate_base_selected_task(selected_task_id: &Option<String>) -> Result<(), CoreError> {
+    if selected_task_id
         .as_ref()
         .is_some_and(|task_id| task_id.is_empty())
     {
@@ -137,7 +148,11 @@ fn validate_projection_input(input: &ProjectionApplyInput) -> Result<(), CoreErr
             "invalid base selected task identity".into(),
         ));
     }
-    for operation in &input.pending.task_operations {
+    Ok(())
+}
+
+fn validate_task_operations(operations: &[TaskOperation]) -> Result<(), CoreError> {
+    for operation in operations {
         validate_clock(&operation.clock)?;
         if operation.task_id.is_empty() {
             return Err(CoreError::InvalidInput("invalid task identity".into()));
@@ -159,7 +174,11 @@ fn validate_projection_input(input: &ProjectionApplyInput) -> Result<(), CoreErr
             }
         }
     }
-    for operation in &input.pending.duration_operations {
+    Ok(())
+}
+
+fn validate_duration_operations(operations: &[DurationOperation]) -> Result<(), CoreError> {
+    for operation in operations {
         validate_clock(&operation.clock)?;
         if !matches!(
             operation.phase.as_str(),
@@ -169,10 +188,20 @@ fn validate_projection_input(input: &ProjectionApplyInput) -> Result<(), CoreErr
             return Err(CoreError::InvalidInput("invalid duration operation".into()));
         }
     }
-    for operation in &input.pending.auto_start_operations {
+    Ok(())
+}
+
+fn validate_auto_start_operations(operations: &[AutoStartOperation]) -> Result<(), CoreError> {
+    for operation in operations {
         validate_clock(&operation.clock)?;
     }
-    for operation in &input.pending.selected_task_operations {
+    Ok(())
+}
+
+fn validate_selected_task_operations(
+    operations: &[SelectedTaskOperation],
+) -> Result<(), CoreError> {
+    for operation in operations {
         validate_clock(&operation.clock)?;
         match &operation.task_id {
             crate::SelectedTaskField::Selected(task_id) if !task_id.is_empty() => {}

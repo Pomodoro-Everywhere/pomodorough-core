@@ -251,30 +251,46 @@ pub(crate) fn validate_replay_state(
     history: &[HistoryItem],
 ) -> Result<(), CoreError> {
     if let Some(timer) = canonical_timer {
-        if timer.id.is_empty()
-            || !matches!(timer.phase.as_str(), "focus" | "short_break" | "long_break")
-            || !matches!(
-                timer.status.as_str(),
-                "running" | "paused" | "completed" | "cancelled" | "superseded"
-            )
-            || !(60_000..=14_400_000).contains(&timer.planned_duration_ms)
-            || !(0..=timer.planned_duration_ms).contains(&timer.elapsed_at_anchor_ms)
-            || parse_time(&timer.anchor_at).is_err()
-        {
-            return Err(CoreError::InvalidInput("invalid canonical timer".into()));
-        }
-        if let Some(intent) = &timer.last_intent {
-            if intent.kind.is_empty()
-                || intent.command_id.is_empty()
-                || parse_time(&intent.occurred_at).is_err()
-            {
-                return Err(CoreError::InvalidInput(
-                    "invalid canonical timer intent".into(),
-                ));
-            }
-        }
+        validate_canonical_timer(timer)?;
     }
+    let timer_ids = validate_history(history)?;
+    if canonical_timer
+        .as_ref()
+        .is_some_and(|timer| timer_ids.contains(timer.id.as_str()))
+    {
+        return Err(CoreError::InvalidInput(
+            "canonical timer overlaps timer history".into(),
+        ));
+    }
+    Ok(())
+}
 
+fn validate_canonical_timer(timer: &CanonicalTimer) -> Result<(), CoreError> {
+    if timer.id.is_empty()
+        || !matches!(timer.phase.as_str(), "focus" | "short_break" | "long_break")
+        || !matches!(
+            timer.status.as_str(),
+            "running" | "paused" | "completed" | "cancelled" | "superseded"
+        )
+        || !(60_000..=14_400_000).contains(&timer.planned_duration_ms)
+        || !(0..=timer.planned_duration_ms).contains(&timer.elapsed_at_anchor_ms)
+        || parse_time(&timer.anchor_at).is_err()
+    {
+        return Err(CoreError::InvalidInput("invalid canonical timer".into()));
+    }
+    if timer.last_intent.as_ref().is_some_and(|intent| {
+        intent.kind.is_empty()
+            || intent.command_id.is_empty()
+            || parse_time(&intent.occurred_at).is_err()
+    }) {
+        return Err(CoreError::InvalidInput(
+            "invalid canonical timer intent".into(),
+        ));
+    }
+    Ok(())
+}
+
+fn validate_history(history: &[HistoryItem]) -> Result<BTreeSet<&str>, CoreError> {
     let mut history_ids = BTreeSet::new();
     let mut timer_ids = BTreeSet::new();
     for item in history {
@@ -304,15 +320,7 @@ pub(crate) fn validate_replay_state(
             return Err(CoreError::InvalidInput("invalid timer history".into()));
         }
     }
-    if canonical_timer
-        .as_ref()
-        .is_some_and(|timer| timer_ids.contains(timer.id.as_str()))
-    {
-        return Err(CoreError::InvalidInput(
-            "canonical timer overlaps timer history".into(),
-        ));
-    }
-    Ok(())
+    Ok(timer_ids)
 }
 
 fn replay_parsed(
@@ -335,11 +343,161 @@ fn replay_parsed(
 }
 
 fn reduce_from_state(
-    mut commands: Vec<Command>,
+    commands: Vec<Command>,
     now: DateTime<Utc>,
-    mut sessions: BTreeMap<String, Session>,
-    mut current_id: Option<String>,
+    sessions: BTreeMap<String, Session>,
+    current_id: Option<String>,
 ) -> TimerReductionOutput {
+    let mut reduction = ReductionState {
+        sessions,
+        current_id,
+        outcomes: BTreeMap::new(),
+    };
+    for command in sorted_commands(commands) {
+        reduction.apply(command);
+    }
+    reduction.finish(now)
+}
+
+struct ReductionState {
+    sessions: BTreeMap<String, Session>,
+    current_id: Option<String>,
+    outcomes: BTreeMap<String, Outcome>,
+}
+
+impl ReductionState {
+    fn apply(&mut self, command: Command) {
+        self.auto_complete_current(&command.occurred_at);
+        let intent = command_intent(&command);
+        match command.kind.as_str() {
+            "start" => self.apply_start(command, intent),
+            "pause" => self.apply_activation(command, intent, "paused"),
+            "resume" => self.apply_activation(command, intent, "running"),
+            "finish" | "cancel" => self.apply_terminal(command, intent),
+            "clear" => self.apply_clear(command, intent),
+            _ => {
+                self.outcomes
+                    .insert(command.id, Outcome::rejected("unsupported command type"));
+            }
+        }
+    }
+
+    fn apply_start(&mut self, command: Command, intent: Intent) {
+        self.supersede_active(&command);
+        let timer_id = command.timer_id.clone();
+        let command_id = command.id.clone();
+        self.sessions
+            .insert(timer_id.clone(), started_session(command, intent));
+        self.current_id = Some(timer_id);
+        self.outcomes.insert(command_id, Outcome::applied());
+    }
+
+    fn apply_activation(&mut self, command: Command, intent: Intent, status: &str) {
+        if !self.sessions.contains_key(&command.timer_id) {
+            let reason = if status == "paused" {
+                "timer is not the active running timer"
+            } else {
+                "timer cannot be resumed"
+            };
+            self.outcomes.insert(command.id, Outcome::ignored(reason));
+            return;
+        }
+        self.supersede_active(&command);
+        let target = self
+            .sessions
+            .get_mut(&command.timer_id)
+            .expect("checked above");
+        target.status = status.into();
+        target.elapsed_at_anchor_ms =
+            clamp(command.observed_elapsed_ms, 0, target.planned_duration_ms);
+        transition_session(target, &command, intent, SessionTransition::Active);
+        self.current_id = Some(target.timer_id.clone());
+        self.outcomes.insert(command.id, Outcome::applied());
+    }
+
+    fn apply_terminal(&mut self, command: Command, intent: Intent) {
+        if !self.sessions.contains_key(&command.timer_id) {
+            self.outcomes
+                .insert(command.id, Outcome::ignored("timer is not active"));
+            return;
+        }
+        self.supersede_active(&command);
+        let target = self
+            .sessions
+            .get_mut(&command.timer_id)
+            .expect("checked above");
+        if command.kind == "finish" {
+            target.status = "completed".into();
+            target.elapsed_at_anchor_ms = target.planned_duration_ms;
+        } else {
+            target.status = "cancelled".into();
+            target.elapsed_at_anchor_ms =
+                clamp(command.observed_elapsed_ms, 0, target.planned_duration_ms);
+        }
+        transition_session(target, &command, intent, SessionTransition::Terminal);
+        self.current_id = Some(target.timer_id.clone());
+        self.outcomes.insert(command.id, Outcome::applied());
+    }
+
+    fn apply_clear(&mut self, command: Command, intent: Intent) {
+        let Some(target) = self.sessions.get_mut(&command.timer_id) else {
+            self.outcomes
+                .insert(command.id, Outcome::ignored("timer cannot be cleared"));
+            return;
+        };
+        target.last_command_id = command.id.clone();
+        target.last_intent = Some(intent);
+        if self.current_id.as_deref() == Some(command.timer_id.as_str()) {
+            self.current_id = None;
+        }
+        self.outcomes.insert(command.id, Outcome::applied());
+    }
+
+    fn supersede_active(&mut self, command: &Command) {
+        if let Some(current) = self
+            .current_id
+            .as_ref()
+            .and_then(|id| self.sessions.get_mut(id))
+            .filter(|current| current.timer_id != command.timer_id && is_active(current))
+        {
+            supersede(
+                current,
+                &command.occurred_at,
+                &command.timer_id,
+                &command.id,
+            );
+        }
+    }
+
+    fn auto_complete_current(&mut self, at: &DateTime<Utc>) {
+        if let Some(current) = self
+            .current_id
+            .as_ref()
+            .and_then(|id| self.sessions.get_mut(id))
+        {
+            auto_complete(current, at);
+        }
+    }
+
+    fn finish(mut self, now: DateTime<Utc>) -> TimerReductionOutput {
+        self.auto_complete_current(&now);
+        let canonical_timer = self
+            .current_id
+            .as_ref()
+            .and_then(|id| self.sessions.get(id))
+            .map(canonical);
+        let history = projected_history(&self.sessions);
+        let sessions = self.sessions.values().map(wire_session).collect();
+        TimerReductionOutput {
+            canonical_timer,
+            history,
+            sessions,
+            outcomes: self.outcomes,
+        }
+    }
+}
+
+fn sorted_commands(mut commands: Vec<Command>) -> Vec<Command> {
     commands.sort_by(|left, right| {
         (
             left.hlc_wall_ms,
@@ -354,174 +512,58 @@ fn reduce_from_state(
                 right.id.as_str(),
             ))
     });
+    commands
+}
 
-    let mut outcomes = BTreeMap::new();
-
-    for command in commands {
-        if let Some(current) = current_id.as_ref().and_then(|id| sessions.get_mut(id)) {
-            auto_complete(current, &command.occurred_at);
-        }
-        let intent = Intent {
-            kind: command.kind.clone(),
-            command_id: command.id.clone(),
-            occurred_at: format_time(&command.occurred_at),
-        };
-
-        match command.kind.as_str() {
-            "start" => {
-                if let Some(current) = current_id.as_ref().and_then(|id| sessions.get_mut(id)) {
-                    if current.timer_id != command.timer_id && is_active(current) {
-                        supersede(
-                            current,
-                            &command.occurred_at,
-                            &command.timer_id,
-                            &command.id,
-                        );
-                    }
-                }
-                let timer_id = command.timer_id.clone();
-                sessions.insert(
-                    timer_id.clone(),
-                    Session {
-                        history_id: timer_id.clone(),
-                        timer_id: timer_id.clone(),
-                        task_id: command.task_id,
-                        phase: command.phase,
-                        status: "running".into(),
-                        planned_duration_ms: command.planned_duration_ms,
-                        elapsed_at_anchor_ms: 0,
-                        anchor_at: command.occurred_at,
-                        started_at: command.occurred_at,
-                        started_by_device_id: command.device_id,
-                        ended_at: None,
-                        last_command_id: command.id.clone(),
-                        terminal_command_id: None,
-                        superseded_by_timer_id: None,
-                        last_intent: Some(intent),
-                    },
-                );
-                current_id = Some(timer_id);
-                outcomes.insert(command.id, Outcome::applied());
-            }
-            "pause" => {
-                if !sessions.contains_key(&command.timer_id) {
-                    outcomes.insert(
-                        command.id,
-                        Outcome::ignored("timer is not the active running timer"),
-                    );
-                    continue;
-                }
-                if let Some(current) = current_id.as_ref().and_then(|id| sessions.get_mut(id)) {
-                    if current.timer_id != command.timer_id && is_active(current) {
-                        supersede(
-                            current,
-                            &command.occurred_at,
-                            &command.timer_id,
-                            &command.id,
-                        );
-                    }
-                }
-                let target = sessions.get_mut(&command.timer_id).expect("checked above");
-                target.status = "paused".into();
-                target.elapsed_at_anchor_ms =
-                    clamp(command.observed_elapsed_ms, 0, target.planned_duration_ms);
-                target.anchor_at = command.occurred_at;
-                target.ended_at = None;
-                target.terminal_command_id = None;
-                target.superseded_by_timer_id = None;
-                target.last_command_id = command.id.clone();
-                target.last_intent = Some(intent);
-                current_id = Some(target.timer_id.clone());
-                outcomes.insert(command.id, Outcome::applied());
-            }
-            "resume" => {
-                if !sessions.contains_key(&command.timer_id) {
-                    outcomes.insert(command.id, Outcome::ignored("timer cannot be resumed"));
-                    continue;
-                }
-                if let Some(current) = current_id.as_ref().and_then(|id| sessions.get_mut(id)) {
-                    if current.timer_id != command.timer_id && is_active(current) {
-                        supersede(
-                            current,
-                            &command.occurred_at,
-                            &command.timer_id,
-                            &command.id,
-                        );
-                    }
-                }
-                let target = sessions.get_mut(&command.timer_id).expect("checked above");
-                target.status = "running".into();
-                target.elapsed_at_anchor_ms =
-                    clamp(command.observed_elapsed_ms, 0, target.planned_duration_ms);
-                target.anchor_at = command.occurred_at;
-                target.ended_at = None;
-                target.terminal_command_id = None;
-                target.superseded_by_timer_id = None;
-                target.last_command_id = command.id.clone();
-                target.last_intent = Some(intent);
-                current_id = Some(target.timer_id.clone());
-                outcomes.insert(command.id, Outcome::applied());
-            }
-            "finish" | "cancel" => {
-                if !sessions.contains_key(&command.timer_id) {
-                    outcomes.insert(command.id, Outcome::ignored("timer is not active"));
-                    continue;
-                }
-                if let Some(current) = current_id.as_ref().and_then(|id| sessions.get_mut(id)) {
-                    if current.timer_id != command.timer_id && is_active(current) {
-                        supersede(
-                            current,
-                            &command.occurred_at,
-                            &command.timer_id,
-                            &command.id,
-                        );
-                    }
-                }
-                let target = sessions.get_mut(&command.timer_id).expect("checked above");
-                if command.kind == "finish" {
-                    target.status = "completed".into();
-                    target.elapsed_at_anchor_ms = target.planned_duration_ms;
-                } else {
-                    target.status = "cancelled".into();
-                    target.elapsed_at_anchor_ms =
-                        clamp(command.observed_elapsed_ms, 0, target.planned_duration_ms);
-                }
-                target.anchor_at = command.occurred_at;
-                target.ended_at = Some(command.occurred_at);
-                target.last_command_id = command.id.clone();
-                target.terminal_command_id = Some(command.id.clone());
-                target.superseded_by_timer_id = None;
-                target.last_intent = Some(intent);
-                current_id = Some(target.timer_id.clone());
-                outcomes.insert(command.id, Outcome::applied());
-            }
-            "clear" => {
-                let Some(target) = sessions.get_mut(&command.timer_id) else {
-                    outcomes.insert(command.id, Outcome::ignored("timer cannot be cleared"));
-                    continue;
-                };
-                target.last_command_id = command.id.clone();
-                target.last_intent = Some(intent);
-                if current_id.as_deref() == Some(command.timer_id.as_str()) {
-                    current_id = None;
-                }
-                outcomes.insert(command.id, Outcome::applied());
-            }
-            _ => {
-                outcomes.insert(command.id, Outcome::rejected("unsupported command type"));
-            }
-        }
+fn command_intent(command: &Command) -> Intent {
+    Intent {
+        kind: command.kind.clone(),
+        command_id: command.id.clone(),
+        occurred_at: format_time(&command.occurred_at),
     }
+}
 
-    if let Some(current) = current_id.as_ref().and_then(|id| sessions.get_mut(id)) {
-        auto_complete(current, &now);
+fn started_session(command: Command, intent: Intent) -> Session {
+    Session {
+        history_id: command.timer_id.clone(),
+        timer_id: command.timer_id,
+        task_id: command.task_id,
+        phase: command.phase,
+        status: "running".into(),
+        planned_duration_ms: command.planned_duration_ms,
+        elapsed_at_anchor_ms: 0,
+        anchor_at: command.occurred_at,
+        started_at: command.occurred_at,
+        started_by_device_id: command.device_id,
+        ended_at: None,
+        last_command_id: command.id,
+        terminal_command_id: None,
+        superseded_by_timer_id: None,
+        last_intent: Some(intent),
     }
+}
 
-    let canonical_timer = current_id
-        .as_ref()
-        .and_then(|id| sessions.get(id))
-        .map(canonical);
+enum SessionTransition {
+    Active,
+    Terminal,
+}
 
+fn transition_session(
+    target: &mut Session,
+    command: &Command,
+    intent: Intent,
+    transition: SessionTransition,
+) {
+    target.anchor_at = command.occurred_at;
+    let terminal = matches!(transition, SessionTransition::Terminal);
+    target.ended_at = terminal.then_some(command.occurred_at);
+    target.last_command_id = command.id.clone();
+    target.terminal_command_id = terminal.then(|| command.id.clone());
+    target.superseded_by_timer_id = None;
+    target.last_intent = Some(intent);
+}
+
+fn projected_history(sessions: &BTreeMap<String, Session>) -> Vec<HistoryItem> {
     let mut terminal = sessions
         .values()
         .filter(|session| {
@@ -537,34 +579,25 @@ fn reduce_from_state(
             .cmp(&left.ended_at)
             .then_with(|| left.timer_id.cmp(&right.timer_id))
     });
-    let history = terminal
-        .into_iter()
-        .map(|session| {
-            let ended_at = session.ended_at.as_ref().map(format_time);
-            HistoryItem {
-                id: session.history_id.clone(),
-                timer_id: session.timer_id.clone(),
-                task_id: session.task_id.clone(),
-                command_id: session.terminal_command_id.clone(),
-                phase: session.phase.clone(),
-                status: session.status.clone(),
-                planned_duration_ms: session.planned_duration_ms,
-                completed_at: (session.status == "completed").then(|| {
-                    ended_at
-                        .clone()
-                        .expect("terminal completed session has an end time")
-                }),
-                ended_at,
-            }
-        })
-        .collect();
-    let sessions = sessions.values().map(wire_session).collect();
+    terminal.into_iter().map(history_item).collect()
+}
 
-    TimerReductionOutput {
-        canonical_timer,
-        history,
-        sessions,
-        outcomes,
+fn history_item(session: &Session) -> HistoryItem {
+    let ended_at = session.ended_at.as_ref().map(format_time);
+    HistoryItem {
+        id: session.history_id.clone(),
+        timer_id: session.timer_id.clone(),
+        task_id: session.task_id.clone(),
+        command_id: session.terminal_command_id.clone(),
+        phase: session.phase.clone(),
+        status: session.status.clone(),
+        planned_duration_ms: session.planned_duration_ms,
+        completed_at: (session.status == "completed").then(|| {
+            ended_at
+                .clone()
+                .expect("terminal completed session has an end time")
+        }),
+        ended_at,
     }
 }
 
@@ -799,8 +832,16 @@ pub fn reduce_timer_fixture_case_json(input: &str) -> Result<String, CoreError> 
     let input: FixtureInput = serde_json::from_str(input)?;
     let epoch = parse_time(&input.epoch)?;
     let now = epoch + Duration::milliseconds(input.now_ms);
-    let commands = input
-        .commands
+    let reduction = reduce(fixture_commands(input.commands, epoch), now);
+    let timer = reduction
+        .canonical_timer
+        .map(|timer| fixture_timer(timer, epoch));
+    let history = fixture_history(reduction.history, epoch)?;
+    Ok(serde_json::to_string(&FixtureOutput { timer, history })?)
+}
+
+fn fixture_commands(commands: Vec<FixtureCommand>, epoch: DateTime<Utc>) -> Vec<Command> {
+    commands
         .into_iter()
         .map(|command| {
             let _ = command.sequence;
@@ -818,10 +859,11 @@ pub fn reduce_timer_fixture_case_json(input: &str) -> Result<String, CoreError> 
                 observed_elapsed_ms: command.elapsed_ms,
             }
         })
-        .collect();
-    let reduction = reduce(commands, now);
+        .collect()
+}
 
-    let timer = reduction.canonical_timer.map(|timer| FixtureTimer {
+fn fixture_timer(timer: CanonicalTimer, epoch: DateTime<Utc>) -> FixtureTimer {
+    FixtureTimer {
         id: timer.id,
         status: timer.status,
         phase: timer.phase,
@@ -836,9 +878,15 @@ pub fn reduce_timer_fixture_case_json(input: &str) -> Result<String, CoreError> 
             .map(|intent| intent.command_id)
             .unwrap_or_default(),
         task_id: timer.task_id,
-    });
-    let mut history = Vec::with_capacity(reduction.history.len());
-    for item in reduction.history {
+    }
+}
+
+fn fixture_history(
+    items: Vec<HistoryItem>,
+    epoch: DateTime<Utc>,
+) -> Result<Vec<FixtureHistory>, CoreError> {
+    let mut history = Vec::with_capacity(items.len());
+    for item in items {
         let ended_at = item
             .ended_at
             .as_deref()
@@ -855,6 +903,5 @@ pub fn reduce_timer_fixture_case_json(input: &str) -> Result<String, CoreError> 
             task_id: item.task_id,
         });
     }
-
-    Ok(serde_json::to_string(&FixtureOutput { timer, history })?)
+    Ok(history)
 }

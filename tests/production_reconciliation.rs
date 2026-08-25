@@ -630,6 +630,111 @@ fn reconcile_rebase_v1_rejects_invalid_timer_dependency_graphs() {
 }
 
 #[test]
+fn reconcile_rebase_v1_rejects_duplicate_timer_ids_and_invalid_generated_breaks() {
+    let sent = empty_queues();
+    let response = canonical_response(&sent);
+
+    let duplicate = command("duplicate", "timer", 1, 1_000);
+    let mut duplicate_local = empty_queues();
+    duplicate_local["commands"] = json!([duplicate.clone(), duplicate]);
+    assert!(reconcile(duplicate_local, sent.clone(), response.clone()).is_err());
+
+    let mut finish = command("finish", "focus-timer", 1, 1_000);
+    finish["type"] = json!("finish");
+    finish["phase"] = json!("focus");
+    let generated = command("generated", "break-timer", 2, 2_000);
+    let mut local = empty_queues();
+    local["commands"] = json!([finish.clone(), generated.clone()]);
+
+    for dependency in [
+        json!({
+            "operationId": "generated",
+            "dependsOnOperationId": "finish",
+            "generatedBreak": false,
+            "sourceDayStart": "2026-07-20T00:00:00Z",
+            "sourceDayEnd": "2026-07-21T00:00:00Z"
+        }),
+        json!({
+            "operationId": "generated",
+            "dependsOnOperationId": "finish",
+            "generatedBreak": true
+        }),
+        json!({
+            "operationId": "generated",
+            "dependsOnOperationId": "finish",
+            "generatedBreak": true,
+            "sourceDayStart": "not-a-time",
+            "sourceDayEnd": "2026-07-21T00:00:00Z"
+        }),
+        json!({
+            "operationId": "generated",
+            "dependsOnOperationId": "finish",
+            "generatedBreak": true,
+            "sourceDayStart": "2026-07-21T00:00:00Z",
+            "sourceDayEnd": "2026-07-20T00:00:00Z"
+        }),
+    ] {
+        assert!(
+            reconcile_with_dependencies(
+                local.clone(),
+                sent.clone(),
+                response.clone(),
+                json!([dependency]),
+            )
+            .is_err()
+        );
+    }
+
+    let mut wrong_parent = finish.clone();
+    wrong_parent["type"] = json!("start");
+    let mut wrong_parent_local = empty_queues();
+    wrong_parent_local["commands"] = json!([wrong_parent, generated.clone()]);
+    assert!(
+        reconcile_with_dependencies(
+            wrong_parent_local,
+            sent.clone(),
+            response.clone(),
+            json!([{
+                "operationId": "generated",
+                "dependsOnOperationId": "finish",
+                "generatedBreak": true,
+                "sourceDayStart": "2026-07-20T00:00:00Z",
+                "sourceDayEnd": "2026-07-21T00:00:00Z"
+            }]),
+        )
+        .is_err()
+    );
+
+    let second_generated = command("generated-second", "break-timer-2", 3, 3_000);
+    let mut duplicate_source_local = empty_queues();
+    duplicate_source_local["commands"] = json!([finish, generated, second_generated]);
+    assert!(
+        reconcile_with_dependencies(
+            duplicate_source_local,
+            sent,
+            response,
+            json!([
+                {
+                    "operationId": "generated",
+                    "dependsOnOperationId": "finish",
+                    "generatedBreak": true,
+                    "sourceDayStart": "2026-07-20T00:00:00Z",
+                    "sourceDayEnd": "2026-07-21T00:00:00Z"
+                },
+                {
+                    "operationId": "generated-second",
+                    "dependsOnOperationId": "finish",
+                    "generatedBreak": true,
+                    "sourceDayStart": "2026-07-20T00:00:00Z",
+                    "sourceDayEnd": "2026-07-21T00:00:00Z"
+                }
+            ]),
+        )
+        .is_err()
+    );
+}
+
+#[test]
 fn reconcile_rebase_v1_rejects_unsafe_retained_timer_values() {
     let sent = empty_queues();
     let mut local = empty_queues();
