@@ -265,7 +265,7 @@ pub(crate) fn validate_replay_state(
     Ok(())
 }
 
-fn validate_canonical_timer(timer: &CanonicalTimer) -> Result<(), CoreError> {
+pub(crate) fn validate_canonical_timer(timer: &CanonicalTimer) -> Result<(), CoreError> {
     if timer.id.is_empty()
         || !matches!(timer.phase.as_str(), "focus" | "short_break" | "long_break")
         || !matches!(
@@ -290,7 +290,7 @@ fn validate_canonical_timer(timer: &CanonicalTimer) -> Result<(), CoreError> {
     Ok(())
 }
 
-fn validate_history(history: &[HistoryItem]) -> Result<BTreeSet<&str>, CoreError> {
+pub(crate) fn validate_history(history: &[HistoryItem]) -> Result<BTreeSet<&str>, CoreError> {
     let mut history_ids = BTreeSet::new();
     let mut timer_ids = BTreeSet::new();
     for item in history {
@@ -748,7 +748,7 @@ fn clamp(value: i64, minimum: i64, maximum: i64) -> i64 {
     value.max(minimum).min(maximum)
 }
 
-fn parse_time(value: &str) -> Result<DateTime<Utc>, CoreError> {
+pub(crate) fn parse_time(value: &str) -> Result<DateTime<Utc>, CoreError> {
     DateTime::parse_from_rfc3339(value)
         .map(|time| time.with_timezone(&Utc))
         .map_err(|_| CoreError::InvalidTimestamp(value.to_owned()))
