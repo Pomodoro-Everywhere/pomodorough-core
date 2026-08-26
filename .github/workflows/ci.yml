@@ -35,3 +35,10 @@ jobs:
           cargo +1.97.1 build --release --target wasm32-unknown-unknown --locked
           python3 scripts/canonicalize_wasm_artifact.py target/wasm32-unknown-unknown/release/pomodorough_core.wasm
           python3 scripts/verify_wasm_artifact.py target/wasm32-unknown-unknown/release/pomodorough_core.wasm
+      - name: Upload canonical WebAssembly core
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: pomodorough-core-wasm-${{ github.sha }}
+          path: target/wasm32-unknown-unknown/release/pomodorough_core.wasm
+          if-no-files-found: error
+          retention-days: 7
