@@ -22,6 +22,7 @@ cargo fmt --all -- --check
 cargo test --all-targets --locked
 cargo clippy --all-targets --all-features --locked -- -D warnings
 cargo build --release --target wasm32-unknown-unknown --locked
+python3 scripts/canonicalize_wasm_artifact.py target/wasm32-unknown-unknown/release/pomodorough_core.wasm
 python3 scripts/verify_wasm_artifact.py target/wasm32-unknown-unknown/release/pomodorough_core.wasm
 ```
 

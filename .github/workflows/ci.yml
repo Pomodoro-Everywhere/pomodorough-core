@@ -28,5 +28,10 @@ jobs:
         run: cargo +1.97.1 test --all-targets --locked
       - name: Lint all targets
         run: cargo +1.97.1 clippy --all-targets --locked -- -D warnings
+      - name: Test WASM canonicalizer
+        run: python3 -m unittest scripts/test_canonicalize_wasm_artifact.py -v
       - name: Build portable WebAssembly core
-        run: cargo +1.97.1 build --release --target wasm32-unknown-unknown --locked
+        run: |
+          cargo +1.97.1 build --release --target wasm32-unknown-unknown --locked
+          python3 scripts/canonicalize_wasm_artifact.py target/wasm32-unknown-unknown/release/pomodorough_core.wasm
+          python3 scripts/verify_wasm_artifact.py target/wasm32-unknown-unknown/release/pomodorough_core.wasm
