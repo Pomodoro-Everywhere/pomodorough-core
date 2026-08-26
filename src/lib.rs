@@ -143,6 +143,7 @@ pub fn dispatch_json(operation: &str, input: &str) -> Result<String, CoreError> 
         "reconcile.rebase.v1" => reconciliation::rebase_v1_json(input),
         "bootstrap.plan.v1" => bootstrap::plan_v1_json(input),
         "timer.completionPlan.v1" => completion_plan::plan_v1_json(input),
+        "hlc.head.v1" => clock::head_json(input),
         "hlc.tick.v1" => clock::tick_json(input),
         "uuidv7.fromParts.v1" => clock::uuid_v7_from_parts_json(input),
         other => Err(CoreError::UnsupportedOperation(other.to_owned())),

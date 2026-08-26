@@ -58,8 +58,22 @@ const operation = encoder.encode("core.version");
 const input = encoder.encode("{}");
 assert.deepEqual(invoke(operation, input), {
   ok: true,
-  value: { schemaVersion: 1, coreVersion: "0.1.3" },
+  value: { schemaVersion: 1, coreVersion: "0.1.4" },
 });
+assert.deepEqual(
+  invoke(
+    encoder.encode("hlc.head.v1"),
+    encoder.encode(JSON.stringify({
+      physicalNowMs: 100,
+      observed: [
+        { wallMs: 101, counter: 2 },
+        { wallMs: 101, counter: 7 },
+        { wallMs: 99, counter: 99 },
+      ],
+    })),
+  ),
+  { ok: true, value: { wallMs: 101, counter: 7 } },
+);
 
 for (const override of [
   { operationPointer: 0, operationLength: 1 },

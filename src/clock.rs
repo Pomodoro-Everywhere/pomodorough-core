@@ -21,6 +21,35 @@ struct HlcTickInput {
     physical_now_ms: i64,
 }
 
+#[derive(Clone, Copy, Debug, Deserialize, Ord, PartialOrd, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct HlcHeadClock {
+    wall_ms: i64,
+    counter: i64,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct HlcHeadInput {
+    physical_now_ms: i64,
+    observed: Vec<HlcHeadClock>,
+}
+
+pub(crate) fn head_json(input: &str) -> Result<String, CoreError> {
+    let input: HlcHeadInput = serde_json::from_str(input)?;
+    validate_safe("physicalNowMs", input.physical_now_ms)?;
+    let mut head = HlcHeadClock {
+        wall_ms: input.physical_now_ms,
+        counter: 0,
+    };
+    for clock in input.observed {
+        validate_safe("wallMs", clock.wall_ms)?;
+        validate_safe("counter", clock.counter)?;
+        head = head.max(clock);
+    }
+    Ok(serde_json::to_string(&head)?)
+}
+
 pub(crate) fn tick_json(input: &str) -> Result<String, CoreError> {
     let input: HlcTickInput = serde_json::from_str(input)?;
     validate_hlc(input.local)?;

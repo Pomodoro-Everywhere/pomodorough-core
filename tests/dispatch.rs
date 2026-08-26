@@ -7,7 +7,7 @@ fn dispatcher_exposes_versioned_cross_language_operations() {
         serde_json::from_str(&dispatch_json("core.version", "{}").unwrap()).unwrap();
     assert_eq!(
         version,
-        serde_json::json!({"schemaVersion":1,"coreVersion":"0.1.3"})
+        serde_json::json!({"schemaVersion":1,"coreVersion":"0.1.4"})
     );
 
     let selected: Value = serde_json::from_str(
