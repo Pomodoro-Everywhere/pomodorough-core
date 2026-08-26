@@ -29,6 +29,12 @@ Current host adapters:
 
 Every consumer runs the same WebAssembly artifact. The server route remains pure Go and does not require CGO.
 
+### Canonical artifact provenance
+
+Rust/LLVM can emit byte-different `wasm32-unknown-unknown` code sections from different host toolchain builds even when the source commit, Rust version, target, and behavior are identical. Therefore cross-host local rebuilds are semantic checks, not byte-provenance evidence.
+
+The `ubuntu-24.04` Core CI job is the canonical producer. It uses pinned Rust `1.97.1`, removes non-semantic custom sections, validates the ABI, and uploads `pomodorough-core-wasm-${GITHUB_SHA}`. A release publishes those exact CI-produced bytes as `pomodorough_core.wasm`. Consumers pin the full Core commit and release digest, then verify their embedded bytes against that release artifact. They must not substitute bytes from a macOS or Windows rebuild.
+
 ## Development
 
 ```sh
