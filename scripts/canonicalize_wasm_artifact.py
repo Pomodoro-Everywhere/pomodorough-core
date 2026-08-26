@@ -24,6 +24,20 @@ def _read_uleb32(data: bytes, offset: int) -> tuple[int, int]:
     raise ValueError("invalid WASM section length")
 
 
+def _validate_custom_section(payload: bytes) -> None:
+    try:
+        name_size, name_start = _read_uleb32(payload, 0)
+    except ValueError as error:
+        raise ValueError("invalid WASM custom section name length") from error
+    name_end = name_start + name_size
+    if name_end > len(payload):
+        raise ValueError("invalid WASM custom section name: truncated UTF-8 bytes")
+    try:
+        payload[name_start:name_end].decode("utf-8")
+    except UnicodeDecodeError as error:
+        raise ValueError("invalid WASM custom section name: invalid UTF-8") from error
+
+
 def canonicalize_wasm(data: bytes) -> bytes:
     if not data.startswith(WASM_HEADER):
         raise ValueError("invalid WebAssembly header or version")
@@ -38,7 +52,9 @@ def canonicalize_wasm(data: bytes) -> bytes:
         section_end = payload_start + section_size
         if section_end > len(data):
             raise ValueError("truncated WASM section")
-        if section_id != 0:
+        if section_id == 0:
+            _validate_custom_section(data[payload_start:section_end])
+        else:
             output.extend(data[section_start:section_end])
         offset = section_end
     return bytes(output)
