@@ -13,6 +13,7 @@ EXPECTED_EXPORTS = {
     "pomodorough_alloc": 0,
     "pomodorough_dispatch": 0,
     "pomodorough_free": 0,
+    "pomodorough_free_v2": 0,
 }
 MAX_ARTIFACT_BYTES = 16 * 1024 * 1024
 MAX_MEMORY_PAGES = 4096

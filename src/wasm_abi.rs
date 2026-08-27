@@ -19,12 +19,22 @@ pub extern "C" fn pomodorough_alloc(length: u32) -> u32 {
 
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn pomodorough_free(pointer: u32, length: u32) {
+    let _ = release_buffer(pointer, length);
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn pomodorough_free_v2(pointer: u32, length: u32) -> u32 {
+    u32::from(release_buffer(pointer, length))
+}
+
+fn release_buffer(pointer: u32, length: u32) -> bool {
     if !remove_buffer(pointer, length) {
-        return;
+        return false;
     }
     let slice = std::ptr::slice_from_raw_parts_mut(pointer as *mut u8, length as usize);
     // SAFETY: remove_buffer proves this exact live Box allocation was registered once.
     unsafe { drop(Box::from_raw(slice)) };
+    true
 }
 
 #[unsafe(no_mangle)]

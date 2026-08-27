@@ -7,6 +7,7 @@ const {
   memory,
   pomodorough_alloc: alloc,
   pomodorough_free: free,
+  pomodorough_free_v2: freeV2,
   pomodorough_dispatch: dispatch,
 } = instance.exports;
 
@@ -14,6 +15,7 @@ for (const name of [
   "memory",
   "pomodorough_alloc",
   "pomodorough_free",
+  "pomodorough_free_v2",
   "pomodorough_dispatch",
 ]) {
   assert.ok(instance.exports[name], `missing export ${name}`);
@@ -27,14 +29,14 @@ function allocate(bytes) {
 }
 
 function release(buffer) {
-  free(buffer.pointer, buffer.bytes.length);
+  assert.equal(freeV2(buffer.pointer, buffer.bytes.length), 1);
 }
 
 function unpack(packed) {
   const pointer = Number(packed & 0xffff_ffffn) >>> 0;
   const length = Number((packed >> 32n) & 0xffff_ffffn) >>> 0;
   const bytes = new Uint8Array(memory.buffer, pointer, length).slice();
-  free(pointer, length);
+  assert.equal(freeV2(pointer, length), 1);
   return JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes));
 }
 
@@ -58,7 +60,7 @@ const operation = encoder.encode("core.version");
 const input = encoder.encode("{}");
 assert.deepEqual(invoke(operation, input), {
   ok: true,
-  value: { schemaVersion: 1, coreVersion: "0.1.5" },
+  value: { schemaVersion: 1, coreVersion: "0.1.6" },
 });
 assert.deepEqual(
   invoke(
@@ -100,14 +102,15 @@ for (const invalid of [
 
 const live = { bytes: operation, pointer: allocate(operation) };
 const liveInput = { bytes: input, pointer: allocate(input) };
-free(0, 1);
-free(live.pointer, 0);
-free(live.pointer, 0xffff_ffff);
+assert.equal(freeV2(0, 1), 0);
+assert.equal(freeV2(live.pointer, 0), 0);
+assert.equal(freeV2(live.pointer, 0xffff_ffff), 0);
 assert.equal(
   unpack(dispatch(live.pointer, live.bytes.length, liveInput.pointer, input.length)).ok,
   true,
 );
 release(liveInput);
-free(live.pointer, live.bytes.length);
-free(live.pointer, live.bytes.length);
+assert.equal(freeV2(live.pointer, live.bytes.length), 1);
+assert.equal(freeV2(live.pointer, live.bytes.length), 0);
+free(0, 1);
 assert.equal(invoke(operation, input).ok, true);
