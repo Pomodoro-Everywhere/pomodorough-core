@@ -182,6 +182,21 @@ fn generated_break_selects_exact_projection_and_rejects_stale_state() {
 }
 
 #[test]
+fn generated_break_requires_exact_source_history_evidence_for_eligibility() {
+    let mut missing_history = projection(true);
+    missing_history["history"] = json!([]);
+    let mut mismatched_history = projection(true);
+    mismatched_history["history"][0]["commandId"] = json!("different-finish");
+
+    for optimistic in [missing_history, mismatched_history] {
+        let result = plan(generated_input(projection(false), optimistic, true));
+        assert_eq!(result["generatedBreakEligible"], false);
+        assert!(result["generatedBreakPhase"].is_null());
+        assert_eq!(result["sourceAlreadyAccepted"], false);
+    }
+}
+
+#[test]
 fn expiry_requires_the_same_running_timer_to_become_completed() {
     let mut cases = Vec::new();
     let mut missing_before = expiry_input(vec![], false, "owner");

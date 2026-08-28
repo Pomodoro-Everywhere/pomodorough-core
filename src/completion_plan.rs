@@ -245,9 +245,9 @@ fn generated_break_plan(input: GeneratedBreakInput) -> Result<CompletionPlan, Co
     } else {
         &input.optimistic
     };
-    let eligible = projection_timer_is_source(projection, &input.source);
+    let eligible = projection_has_source(projection, &input.source);
     let bounds = parse_bounds(&input.day_start, &input.day_end)?;
-    let phase = projection_has_source(projection, &input.source)
+    let phase = eligible
         .then(|| break_phase(&projection.history, bounds))
         .transpose()?;
     Ok(CompletionPlan {
