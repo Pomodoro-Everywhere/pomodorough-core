@@ -23,13 +23,13 @@ STRICT_SHA256 = re.compile(r"^[0-9a-f]{64}$")
 COMMIT_SHA = re.compile(r"^[0-9a-f]{40}$")
 ACTION_USE = re.compile(r"^\s*uses:\s*([^\s@]+)@([^\s#]+)", re.MULTILINE)
 RELEASE_TIME = re.compile(r"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$")
-API_VERSION_HEADER = "X-GitHub-Api-Version: 2026-03-10"
 DRAFT_BODY_PREFIX = "pomodorough-core-release-seal-v1:"
 PUBLICATION_RESIDUAL = (
     "GitHub REST has no conditional release PATCH; an external writer can move the "
-    "tag or disable release immutability during the final request. The contract "
-    "rechecks both controls immediately before and after publication, fails closed, "
-    "and reports that an already-public release may require incident response."
+    "tag during the final request. The contract rechecks the tag immediately before "
+    "and after publication, then requires both the PATCH response and final ID-bound "
+    "release record to report immutable=true. An already-public release may require "
+    "incident response."
 )
 CI_REQUIRED = (
     "push:\n    branches: [main]",
@@ -62,7 +62,6 @@ RELEASE_REQUIRED = (
     '--signer-digest "$GITHUB_WORKFLOW_SHA"',
     '--source-digest "$GITHUB_WORKFLOW_SHA"',
     '--source-ref "$GITHUB_REF"',
-    "require-immutable-releases",
     "require-remote-tag-source",
     "prepare-draft-release",
     "capture-draft-release",
@@ -82,11 +81,11 @@ RELEASE_FORBIDDEN = (
     "gh release download",
     "gh release edit",
     "--clobber",
+    "immutable-releases",
 )
 RELEASE_COUNTS = {
     "validate-source": 2,
     'gh attestation verify "$asset"': 2,
-    "require-immutable-releases": 1,
     "require-remote-tag-source": 2,
     "prepare-draft-release": 1,
     "capture-draft-release": 1,
@@ -349,7 +348,6 @@ RELEASE_STEPS = {
                 'mode="$(python3 scripts/c5_release_contract.py prepare-draft-release',
                 'case "$mode" in',
                 "create)",
-                "python3 scripts/c5_release_contract.py require-immutable-releases",
                 "python3 scripts/c5_release_contract.py require-remote-tag-source",
                 'gh release create "$GITHUB_REF_NAME"',
                 "python3 scripts/c5_release_contract.py capture-draft-release",
@@ -865,16 +863,6 @@ def _runtime_integer(value: object, label: str) -> int:
     return integer
 
 
-def require_immutable_releases(repository: str) -> dict[str, bool]:
-    endpoint = f"repos/{repository}/immutable-releases"
-    value = _gh_json(["api", "-H", API_VERSION_HEADER, endpoint], "immutable releases lookup")
-    if not isinstance(value, dict) or set(value) != {"enabled", "enforced_by_owner"}:
-        raise ReleaseContractError("immutable releases response is malformed")
-    if value["enabled"] is not True or not isinstance(value["enforced_by_owner"], bool):
-        raise ReleaseContractError("repository immutable releases are not enabled")
-    return value
-
-
 def _workflow_identity(
     repository: str,
     tag: str,
@@ -1365,23 +1353,21 @@ def publish_verified_draft(
     seal, release_id, assets = _verified_draft_for_publication(
         repository, tag, expected_sha, workflow_sha, run_id, run_attempt, directory, seal_path
     )
-    require_immutable_releases(repository)
     require_remote_tag_source(repository, tag, expected_sha)
     published = _publish_by_id(repository, release_id, tag)
     try:
         require_remote_tag_source(repository, tag, expected_sha)
-        require_immutable_releases(repository)
+        _require_published_identity(published, seal)
+        final = _current_release(repository, tag)
+        _require_published_identity(final, seal)
+        if final != published:
+            raise ReleaseContractError("published release changed during final verification")
+        _verify_asset_bytes(repository, assets)
     except ReleaseContractError as error:
         raise ReleaseContractError(
             "publication race detected after REST PATCH; release may already be public and "
             "requires incident response"
         ) from error
-    _require_published_identity(published, seal)
-    final = _current_release(repository, tag)
-    _require_published_identity(final, seal)
-    if final != published:
-        raise ReleaseContractError("published release changed during final verification")
-    _verify_asset_bytes(repository, assets)
     return final
 
 
@@ -1403,8 +1389,6 @@ def _add_release_identity_arguments(command: argparse.ArgumentParser) -> None:
 
 
 def _add_release_state_parsers(commands: argparse._SubParsersAction) -> None:
-    immutable = commands.add_parser("require-immutable-releases")
-    immutable.add_argument("--github-repository", required=True)
     for name in ("require-missing-release", "require-draft-release"):
         release = commands.add_parser(name)
         release.add_argument("--github-repository", required=True)
@@ -1453,9 +1437,6 @@ def _execute_release_state(arguments: argparse.Namespace) -> object:
     if arguments.command == "require-missing-release":
         require_missing_release(arguments.github_repository, arguments.tag)
         return "release tag is unpublished and unused"
-    if arguments.command == "require-immutable-releases":
-        require_immutable_releases(arguments.github_repository)
-        return "repository immutable releases are enabled"
     if arguments.command == "require-remote-tag-source":
         require_remote_tag_source(
             arguments.github_repository, arguments.tag, arguments.expected_sha

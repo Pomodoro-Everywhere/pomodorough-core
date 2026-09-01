@@ -216,6 +216,19 @@ class WorkflowContractTests(unittest.TestCase):
         with self.assertRaises(self.contract.ReleaseContractError):
             self.contract.validate_release_workflow(tag_publish)
 
+    def test_rejects_admin_only_immutable_release_preflight(self) -> None:
+        marker = "              python3 scripts/c5_release_contract.py require-remote-tag-source"
+        preflights = (
+            "              python3 scripts/c5_release_contract.py require-immutable-releases",
+            '              gh api "repos/$GITHUB_REPOSITORY/immutable-releases"',
+        )
+        for preflight in preflights:
+            mutated = self.release.replace(marker, f"{preflight}\n{marker}", 1)
+            with self.subTest(preflight=preflight), self.assertRaisesRegex(
+                self.contract.ReleaseContractError, "unsafe"
+            ):
+                self.contract.validate_release_workflow(mutated)
+
     def test_rejects_weakened_ci(self) -> None:
         for required in (
             "pull_request:",
@@ -434,7 +447,8 @@ class WorkflowContractTests(unittest.TestCase):
 
     def test_documents_non_atomic_rest_publication_limit(self) -> None:
         self.assertIn("no conditional release PATCH", self.contract.PUBLICATION_RESIDUAL)
-        self.assertIn("immediately before and after publication", self.contract.PUBLICATION_RESIDUAL)
+        self.assertIn("tag immediately before and after publication", self.contract.PUBLICATION_RESIDUAL)
+        self.assertIn("final ID-bound release record", self.contract.PUBLICATION_RESIDUAL)
         self.assertIn("already-public release", self.contract.PUBLICATION_RESIDUAL)
 
 
@@ -484,10 +498,6 @@ class ReleaseStateTests(unittest.TestCase):
     def tag_result(self, source: str | None = None):
         value = source or self.source
         return self.result(0, stdout=json.dumps({"object": {"type": "commit", "sha": value}}))
-
-    def immutable_result(self, enabled: bool = True):
-        value = {"enabled": enabled, "enforced_by_owner": False}
-        return self.result(0, stdout=json.dumps(value))
 
     def asset(self, name: str, asset_id: int) -> dict[str, object]:
         contents = (self.bundle / name).read_bytes()
@@ -586,11 +596,9 @@ class ReleaseStateTests(unittest.TestCase):
             self.tag_result(),
             self.list_result(draft),
             self.object_result(draft),
-            self.immutable_result(),
             self.tag_result(),
             self.object_result(published),
             self.tag_result(),
-            self.immutable_result(),
             self.list_result(published),
             self.object_result(published),
         ]
@@ -628,31 +636,28 @@ class ReleaseStateTests(unittest.TestCase):
             with self.assertRaisesRegex(self.contract.ReleaseContractError, "failed closed"):
                 self.contract.require_missing_release(self.repository, self.tag)
 
-    def test_immutable_release_configuration_is_exact_and_fail_closed(self) -> None:
+    def test_workflow_token_403_admin_endpoint_is_not_required(self) -> None:
+        draft = self.release()
+        published = self.release(draft=False, updated_at="2026-08-31T12:00:04Z")
+        responses = iter(self.publish_responses(draft, published))
+
+        def workflow_token(arguments: list[str]):
+            if "immutable-releases" in " ".join(arguments):
+                return self.result(
+                    1, stderr="HTTP 403: Resource not accessible by integration"
+                )
+            return next(responses)
+
         with mock.patch.object(
-            self.contract, "_run_gh", return_value=self.immutable_result()
-        ) as run:
-            self.contract.require_immutable_releases(self.repository)
-        self.assertEqual(
-            run.call_args.args[0],
-            [
-                "api",
-                "-H",
-                self.contract.API_VERSION_HEADER,
-                "repos/example/core/immutable-releases",
-            ],
+            self.contract, "_run_gh", side_effect=workflow_token
+        ) as run, mock.patch.object(
+            self.contract, "_run_gh_bytes", side_effect=self.download
+        ):
+            final = self.publish(self.write_seal(draft))
+        self.assertTrue(final["immutable"])
+        self.assertFalse(
+            any("immutable-releases" in " ".join(call.args[0]) for call in run.call_args_list)
         )
-        invalid = (
-            self.immutable_result(False),
-            self.result(0, stdout='{"enabled":true}'),
-            self.result(0, stdout='{"enabled":true,"enforced_by_owner":false,"extra":1}'),
-            self.result(1, stderr="unavailable"),
-        )
-        for response in invalid:
-            with self.subTest(response=response), mock.patch.object(
-                self.contract, "_run_gh", return_value=response
-            ), self.assertRaises(self.contract.ReleaseContractError):
-                self.contract.require_immutable_releases(self.repository)
 
     def test_remote_lightweight_and_annotated_tags_peel_to_exact_source(self) -> None:
         source = "a" * 40
@@ -890,7 +895,7 @@ class ReleaseStateTests(unittest.TestCase):
             self.contract, "_run_gh_bytes", side_effect=self.download
         ) as download:
             final = self.publish(seal_path)
-        patch = run.call_args_list[5].args[0]
+        patch = run.call_args_list[4].args[0]
         self.assertEqual(
             patch,
             ["api", "--method", "PATCH", "repos/example/core/releases/7", "-F", "draft=false"],
@@ -899,14 +904,8 @@ class ReleaseStateTests(unittest.TestCase):
         self.assertEqual(len(download.call_args_list), 4)
         calls = [call.args[0] for call in run.call_args_list]
         tag = ["api", "repos/example/core/git/ref/tags/v1.2.3"]
-        immutable = [
-            "api",
-            "-H",
-            self.contract.API_VERSION_HEADER,
-            "repos/example/core/immutable-releases",
-        ]
         self.assertEqual(calls[0], tag)
-        self.assertEqual(calls[3:8], [immutable, tag, patch, tag, immutable])
+        self.assertEqual(calls[3:6], [tag, patch, tag])
 
     def test_prior_attempt_seal_publishes_but_future_attempt_fails_closed(self) -> None:
         draft = self.release(body=self.body(1))
@@ -936,8 +935,11 @@ class ReleaseStateTests(unittest.TestCase):
         responses.extend([self.list_result(changed), self.object_result(changed)])
         with mock.patch.object(self.contract, "_run_gh", side_effect=responses), mock.patch.object(
             self.contract, "_run_gh_bytes", side_effect=self.download
-        ), self.assertRaisesRegex(self.contract.ReleaseContractError, "identity differs"):
+        ), self.assertRaisesRegex(
+            self.contract.ReleaseContractError, "may already be public"
+        ) as caught:
             self.publish(self.write_seal(draft))
+        self.assertIn("identity differs", str(caught.exception.__cause__))
 
     def test_mutable_publication_response_is_rejected(self) -> None:
         draft = self.release()
@@ -950,7 +952,9 @@ class ReleaseStateTests(unittest.TestCase):
         with mock.patch.object(
             self.contract, "_run_gh", side_effect=responses
         ), mock.patch.object(self.contract, "_run_gh_bytes", side_effect=self.download):
-            with self.assertRaisesRegex(self.contract.ReleaseContractError, "not immutable"):
+            with self.assertRaisesRegex(
+                self.contract.ReleaseContractError, "may already be public"
+            ) as caught:
                 self.contract.publish_verified_draft(
                     self.repository,
                     self.tag,
@@ -961,6 +965,7 @@ class ReleaseStateTests(unittest.TestCase):
                     self.bundle,
                     self.write_seal(draft),
                 )
+        self.assertIn("not immutable", str(caught.exception.__cause__))
 
     def test_asset_change_after_publish_is_detected(self) -> None:
         draft = self.release()
@@ -977,8 +982,11 @@ class ReleaseStateTests(unittest.TestCase):
         with mock.patch.object(self.contract, "_run_gh", side_effect=responses), mock.patch.object(
             self.contract, "_run_gh_bytes", side_effect=self.download
         ):
-            with self.assertRaisesRegex(self.contract.ReleaseContractError, "assets"):
+            with self.assertRaisesRegex(
+                self.contract.ReleaseContractError, "may already be public"
+            ) as caught:
                 self.publish(self.write_seal(draft))
+        self.assertIn("assets", str(caught.exception.__cause__))
 
     def test_asset_byte_change_immediately_before_publish_blocks_patch(self) -> None:
         draft = self.release()
@@ -990,40 +998,62 @@ class ReleaseStateTests(unittest.TestCase):
                 self.publish(self.write_seal(draft))
         self.assertEqual(len(run.call_args_list), 3)
 
-    def test_prepublication_immutable_or_tag_change_blocks_patch(self) -> None:
+    def test_prepublication_tag_change_blocks_patch(self) -> None:
         draft = self.release()
         seal = self.write_seal(draft)
-        prefixes = (
-            [self.tag_result(), self.list_result(draft), self.object_result(draft), self.immutable_result(False)],
-            [self.tag_result(), self.list_result(draft), self.object_result(draft), self.immutable_result(), self.tag_result("b" * 40)],
-        )
-        for responses in prefixes:
-            with self.subTest(calls=len(responses)), mock.patch.object(
-                self.contract, "_run_gh", side_effect=responses
-            ) as run, mock.patch.object(self.contract, "_run_gh_bytes", side_effect=self.download):
-                with self.assertRaises(self.contract.ReleaseContractError):
-                    self.publish(seal)
-            self.assertFalse(any("PATCH" in call.args[0] for call in run.call_args_list))
+        responses = [
+            self.tag_result(),
+            self.list_result(draft),
+            self.object_result(draft),
+            self.tag_result("b" * 40),
+        ]
+        with mock.patch.object(
+            self.contract, "_run_gh", side_effect=responses
+        ) as run, mock.patch.object(
+            self.contract, "_run_gh_bytes", side_effect=self.download
+        ):
+            with self.assertRaises(self.contract.ReleaseContractError):
+                self.publish(seal)
+        self.assertFalse(any("PATCH" in call.args[0] for call in run.call_args_list))
 
-    def test_postpublication_tag_or_immutable_change_reports_non_cas_race(self) -> None:
+    def test_postpublication_tag_change_reports_non_cas_race(self) -> None:
         draft = self.release()
         published = self.release(draft=False, updated_at="2026-08-31T12:00:04Z")
-        variants = (
-            self.publish_responses(draft, published)[:6] + [self.tag_result("b" * 40)],
-            self.publish_responses(draft, published)[:7] + [self.immutable_result(False)],
+        responses = self.publish_responses(draft, published)[:5] + [
+            self.tag_result("b" * 40)
+        ]
+        with mock.patch.object(
+            self.contract, "_run_gh", side_effect=responses
+        ) as run, mock.patch.object(
+            self.contract, "_run_gh_bytes", side_effect=self.download
+        ):
+            with self.assertRaisesRegex(
+                self.contract.ReleaseContractError, "may already be public"
+            ):
+                self.publish(self.write_seal(draft))
+        self.assertEqual(len(run.call_args_list), len(responses))
+        self.assertEqual(sum("PATCH" in call.args[0] for call in run.call_args_list), 1)
+
+    def test_final_release_record_must_remain_immutable(self) -> None:
+        draft = self.release()
+        published = self.release(draft=False, updated_at="2026-08-31T12:00:04Z")
+        mutable = self.release(
+            draft=False,
+            immutable=False,
+            updated_at="2026-08-31T12:00:05Z",
         )
-        for responses in variants:
-            with self.subTest(calls=len(responses)), mock.patch.object(
-                self.contract, "_run_gh", side_effect=responses
-            ) as run, mock.patch.object(self.contract, "_run_gh_bytes", side_effect=self.download):
-                with self.assertRaisesRegex(
-                    self.contract.ReleaseContractError, "may already be public"
-                ):
-                    self.publish(self.write_seal(draft))
-            self.assertEqual(len(run.call_args_list), len(responses))
-            self.assertEqual(
-                sum("PATCH" in call.args[0] for call in run.call_args_list), 1
-            )
+        responses = self.publish_responses(draft, published)[:-2]
+        responses.extend([self.list_result(mutable), self.object_result(mutable)])
+        with mock.patch.object(
+            self.contract, "_run_gh", side_effect=responses
+        ), mock.patch.object(
+            self.contract, "_run_gh_bytes", side_effect=self.download
+        ):
+            with self.assertRaisesRegex(
+                self.contract.ReleaseContractError, "may already be public"
+            ) as caught:
+                self.publish(self.write_seal(draft))
+        self.assertIn("not immutable", str(caught.exception.__cause__))
 
     def test_publication_rejects_changed_workflow_seal_identity(self) -> None:
         draft = self.release()

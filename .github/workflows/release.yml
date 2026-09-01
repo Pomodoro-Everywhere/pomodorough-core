@@ -195,8 +195,6 @@ jobs:
             --seal "$seal")"
           case "$mode" in
             create)
-              python3 scripts/c5_release_contract.py require-immutable-releases \
-                --github-repository "$GITHUB_REPOSITORY"
               python3 scripts/c5_release_contract.py require-remote-tag-source \
                 --github-repository "$GITHUB_REPOSITORY" \
                 --tag "$GITHUB_REF_NAME" \
