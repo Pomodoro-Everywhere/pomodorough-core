@@ -7,11 +7,12 @@ mod completion_plan;
 mod fixture_projection;
 mod projection;
 mod reconciliation;
+mod strict_json;
 mod sync_projection;
 mod task;
 mod timer;
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(any(target_arch = "wasm32", test))]
 mod wasm_abi;
 
 pub use fixture_projection::{reduce_projection_fixture_case_json, reduce_selected_task_json};

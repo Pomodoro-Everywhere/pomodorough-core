@@ -1,6 +1,8 @@
 use std::collections::BTreeSet;
+use std::fmt;
 
-use serde_json::Value;
+use serde::de::{Error as _, IgnoredAny, MapAccess, SeqAccess, Visitor};
+use serde::{Deserialize, Deserializer};
 
 use crate::CoreError;
 use crate::sync_projection::{
@@ -10,6 +12,146 @@ use crate::timer::WireCommand;
 
 use super::timer_dependencies::TimerDependencyResolution;
 use super::{CanonicalResponse, Identified, LocalQueues, SentQueues};
+
+#[derive(Default)]
+pub(super) struct Acknowledgement {
+    command_id: AcknowledgementString,
+    operation_id: AcknowledgementString,
+    outcome: AcknowledgementString,
+    reason: AcknowledgementString,
+}
+
+impl Acknowledgement {
+    pub(super) fn identifier(&self, field: &str) -> Option<&str> {
+        match field {
+            "commandId" => self.command_id.as_deref(),
+            "operationId" => self.operation_id.as_deref(),
+            _ => None,
+        }
+    }
+
+    pub(super) fn outcome(&self) -> Option<&str> {
+        self.outcome.as_deref()
+    }
+}
+
+#[derive(Default)]
+struct AcknowledgementString(Option<String>);
+
+impl AcknowledgementString {
+    fn as_deref(&self) -> Option<&str> {
+        self.0.as_deref()
+    }
+}
+
+impl<'de> Deserialize<'de> for AcknowledgementString {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        deserializer.deserialize_any(AcknowledgementStringVisitor)
+    }
+}
+
+struct AcknowledgementStringVisitor;
+
+impl<'de> Visitor<'de> for AcknowledgementStringVisitor {
+    type Value = AcknowledgementString;
+
+    fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.write_str("any acknowledgement field value")
+    }
+
+    fn visit_str<E>(self, value: &str) -> Result<Self::Value, E> {
+        Ok(AcknowledgementString(Some(value.to_owned())))
+    }
+
+    fn visit_string<E>(self, value: String) -> Result<Self::Value, E> {
+        Ok(AcknowledgementString(Some(value)))
+    }
+
+    fn visit_bool<E>(self, _: bool) -> Result<Self::Value, E> {
+        Ok(AcknowledgementString(None))
+    }
+
+    fn visit_i64<E>(self, _: i64) -> Result<Self::Value, E> {
+        Ok(AcknowledgementString(None))
+    }
+
+    fn visit_u64<E>(self, _: u64) -> Result<Self::Value, E> {
+        Ok(AcknowledgementString(None))
+    }
+
+    fn visit_f64<E>(self, _: f64) -> Result<Self::Value, E> {
+        Ok(AcknowledgementString(None))
+    }
+
+    fn visit_none<E>(self) -> Result<Self::Value, E> {
+        Ok(AcknowledgementString(None))
+    }
+
+    fn visit_unit<E>(self) -> Result<Self::Value, E> {
+        Ok(AcknowledgementString(None))
+    }
+
+    fn visit_seq<A>(self, mut sequence: A) -> Result<Self::Value, A::Error>
+    where
+        A: SeqAccess<'de>,
+    {
+        while sequence.next_element::<IgnoredAny>()?.is_some() {}
+        Ok(AcknowledgementString(None))
+    }
+
+    fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
+    where
+        A: MapAccess<'de>,
+    {
+        while map.next_entry::<IgnoredAny, IgnoredAny>()?.is_some() {}
+        Ok(AcknowledgementString(None))
+    }
+}
+
+impl<'de> Deserialize<'de> for Acknowledgement {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        deserializer.deserialize_map(AcknowledgementVisitor)
+    }
+}
+
+struct AcknowledgementVisitor;
+
+impl<'de> Visitor<'de> for AcknowledgementVisitor {
+    type Value = Acknowledgement;
+
+    fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.write_str("an acknowledgement object with unique fields")
+    }
+
+    fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
+    where
+        A: MapAccess<'de>,
+    {
+        let mut acknowledgement = Acknowledgement::default();
+        let mut fields = BTreeSet::new();
+        while let Some(field) = map.next_key::<String>()? {
+            if !fields.insert(field.clone()) {
+                return Err(A::Error::custom(format!("duplicate field `{field}`")));
+            }
+            match field.as_str() {
+                "commandId" => acknowledgement.command_id = map.next_value()?,
+                "operationId" => acknowledgement.operation_id = map.next_value()?,
+                "outcome" => acknowledgement.outcome = map.next_value()?,
+                "reason" => acknowledgement.reason = map.next_value()?,
+                _ => {
+                    map.next_value::<IgnoredAny>()?;
+                }
+            }
+        }
+        Ok(acknowledgement)
+    }
+}
 
 pub(super) struct AcknowledgedIds {
     commands: BTreeSet<String>,
@@ -107,7 +249,7 @@ pub(super) fn filter_pending(
 fn validate_set(
     field: &str,
     sent: &[Identified],
-    acknowledgements: &[Value],
+    acknowledgements: &[Acknowledgement],
     id_field: &str,
 ) -> Result<BTreeSet<String>, CoreError> {
     let expected_ids = sent
@@ -123,16 +265,13 @@ fn validate_set(
 
     let mut acknowledged_ids = BTreeSet::new();
     for acknowledgement in acknowledgements {
-        let Some(object) = acknowledgement.as_object() else {
+        let Some(identifier) = acknowledgement.identifier(id_field) else {
             return invalid_set(field);
         };
-        let Some(identifier) = object.get(id_field).and_then(Value::as_str) else {
+        let Some(outcome) = acknowledgement.outcome() else {
             return invalid_set(field);
         };
-        let Some(outcome) = object.get("outcome").and_then(Value::as_str) else {
-            return invalid_set(field);
-        };
-        if object.get("reason").and_then(Value::as_str).is_none()
+        if acknowledgement.reason.as_deref().is_none()
             || !matches!(outcome, "applied" | "ignored" | "rejected")
             || !expected_ids.contains(identifier)
             || !acknowledged_ids.insert(identifier.to_owned())

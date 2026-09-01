@@ -1,55 +1,119 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use chrono::DateTime;
-use serde_json::Value;
+use serde::de::Error as _;
+use serde_json::{Map, Value};
 
-use crate::sync_projection::Task;
+use crate::sync_projection::{
+    Task, is_canonical_task_identity, is_valid_duration_map, validate_duration_fields,
+    validate_operation_clock, validate_operation_timestamp, validate_selected_task_fields,
+    validate_task_operation_fields,
+};
 use crate::{CoreError, SelectedTaskField, timer};
 
 use super::{CanonicalResponse, LocalQueues, MAX_CLOCK_SKEW_MS, MAX_SAFE_INTEGER};
 
-pub(super) fn required_response_fields(input: &Value) -> Result<(), CoreError> {
-    let response = input
-        .get("response")
-        .and_then(Value::as_object)
-        .ok_or_else(|| CoreError::InvalidInput("missing canonical response".into()))?;
+const REQUIRED_RESPONSE_FIELDS: [(&str, &str); 15] = [
+    ("acknowledgements", "response.acknowledgements"),
+    ("taskAcknowledgements", "response.taskAcknowledgements"),
+    (
+        "durationAcknowledgements",
+        "response.durationAcknowledgements",
+    ),
+    (
+        "autoStartAcknowledgements",
+        "response.autoStartAcknowledgements",
+    ),
+    (
+        "selectedTaskAcknowledgements",
+        "response.selectedTaskAcknowledgements",
+    ),
+    ("revision", "response.revision"),
+    ("canonicalTimer", "response.canonicalTimer"),
+    ("history", "response.history"),
+    ("tasks", "response.tasks"),
+    ("durationsMs", "response.durationsMs"),
+    ("autoStartBreaks", "response.autoStartBreaks"),
+    ("selectedTaskId", "response.selectedTaskId"),
+    ("serverTime", "response.serverTime"),
+    ("serverHlcWallMs", "response.serverHlcWallMs"),
+    ("serverHlcCounter", "response.serverHlcCounter"),
+];
+
+pub(super) fn request_structure(input: &Value) -> Result<(), CoreError> {
+    let root = crate::strict_json::object(input, "reconciliation")?;
+    let local = local_queues(root)?;
+    let sent = crate::strict_json::object_field(root, "sent", "sent")?;
+    let response = crate::strict_json::object_field(root, "response", "response")?;
+    required_response_fields(response)?;
+    queue_shape(local, "local")?;
+    queue_shape(sent, "sent")?;
+    response_shape(response)?;
+    crate::strict_json::object_array_field(root, "timerDependencies", "timerDependencies", false)
+}
+
+fn required_response_fields(response: &Map<String, Value>) -> Result<(), CoreError> {
+    for (field, projection) in REQUIRED_RESPONSE_FIELDS {
+        if !response.contains_key(field) {
+            return Err(CoreError::MissingProjection(projection));
+        }
+    }
+    Ok(())
+}
+
+fn local_queues(root: &Map<String, Value>) -> Result<&Map<String, Value>, CoreError> {
+    match (root.get("local"), root.get("pending")) {
+        (Some(_), Some(_)) => Err(CoreError::Json(serde_json::Error::custom(
+            "duplicate field `local`",
+        ))),
+        (Some(value), None) => crate::strict_json::object(value, "local"),
+        (None, Some(value)) => crate::strict_json::object(value, "pending"),
+        (None, None) => Err(CoreError::InvalidInput("missing local queues".into())),
+    }
+}
+
+fn queue_shape(queues: &Map<String, Value>, path: &str) -> Result<(), CoreError> {
+    for field in [
+        "commands",
+        "taskOperations",
+        "durationOperations",
+        "autoStartOperations",
+        "selectedTaskOperations",
+    ] {
+        crate::strict_json::object_array_field(queues, field, &format!("{path}.{field}"), false)?;
+    }
+    Ok(())
+}
+
+fn response_shape(response: &Map<String, Value>) -> Result<(), CoreError> {
     for field in [
         "acknowledgements",
         "taskAcknowledgements",
         "durationAcknowledgements",
         "autoStartAcknowledgements",
         "selectedTaskAcknowledgements",
-        "revision",
-        "canonicalTimer",
         "history",
         "tasks",
-        "durationsMs",
-        "autoStartBreaks",
-        "selectedTaskId",
-        "serverTime",
-        "serverHlcWallMs",
-        "serverHlcCounter",
     ] {
-        if !response.contains_key(field) {
-            return Err(CoreError::MissingProjection(match field {
-                "canonicalTimer" => "response.canonicalTimer",
-                "selectedTaskId" => "response.selectedTaskId",
-                "revision" => "response.revision",
-                "history" => "response.history",
-                "tasks" => "response.tasks",
-                "durationsMs" => "response.durationsMs",
-                "autoStartBreaks" => "response.autoStartBreaks",
-                "serverTime" => "response.serverTime",
-                "serverHlcWallMs" => "response.serverHlcWallMs",
-                "serverHlcCounter" => "response.serverHlcCounter",
-                "acknowledgements" => "response.acknowledgements",
-                "taskAcknowledgements" => "response.taskAcknowledgements",
-                "durationAcknowledgements" => "response.durationAcknowledgements",
-                "autoStartAcknowledgements" => "response.autoStartAcknowledgements",
-                "selectedTaskAcknowledgements" => "response.selectedTaskAcknowledgements",
-                _ => unreachable!(),
-            }));
-        }
+        crate::strict_json::object_array_field(
+            response,
+            field,
+            &format!("response.{field}"),
+            true,
+        )?;
+    }
+    crate::strict_json::object_field(response, "durationsMs", "response.durationsMs")?;
+    let timer = crate::strict_json::nullable_object_field(
+        response,
+        "canonicalTimer",
+        "response.canonicalTimer",
+    )?;
+    if let Some(timer) = timer {
+        crate::strict_json::nullable_object_field(
+            timer,
+            "lastIntent",
+            "response.canonicalTimer.lastIntent",
+        )?;
     }
     Ok(())
 }
@@ -120,6 +184,38 @@ pub(super) fn local_queue_ids(local: &LocalQueues) -> Result<(), CoreError> {
     )
 }
 
+pub(super) fn local_queue_values(
+    local: &LocalQueues,
+    response: &CanonicalResponse,
+) -> Result<(), CoreError> {
+    timer::replay(
+        response.canonical_timer.0.clone(),
+        response.history.clone(),
+        local.commands.clone(),
+        &response.server_time,
+    )?;
+    for operation in &local.task_operations {
+        validate_operation_timestamp(&operation.clock)?;
+        validate_operation_clock(&operation.clock)?;
+        validate_task_operation_fields(operation)?;
+    }
+    for operation in &local.duration_operations {
+        validate_operation_timestamp(&operation.clock)?;
+        validate_operation_clock(&operation.clock)?;
+        validate_duration_fields(operation)?;
+    }
+    for operation in &local.auto_start_operations {
+        validate_operation_timestamp(&operation.clock)?;
+        validate_operation_clock(&operation.clock)?;
+    }
+    for operation in &local.selected_task_operations {
+        validate_operation_timestamp(&operation.clock)?;
+        validate_operation_clock(&operation.clock)?;
+        validate_selected_task_fields(operation)?;
+    }
+    Ok(())
+}
+
 fn validate_unique_local_ids<'a>(
     field: &str,
     identifiers: impl IntoIterator<Item = &'a str>,
@@ -137,23 +233,18 @@ fn validate_unique_local_ids<'a>(
 
 fn validate_tasks(tasks: &[Task]) -> Result<(), CoreError> {
     let mut ids = BTreeSet::new();
-    if tasks
-        .iter()
-        .any(|task| task.id.is_empty() || task.title.is_empty() || !ids.insert(task.id.as_str()))
-    {
-        return invalid_response("tasks");
+    for task in tasks {
+        let canonical = is_canonical_task_identity(&task.id, &task.title).unwrap_or(false);
+        if !canonical || !ids.insert(task.id.as_str()) {
+            return invalid_response("tasks");
+        }
     }
     Ok(())
 }
 
 fn validate_durations(durations: &BTreeMap<String, i64>) -> Result<(), CoreError> {
-    for phase in ["focus", "short_break", "long_break"] {
-        let Some(duration) = durations.get(phase) else {
-            return invalid_response("durationsMs");
-        };
-        if !(60_000..=10_800_000).contains(duration) || duration % 60_000 != 0 {
-            return invalid_response("durationsMs");
-        }
+    if !is_valid_duration_map(durations) {
+        return invalid_response("durationsMs");
     }
     Ok(())
 }

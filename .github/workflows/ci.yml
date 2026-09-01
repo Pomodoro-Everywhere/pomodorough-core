@@ -30,6 +30,8 @@ jobs:
         run: cargo +1.97.1 clippy --all-targets --locked -- -D warnings
       - name: Test WASM canonicalizer
         run: python3 -m unittest scripts/test_canonicalize_wasm_artifact.py -v
+      - name: Test C5 release contract
+        run: python3 -m unittest scripts/test_c5_release_contract.py -v
       - name: Build portable WebAssembly core
         run: |
           cargo +1.97.1 build --release --target wasm32-unknown-unknown --locked

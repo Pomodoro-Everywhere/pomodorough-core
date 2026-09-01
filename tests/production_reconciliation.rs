@@ -3,6 +3,14 @@ use serde_json::{Map, Value, json};
 
 const SERVER_WALL_MS: i64 = 1_784_548_800_000;
 
+fn task_id(title: &str) -> String {
+    let output = dispatch_json("task.identity.v1", &json!({"title": title}).to_string()).unwrap();
+    serde_json::from_str::<Value>(&output).unwrap()["id"]
+        .as_str()
+        .unwrap()
+        .to_owned()
+}
+
 fn timestamp(offset_ms: i64) -> String {
     let hours = 12 + offset_ms / 3_600_000;
     let minutes = offset_ms % 3_600_000 / 60_000;
@@ -133,6 +141,7 @@ fn acknowledgement(items: &[Value], id_key: &str, outcome: &str) -> Vec<Value> {
 }
 
 fn canonical_response(sent: &Value) -> Value {
+    let remote_task_id = task_id("Remote");
     json!({
         "acknowledgements": acknowledgement(sent["commands"].as_array().unwrap(), "commandId", "applied"),
         "taskAcknowledgements": acknowledgement(sent["taskOperations"].as_array().unwrap(), "operationId", "applied"),
@@ -142,7 +151,7 @@ fn canonical_response(sent: &Value) -> Value {
         "revision": 9,
         "canonicalTimer": null,
         "history": [],
-        "tasks": [{"id": "task-remote", "title": "Remote"}],
+        "tasks": [{"id": remote_task_id, "title": "Remote"}],
         "durationsMs": {
             "focus": 1_500_000,
             "short_break": 300_000,
@@ -178,9 +187,10 @@ fn reconcile(local: Value, sent: Value, response: Value) -> Result<Value, String
 }
 
 fn one_of_each() -> Value {
+    let sent_task_id = task_id("Sent");
     json!({
         "commands": [command("command-sent", "timer-sent", 1, 1_000)],
-        "taskOperations": [task_operation("task-sent", "task-sent", "Sent", 1_000)],
+        "taskOperations": [task_operation("task-sent", &sent_task_id, "Sent", 1_000)],
         "durationOperations": [duration_operation("duration-sent", "focus", 1_800_000, 1_000)],
         "autoStartOperations": [auto_start_operation("auto-sent", true, 1_000)],
         "selectedTaskOperations": [selected_task_operation("selected-sent", None, 1_000)]
@@ -253,12 +263,13 @@ fn reconcile_rebase_v1_removes_every_acknowledged_outcome_from_every_queue() {
     let outcomes = ["applied", "ignored", "rejected"];
     for outcome in outcomes {
         let sent = one_of_each();
+        let retained_task_id = task_id("Retained");
         let retained = json!({
             "commands": [command("command-retained", "timer-retained", 2, 11_000)],
-            "taskOperations": [task_operation("task-retained-op", "task-retained", "Retained", 11_000)],
+            "taskOperations": [task_operation("task-retained-op", &retained_task_id, "Retained", 11_000)],
             "durationOperations": [duration_operation("duration-retained", "long_break", 1_200_000, 11_000)],
             "autoStartOperations": [auto_start_operation("auto-retained", false, 11_000)],
-            "selectedTaskOperations": [selected_task_operation("selected-retained", Some("task-retained"), 11_000)]
+            "selectedTaskOperations": [selected_task_operation("selected-retained", Some(&retained_task_id), 11_000)]
         });
         let mut local = Map::new();
         for field in [
@@ -334,10 +345,11 @@ fn reconcile_rebase_v1_requires_complete_canonical_response_and_selected_task_pr
     assert_eq!(deselected["selectedTaskId"], Value::Null);
 
     let mut selected = valid;
-    selected["selectedTaskId"] = json!("task-remote");
+    let remote_task_id = task_id("Remote");
+    selected["selectedTaskId"] = json!(remote_task_id);
     let selected = reconcile(local, sent, selected).unwrap();
-    assert_eq!(selected["baseSelectedTaskId"], "task-remote");
-    assert_eq!(selected["selectedTaskId"], "task-remote");
+    assert_eq!(selected["baseSelectedTaskId"], task_id("Remote"));
+    assert_eq!(selected["selectedTaskId"], task_id("Remote"));
 }
 
 #[test]
@@ -556,9 +568,10 @@ fn reconcile_rebase_v1_retains_unresolved_generated_break_context() {
 #[test]
 fn reconcile_rebase_v1_rebases_each_retained_queue_after_the_server_clock() {
     let sent = empty_queues();
+    let task_id = task_id("Task");
     let mut local = json!({
         "commands": [command("command-stale", "timer-stale", 1, 1_000)],
-        "taskOperations": [task_operation("task-stale", "task-stale", "Task", 1_000)],
+        "taskOperations": [task_operation("task-stale", &task_id, "Task", 1_000)],
         "durationOperations": [duration_operation("duration-stale", "focus", 1_800_000, 1_000)],
         "autoStartOperations": [auto_start_operation("auto-stale", true, 1_000)],
         "selectedTaskOperations": [selected_task_operation("selected-stale", None, 1_000)]
@@ -819,12 +832,14 @@ fn reconcile_rebase_v1_rejects_unsafe_revision_and_hlc_values_without_overflow()
 #[test]
 fn reconcile_rebase_v1_installs_canonical_base_and_replays_all_retained_domains() {
     let sent = one_of_each();
+    let retained_task_id = task_id("Beta");
+    let remote_task_id = task_id("Gamma");
     let retained = json!({
         "commands": [command("command-retained", "timer-retained", 2, 5_000)],
-        "taskOperations": [task_operation("task-retained-op", "task-retained", "Beta", 6_000)],
+        "taskOperations": [task_operation("task-retained-op", &retained_task_id, "Beta", 6_000)],
         "durationOperations": [duration_operation("duration-retained", "long_break", 1_200_000, 6_000)],
         "autoStartOperations": [auto_start_operation("auto-retained", false, 6_000)],
-        "selectedTaskOperations": [selected_task_operation("selected-retained", Some("task-retained"), 6_000)]
+        "selectedTaskOperations": [selected_task_operation("selected-retained", Some(&retained_task_id), 6_000)]
     });
     let mut local = Map::new();
     for field in [
@@ -841,7 +856,7 @@ fn reconcile_rebase_v1_installs_canonical_base_and_replays_all_retained_domains(
     let mut response = canonical_response(&sent);
     response["canonicalTimer"] = json!({
         "id": "timer-remote",
-        "taskId": "task-remote",
+        "taskId": remote_task_id,
         "phase": "focus",
         "status": "running",
         "plannedDurationMs": 60_000,
@@ -854,25 +869,25 @@ fn reconcile_rebase_v1_installs_canonical_base_and_replays_all_retained_domains(
             "occurredAt": timestamp(0)
         }
     });
-    response["tasks"] = json!([{"id": "task-remote", "title": "Gamma"}]);
+    response["tasks"] = json!([{"id": remote_task_id, "title": "Gamma"}]);
     response["durationsMs"] = json!({
         "focus": 1_800_000,
         "short_break": 300_000,
         "long_break": 900_000
     });
     response["autoStartBreaks"] = json!(true);
-    response["selectedTaskId"] = json!("task-remote");
+    response["selectedTaskId"] = json!(remote_task_id);
 
     let output = reconcile(Value::Object(local), sent, response).unwrap();
     assert_eq!(output["revision"], 9);
     assert_eq!(output["baseTimer"]["id"], "timer-remote");
     assert_eq!(
         output["baseTasks"],
-        json!([{"id": "task-remote", "title": "Gamma"}])
+        json!([{"id": remote_task_id, "title": "Gamma"}])
     );
     assert_eq!(output["baseDurationsMs"]["long_break"], 900_000);
     assert_eq!(output["baseAutoStartBreaks"], true);
-    assert_eq!(output["baseSelectedTaskId"], "task-remote");
+    assert_eq!(output["baseSelectedTaskId"], remote_task_id);
 
     assert_eq!(output["timer"]["id"], "timer-retained");
     assert_eq!(output["history"][0]["timerId"], "timer-remote");
@@ -880,14 +895,14 @@ fn reconcile_rebase_v1_installs_canonical_base_and_replays_all_retained_domains(
     assert_eq!(
         output["tasks"],
         json!([
-            {"id": "task-retained", "title": "Beta"},
-            {"id": "task-remote", "title": "Gamma"}
+            {"id": retained_task_id, "title": "Beta"},
+            {"id": remote_task_id, "title": "Gamma"}
         ])
     );
     assert_eq!(output["durationsMs"]["focus"], 1_800_000);
     assert_eq!(output["durationsMs"]["long_break"], 1_200_000);
     assert_eq!(output["autoStartBreaks"], false);
-    assert_eq!(output["selectedTaskId"], "task-retained");
+    assert_eq!(output["selectedTaskId"], retained_task_id);
 }
 
 #[test]

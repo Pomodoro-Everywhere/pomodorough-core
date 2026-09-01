@@ -25,6 +25,60 @@ fn timer_reduction(command: Value) -> Result<String, String> {
     .map_err(|error| error.to_string())
 }
 
+fn valid_reducer_clock() -> Value {
+    json!({
+        "id": "operation-valid",
+        "deviceId": "device-valid",
+        "occurredAt": "2026-08-25T12:00:00Z",
+        "hlcWallMs": 1,
+        "hlcCounter": 0
+    })
+}
+
+fn assert_reducer_rejects(operation: &str, value: Value, expected: &str) {
+    let error = dispatch_json(operation, &json!({"operations": [value]}).to_string()).unwrap_err();
+    assert!(
+        error.to_string().contains(expected),
+        "{operation} expected {expected:?}, got {error}"
+    );
+}
+
+#[test]
+fn task_reducer_rejects_empty_ids_and_negative_hlc_values() {
+    let mutations = [
+        ("id", json!(""), "invalid operation clock"),
+        ("deviceId", json!(""), "invalid operation clock"),
+        ("taskId", json!(""), "invalid task identity"),
+        ("hlcWallMs", json!(-1), "invalid operation clock"),
+        ("hlcCounter", json!(-1), "invalid operation clock"),
+    ];
+    for (field, value, expected) in mutations {
+        let mut operation = valid_reducer_clock();
+        operation["taskId"] = json!("8d42fcde-20c0-8634-b2f6-4ef6a1162f71");
+        operation["type"] = json!("delete");
+        operation[field] = value;
+        assert_reducer_rejects("task.reduce.v1", operation, expected);
+    }
+}
+
+#[test]
+fn duration_reducer_rejects_empty_ids_negative_duration_and_hlc_values() {
+    let mutations = [
+        ("id", json!(""), "invalid operation clock"),
+        ("deviceId", json!(""), "invalid operation clock"),
+        ("durationMs", json!(-1), "invalid duration operation"),
+        ("hlcWallMs", json!(-1), "invalid operation clock"),
+        ("hlcCounter", json!(-1), "invalid operation clock"),
+    ];
+    for (field, value, expected) in mutations {
+        let mut operation = valid_reducer_clock();
+        operation["phase"] = json!("focus");
+        operation["durationMs"] = json!(60_000);
+        operation[field] = value;
+        assert_reducer_rejects("duration.reduce.v1", operation, expected);
+    }
+}
+
 #[test]
 fn selected_task_classification_rejects_non_string_wire_values() {
     for input in [

@@ -248,8 +248,8 @@ fn timer_acknowledgements(response: &CanonicalResponse) -> TimerAcknowledgements
         .iter()
         .filter_map(|acknowledgement| {
             Some((
-                acknowledgement.get("commandId")?.as_str()?.to_owned(),
-                acknowledgement.get("outcome")?.as_str()?.to_owned(),
+                acknowledgement.identifier("commandId")?.to_owned(),
+                acknowledgement.outcome()?.to_owned(),
             ))
         })
         .collect::<BTreeMap<_, _>>();

@@ -1,10 +1,62 @@
 use std::cmp::Ordering;
 use std::collections::{BTreeMap, BTreeSet};
+use std::fmt;
 
 use chrono::DateTime;
-use serde::{Deserialize, Serialize};
+use serde::de::{Error as _, MapAccess, Visitor};
+use serde::{Deserialize, Deserializer, Serialize};
 
-use crate::{CoreError, SelectedTaskField};
+use crate::{CoreError, SelectedTaskField, clock::validate_hlc_values};
+
+pub(crate) const DURATION_PHASES: [&str; 3] = ["focus", "short_break", "long_break"];
+
+pub(crate) fn is_valid_duration(phase: &str, duration_ms: i64) -> bool {
+    DURATION_PHASES.contains(&phase)
+        && (60_000..=10_800_000).contains(&duration_ms)
+        && duration_ms % 60_000 == 0
+}
+
+pub(crate) fn is_valid_duration_map(durations: &BTreeMap<String, i64>) -> bool {
+    durations.len() == DURATION_PHASES.len()
+        && DURATION_PHASES.iter().all(|phase| {
+            durations
+                .get(*phase)
+                .is_some_and(|duration| is_valid_duration(phase, *duration))
+        })
+}
+
+pub(crate) fn deserialize_duration_map<'de, D>(
+    deserializer: D,
+) -> Result<BTreeMap<String, i64>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    struct DurationMapVisitor;
+
+    impl<'de> Visitor<'de> for DurationMapVisitor {
+        type Value = BTreeMap<String, i64>;
+
+        fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+            formatter.write_str("a duration map with unique phase keys")
+        }
+
+        fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
+        where
+            A: MapAccess<'de>,
+        {
+            let mut durations = BTreeMap::new();
+            while let Some((phase, duration_ms)) = map.next_entry::<String, i64>()? {
+                if durations.contains_key(&phase) {
+                    return Err(A::Error::custom(format!("duplicate field `{phase}`")));
+                }
+                durations.insert(phase, duration_ms);
+            }
+            Ok(durations)
+        }
+    }
+
+    deserializer.deserialize_map(DurationMapVisitor)
+}
 
 fn select_clock_winners<T, K>(
     operations: Vec<T>,
@@ -46,10 +98,30 @@ fn operation_clock_key(clock: &OperationClock) -> (i64, i64, &str, &str) {
     )
 }
 
-fn validate_operation_clock(clock: &OperationClock) -> Result<(), CoreError> {
+pub(crate) fn validate_operation_clock(clock: &OperationClock) -> Result<(), CoreError> {
+    if clock.id.is_empty()
+        || clock.device_id.is_empty()
+        || validate_hlc_values(clock.hlc_wall_ms, clock.hlc_counter).is_err()
+        || validate_operation_timestamp(clock).is_err()
+    {
+        return Err(CoreError::InvalidInput("invalid operation clock".into()));
+    }
+    Ok(())
+}
+
+pub(crate) fn validate_operation_timestamp(clock: &OperationClock) -> Result<(), CoreError> {
     DateTime::parse_from_rfc3339(&clock.occurred_at)
         .map(|_| ())
         .map_err(|_| CoreError::InvalidTimestamp(clock.occurred_at.clone()))
+}
+
+fn validate_standalone_timestamps<'a>(
+    clocks: impl IntoIterator<Item = &'a OperationClock>,
+) -> Result<(), CoreError> {
+    for clock in clocks {
+        validate_operation_timestamp(clock)?;
+    }
+    Ok(())
 }
 
 #[derive(Deserialize)]
@@ -85,7 +157,9 @@ pub(crate) struct TaskReductionOutput {
 }
 
 pub(crate) fn reduce_tasks_v1_json(input: &str) -> Result<String, CoreError> {
-    let input: OperationsInput<TaskOperation> = serde_json::from_str(input)?;
+    let value = strict_operations_input(input, false)?;
+    let input: OperationsInput<TaskOperation> = serde_json::from_value(value)?;
+    validate_standalone_timestamps(input.operations.iter().map(|operation| &operation.clock))?;
     Ok(serde_json::to_string(&replay_tasks(
         Vec::new(),
         input.operations,
@@ -98,6 +172,7 @@ pub(crate) fn replay_tasks(
 ) -> Result<TaskReductionOutput, CoreError> {
     for operation in &operations {
         validate_operation_clock(&operation.clock)?;
+        validate_task_id(&operation.task_id)?;
     }
 
     let winners = select_clock_winners(
@@ -122,6 +197,32 @@ pub(crate) fn replay_tasks(
         tasks,
         winning_operation_ids,
     })
+}
+
+pub(crate) fn validate_task_id(task_id: &str) -> Result<(), CoreError> {
+    if task_id.is_empty() {
+        return Err(CoreError::InvalidInput("invalid task identity".into()));
+    }
+    Ok(())
+}
+
+pub(crate) fn is_canonical_task_identity(task_id: &str, title: &str) -> Result<bool, CoreError> {
+    let (expected_id, normalized_title) = crate::task::identity(title)?;
+    Ok(task_id == expected_id && title == normalized_title)
+}
+
+pub(crate) fn validate_task_operation_fields(operation: &TaskOperation) -> Result<(), CoreError> {
+    validate_task_id(&operation.task_id)?;
+    match operation.kind.as_str() {
+        "upsert" if is_canonical_task_identity(&operation.task_id, &operation.title)? => Ok(()),
+        "upsert" => Err(CoreError::InvalidInput(
+            "invalid task identity or title".into(),
+        )),
+        "delete" => Ok(()),
+        _ => Err(CoreError::InvalidInput(
+            "invalid task operation type".into(),
+        )),
+    }
 }
 
 fn apply_task_operations(
@@ -169,7 +270,9 @@ pub(crate) struct DurationReductionOutput {
 }
 
 pub(crate) fn reduce_durations_v1_json(input: &str) -> Result<String, CoreError> {
-    let input: OperationsInput<DurationOperation> = serde_json::from_str(input)?;
+    let value = strict_operations_input(input, false)?;
+    let input: OperationsInput<DurationOperation> = serde_json::from_value(value)?;
+    validate_standalone_timestamps(input.operations.iter().map(|operation| &operation.clock))?;
     Ok(serde_json::to_string(&replay_durations(
         None,
         input.operations,
@@ -182,6 +285,7 @@ pub(crate) fn replay_durations(
 ) -> Result<DurationReductionOutput, CoreError> {
     for operation in &operations {
         validate_operation_clock(&operation.clock)?;
+        validate_duration_fields(operation)?;
     }
 
     let winners = select_clock_winners(
@@ -211,6 +315,13 @@ pub(crate) fn replay_durations(
     })
 }
 
+pub(crate) fn validate_duration_fields(operation: &DurationOperation) -> Result<(), CoreError> {
+    if !is_valid_duration(&operation.phase, operation.duration_ms) {
+        return Err(CoreError::InvalidInput("invalid duration operation".into()));
+    }
+    Ok(())
+}
+
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub(crate) struct AutoStartOperation {
@@ -227,7 +338,9 @@ pub(crate) struct AutoStartReductionOutput {
 }
 
 pub(crate) fn reduce_auto_start_v1_json(input: &str) -> Result<String, CoreError> {
-    let input: OperationsInput<AutoStartOperation> = serde_json::from_str(input)?;
+    let value = strict_operations_input(input, false)?;
+    let input: OperationsInput<AutoStartOperation> = serde_json::from_value(value)?;
+    validate_standalone_timestamps(input.operations.iter().map(|operation| &operation.clock))?;
     Ok(serde_json::to_string(&replay_auto_start(
         false,
         input.operations,
@@ -283,12 +396,27 @@ pub(crate) struct SelectedTaskReductionOutput {
 }
 
 pub(crate) fn reduce_selected_task_v1_json(input: &str) -> Result<String, CoreError> {
-    let input: SelectedTaskReductionInput = serde_json::from_str(input)?;
+    let value = strict_operations_input(input, true)?;
+    let input: SelectedTaskReductionInput = serde_json::from_value(value)?;
+    validate_standalone_timestamps(input.operations.iter().map(|operation| &operation.clock))?;
     Ok(serde_json::to_string(&replay_selected_task(
         None,
         input.operations,
         input.active_task_ids,
     )?)?)
+}
+
+fn strict_operations_input(
+    input: &str,
+    selected_task: bool,
+) -> Result<serde_json::Value, CoreError> {
+    let value = crate::strict_json::parse(input)?;
+    let root = crate::strict_json::object(&value, "reducer input")?;
+    crate::strict_json::object_array_field(root, "operations", "operations", false)?;
+    if selected_task {
+        crate::strict_json::array_field(root, "activeTaskIds", "activeTaskIds", false)?;
+    }
+    Ok(value)
 }
 
 pub(crate) fn replay_selected_task(
@@ -327,4 +455,16 @@ pub(crate) fn replay_selected_task(
         },
     };
     Ok(output)
+}
+
+pub(crate) fn validate_selected_task_fields(
+    operation: &SelectedTaskOperation,
+) -> Result<(), CoreError> {
+    match &operation.task_id {
+        SelectedTaskField::Selected(task_id) if !task_id.is_empty() => Ok(()),
+        SelectedTaskField::Deselected => Ok(()),
+        _ => Err(CoreError::InvalidInput(
+            "invalid selected task operation".into(),
+        )),
+    }
 }

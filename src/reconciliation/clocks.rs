@@ -7,12 +7,49 @@ use crate::sync_projection::OperationClock;
 use crate::timer::WireCommand;
 
 use super::acknowledgements::PendingQueues;
-use super::{CanonicalResponse, MAX_CLOCK_SKEW_MS, MAX_SAFE_INTEGER};
+use super::{CanonicalResponse, LocalQueues, MAX_CLOCK_SKEW_MS, MAX_SAFE_INTEGER};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 struct Hlc {
     wall_ms: i64,
     counter: i64,
+}
+
+pub(super) fn validate_local(local: &LocalQueues) -> Result<(), CoreError> {
+    for command in &local.commands {
+        command_clock(command)?;
+    }
+    let clocks = local
+        .task_operations
+        .iter()
+        .map(|operation| &operation.clock)
+        .chain(
+            local
+                .duration_operations
+                .iter()
+                .map(|operation| &operation.clock),
+        )
+        .chain(
+            local
+                .auto_start_operations
+                .iter()
+                .map(|operation| &operation.clock),
+        )
+        .chain(
+            local
+                .selected_task_operations
+                .iter()
+                .map(|operation| &operation.clock),
+        );
+    for clock in clocks {
+        validate_queue_clock(
+            &clock.id,
+            &clock.device_id,
+            clock.hlc_wall_ms,
+            clock.hlc_counter,
+        )?;
+    }
+    Ok(())
 }
 
 pub(super) fn rebase(

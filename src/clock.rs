@@ -132,8 +132,12 @@ pub(crate) fn uuid_v7_from_parts_json(input: &str) -> Result<String, CoreError> 
 }
 
 fn validate_hlc(clock: Hlc) -> Result<(), CoreError> {
-    validate_safe("wallMs", clock.wall_ms)?;
-    validate_safe("counter", clock.counter)
+    validate_hlc_values(clock.wall_ms, clock.counter)
+}
+
+pub(crate) fn validate_hlc_values(wall_ms: i64, counter: i64) -> Result<(), CoreError> {
+    validate_safe("wallMs", wall_ms)?;
+    validate_safe("counter", counter)
 }
 
 fn validate_safe(name: &str, value: i64) -> Result<(), CoreError> {

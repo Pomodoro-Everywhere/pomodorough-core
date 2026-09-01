@@ -112,7 +112,8 @@ struct FixtureProjectionOutput {
 }
 
 pub fn reduce_projection_fixture_case_json(input: &str) -> Result<String, CoreError> {
-    let input: FixtureProjectionInput = serde_json::from_str(input)?;
+    let value = strict_fixture_input(input, false)?;
+    let input: FixtureProjectionInput = serde_json::from_value(value)?;
     let output = FixtureProjectionOutput {
         tasks: project_tasks(input.task_operations)?,
         durations_ms: project_durations(input.duration_operations)?,
@@ -191,7 +192,8 @@ struct FixtureSelectedTaskOutput {
 }
 
 pub fn reduce_selected_task_json(input: &str) -> Result<String, CoreError> {
-    let input: FixtureSelectedTaskInput = serde_json::from_str(input)?;
+    let value = strict_fixture_input(input, true)?;
+    let input: FixtureSelectedTaskInput = serde_json::from_value(value)?;
     let operations = input
         .operations
         .into_iter()
@@ -201,4 +203,22 @@ pub fn reduce_selected_task_json(input: &str) -> Result<String, CoreError> {
     Ok(serde_json::to_string(&FixtureSelectedTaskOutput {
         selected_task_id: output.selected_task_id,
     })?)
+}
+
+fn strict_fixture_input(input: &str, selected_task: bool) -> Result<serde_json::Value, CoreError> {
+    let value = crate::strict_json::parse(input)?;
+    let root = crate::strict_json::object(&value, "fixture projection")?;
+    if selected_task {
+        crate::strict_json::object_array_field(root, "operations", "operations", true)?;
+        crate::strict_json::array_field(root, "activeTaskIds", "activeTaskIds", true)?;
+    } else {
+        for field in [
+            "taskOperations",
+            "durationOperations",
+            "autoStartOperations",
+        ] {
+            crate::strict_json::object_array_field(root, field, field, true)?;
+        }
+    }
+    Ok(value)
 }

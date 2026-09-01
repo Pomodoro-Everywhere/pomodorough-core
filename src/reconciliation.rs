@@ -1,11 +1,11 @@
 use std::collections::BTreeMap;
 
 use serde::{Deserialize, Deserializer, Serialize};
-use serde_json::Value;
 
 use crate::CoreError;
 use crate::sync_projection::{
     AutoStartOperation, DurationOperation, SelectedTaskOperation, Task, TaskOperation,
+    deserialize_duration_map,
 };
 use crate::timer::{CanonicalTimer, HistoryItem, WireCommand};
 
@@ -70,15 +70,16 @@ struct LocalQueues {
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct CanonicalResponse {
-    acknowledgements: Vec<Value>,
-    task_acknowledgements: Vec<Value>,
-    duration_acknowledgements: Vec<Value>,
-    auto_start_acknowledgements: Vec<Value>,
-    selected_task_acknowledgements: Vec<Value>,
+    acknowledgements: Vec<acknowledgements::Acknowledgement>,
+    task_acknowledgements: Vec<acknowledgements::Acknowledgement>,
+    duration_acknowledgements: Vec<acknowledgements::Acknowledgement>,
+    auto_start_acknowledgements: Vec<acknowledgements::Acknowledgement>,
+    selected_task_acknowledgements: Vec<acknowledgements::Acknowledgement>,
     revision: i64,
     canonical_timer: RequiredNullable<CanonicalTimer>,
     history: Vec<HistoryItem>,
     tasks: Vec<Task>,
+    #[serde(deserialize_with = "deserialize_duration_map")]
     durations_ms: BTreeMap<String, i64>,
     auto_start_breaks: bool,
     selected_task_id: crate::SelectedTaskField,
@@ -142,16 +143,18 @@ fn is_false(value: &bool) -> bool {
 }
 
 pub(crate) fn rebase_v1_json(input: &str) -> Result<String, CoreError> {
-    let value: Value = serde_json::from_str(input)?;
-    validation::required_response_fields(&value)?;
+    let value = crate::strict_json::parse(input)?;
+    validation::request_structure(&value)?;
     let input: RebaseInput = serde_json::from_value(value)?;
     Ok(serde_json::to_string(&rebase(input)?)?)
 }
 
 fn rebase(mut input: RebaseInput) -> Result<RebaseOutput, CoreError> {
     validation::canonical_response(&input.response)?;
-    let acknowledged = acknowledgements::validate(&input.sent, &input.response)?;
     validation::local_queue_ids(&input.local)?;
+    clocks::validate_local(&input.local)?;
+    validation::local_queue_values(&input.local, &input.response)?;
+    let acknowledged = acknowledgements::validate(&input.sent, &input.response)?;
     let timer_resolution = timer_dependencies::resolve(
         &mut input.local.commands,
         &input.timer_dependencies,

@@ -1,0 +1,260 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: core-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build-test-attest:
+    name: Build, test, and attest canonical WASM
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    steps:
+      - name: Check out exact workflow source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.workflow_sha }}
+          fetch-depth: 0
+          fetch-tags: true
+          persist-credentials: false
+
+      - name: Validate tag-bound source and workflow contract
+        run: |
+          set -euo pipefail
+          python3 scripts/c5_release_contract.py validate-source \
+            --tag "$GITHUB_REF_NAME" \
+            --workflow-sha "$GITHUB_WORKFLOW_SHA" \
+            --event-sha "$GITHUB_SHA" \
+            --event-ref "$GITHUB_REF" \
+            --workflow-ref "$GITHUB_WORKFLOW_REF" \
+            --github-repository "$GITHUB_REPOSITORY"
+          python3 scripts/c5_release_contract.py check-workflows
+
+      - name: Install pinned Rust toolchain
+        run: |
+          rustup toolchain install 1.97.1 --profile minimal --component clippy,rustfmt
+          rustup target add wasm32-unknown-unknown --toolchain 1.97.1
+
+      - name: Set up pinned Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+
+      - name: Check formatting
+        run: cargo +1.97.1 fmt --all -- --check
+
+      - name: Test all Rust targets
+        run: cargo +1.97.1 test --all-targets --locked
+
+      - name: Lint all Rust targets
+        run: cargo +1.97.1 clippy --all-targets --all-features --locked -- -D warnings
+
+      - name: Test artifact and release tooling
+        run: |
+          python3 -m unittest scripts/test_canonicalize_wasm_artifact.py -v
+          python3 -m unittest scripts/test_c5_release_contract.py -v
+
+      - name: Build and canonicalize release WASM
+        run: |
+          set -euo pipefail
+          wasm=target/wasm32-unknown-unknown/release/pomodorough_core.wasm
+          cargo +1.97.1 build --release --target wasm32-unknown-unknown --locked
+          python3 scripts/canonicalize_wasm_artifact.py "$wasm"
+          python3 scripts/verify_wasm_artifact.py "$wasm"
+
+      - name: Exercise exact canonical WASM
+        run: |
+          set -euo pipefail
+          wasm=target/wasm32-unknown-unknown/release/pomodorough_core.wasm
+          for test in tests/*.mjs; do
+            node "$test" "$wasm"
+          done
+
+      - name: Seal exact tested release candidate
+        run: |
+          set -euo pipefail
+          mkdir dist
+          install -m 0644 \
+            target/wasm32-unknown-unknown/release/pomodorough_core.wasm \
+            dist/pomodorough_core.wasm
+          python3 scripts/c5_release_contract.py create-manifest \
+            --artifact dist/pomodorough_core.wasm \
+            --manifest dist/SHA256SUMS
+          python3 scripts/c5_release_contract.py verify-bundle --directory dist
+          (cd dist && sha256sum --check --strict SHA256SUMS)
+
+      - name: Attest exact WASM and checksum manifest
+        uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be # v2
+        with:
+          subject-path: |
+            dist/pomodorough_core.wasm
+            dist/SHA256SUMS
+
+      - name: Reverify candidate after attestation
+        run: |
+          set -euo pipefail
+          python3 scripts/c5_release_contract.py verify-bundle --directory dist
+          (cd dist && sha256sum --check --strict SHA256SUMS)
+
+      - name: Upload immutable release candidate
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: core-release-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            dist/pomodorough_core.wasm
+            dist/SHA256SUMS
+          if-no-files-found: error
+          retention-days: 1
+          overwrite: false
+
+  verify-publish:
+    name: Verify draft and publish GitHub release
+    needs: build-test-attest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      attestations: read
+    steps:
+      - name: Check out exact workflow source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.workflow_sha }}
+          fetch-depth: 0
+          fetch-tags: true
+          persist-credentials: false
+
+      - name: Revalidate tag-bound publication source
+        run: |
+          set -euo pipefail
+          python3 scripts/c5_release_contract.py validate-source \
+            --tag "$GITHUB_REF_NAME" \
+            --workflow-sha "$GITHUB_WORKFLOW_SHA" \
+            --event-sha "$GITHUB_SHA" \
+            --event-ref "$GITHUB_REF" \
+            --workflow-ref "$GITHUB_WORKFLOW_REF" \
+            --github-repository "$GITHUB_REPOSITORY"
+
+      - name: Download exact tested release candidate
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: core-release-${{ github.run_id }}-${{ github.run_attempt }}
+          path: dist
+
+      - name: Verify transferred candidate and provenance
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          python3 scripts/c5_release_contract.py require-remote-tag-source \
+            --github-repository "$GITHUB_REPOSITORY" \
+            --tag "$GITHUB_REF_NAME" \
+            --expected-sha "$GITHUB_WORKFLOW_SHA"
+          digest="$(python3 scripts/c5_release_contract.py verify-bundle --directory dist)"
+          (cd dist && sha256sum --check --strict SHA256SUMS)
+          python3 scripts/verify_wasm_artifact.py dist/pomodorough_core.wasm --sha256 "$digest"
+          for asset in dist/pomodorough_core.wasm dist/SHA256SUMS; do
+            gh attestation verify "$asset" \
+              --repo "$GITHUB_REPOSITORY" \
+              --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/release.yml" \
+              --signer-digest "$GITHUB_WORKFLOW_SHA" \
+              --source-digest "$GITHUB_WORKFLOW_SHA" \
+              --source-ref "$GITHUB_REF"
+          done
+
+      - name: Create or adopt exact sealed draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          body="$RUNNER_TEMP/release-body.txt"
+          seal="$RUNNER_TEMP/release-seal.json"
+          download="$RUNNER_TEMP/draft-assets"
+          mode="$(python3 scripts/c5_release_contract.py prepare-draft-release \
+            --github-repository "$GITHUB_REPOSITORY" \
+            --tag "$GITHUB_REF_NAME" \
+            --expected-sha "$GITHUB_WORKFLOW_SHA" \
+            --workflow-sha "$GITHUB_WORKFLOW_SHA" \
+            --run-id "$GITHUB_RUN_ID" \
+            --run-attempt "$GITHUB_RUN_ATTEMPT" \
+            --directory dist \
+            --download-directory "$download" \
+            --body-file "$body" \
+            --seal "$seal")"
+          case "$mode" in
+            create)
+              python3 scripts/c5_release_contract.py require-immutable-releases \
+                --github-repository "$GITHUB_REPOSITORY"
+              python3 scripts/c5_release_contract.py require-remote-tag-source \
+                --github-repository "$GITHUB_REPOSITORY" \
+                --tag "$GITHUB_REF_NAME" \
+                --expected-sha "$GITHUB_WORKFLOW_SHA"
+              gh release create "$GITHUB_REF_NAME" \
+                dist/pomodorough_core.wasm \
+                dist/SHA256SUMS \
+                --repo "$GITHUB_REPOSITORY" \
+                --verify-tag \
+                --notes-file "$body" \
+                --draft \
+                --title "$GITHUB_REF_NAME"
+              python3 scripts/c5_release_contract.py capture-draft-release \
+                --github-repository "$GITHUB_REPOSITORY" \
+                --tag "$GITHUB_REF_NAME" \
+                --expected-sha "$GITHUB_WORKFLOW_SHA" \
+                --workflow-sha "$GITHUB_WORKFLOW_SHA" \
+                --run-id "$GITHUB_RUN_ID" \
+                --run-attempt "$GITHUB_RUN_ATTEMPT" \
+                --directory dist \
+                --download-directory "$download" \
+                --seal "$seal"
+              ;;
+            adopt) ;;
+            *) echo "Unexpected draft mode: $mode" >&2; exit 1 ;;
+          esac
+
+      - name: Verify ID-bound draft assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          verified_dir="$RUNNER_TEMP/draft-assets"
+          digest="$(python3 scripts/c5_release_contract.py verify-bundle --directory "$verified_dir")"
+          (cd "$verified_dir" && sha256sum --check --strict SHA256SUMS)
+          python3 scripts/verify_wasm_artifact.py \
+            "$verified_dir/pomodorough_core.wasm" \
+            --sha256 "$digest"
+          for asset in "$verified_dir/pomodorough_core.wasm" "$verified_dir/SHA256SUMS"; do
+            gh attestation verify "$asset" \
+              --repo "$GITHUB_REPOSITORY" \
+              --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/release.yml" \
+              --signer-digest "$GITHUB_WORKFLOW_SHA" \
+              --source-digest "$GITHUB_WORKFLOW_SHA" \
+              --source-ref "$GITHUB_REF"
+          done
+
+      - name: Publish ID-bound verified draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          python3 scripts/c5_release_contract.py publish-verified-draft \
+            --github-repository "$GITHUB_REPOSITORY" \
+            --tag "$GITHUB_REF_NAME" \
+            --expected-sha "$GITHUB_WORKFLOW_SHA" \
+            --workflow-sha "$GITHUB_WORKFLOW_SHA" \
+            --run-id "$GITHUB_RUN_ID" \
+            --run-attempt "$GITHUB_RUN_ATTEMPT" \
+            --directory dist \
+            --seal "$RUNNER_TEMP/release-seal.json"
