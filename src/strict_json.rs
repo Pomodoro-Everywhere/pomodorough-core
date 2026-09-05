@@ -6,6 +6,7 @@ use serde_json::{Map, Number, Value};
 use crate::CoreError;
 
 pub(crate) fn parse(input: &str) -> Result<Value, CoreError> {
+    crate::check_input_len(input)?;
     let mut deserializer = serde_json::Deserializer::from_str(input);
     let value = StrictValue.deserialize(&mut deserializer)?;
     deserializer.end()?;

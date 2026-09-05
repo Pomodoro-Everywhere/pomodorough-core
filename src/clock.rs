@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::CoreError;
+use crate::{CoreError, MAX_OBSERVED_CLOCKS, check_input_len};
 
 const MAX_SAFE_INTEGER: i64 = 9_007_199_254_740_991;
 const MAX_UUID_TIMESTAMP: i64 = (1_i64 << 48) - 1;
@@ -36,7 +36,13 @@ struct HlcHeadInput {
 }
 
 pub(crate) fn head_json(input: &str) -> Result<String, CoreError> {
+    check_input_len(input)?;
     let input: HlcHeadInput = serde_json::from_str(input)?;
+    if input.observed.len() > MAX_OBSERVED_CLOCKS {
+        return Err(CoreError::InvalidInput(format!(
+            "observed exceeds {MAX_OBSERVED_CLOCKS}"
+        )));
+    }
     validate_safe("physicalNowMs", input.physical_now_ms)?;
     let mut head = HlcHeadClock {
         wall_ms: input.physical_now_ms,
@@ -51,6 +57,7 @@ pub(crate) fn head_json(input: &str) -> Result<String, CoreError> {
 }
 
 pub(crate) fn tick_json(input: &str) -> Result<String, CoreError> {
+    check_input_len(input)?;
     let input: HlcTickInput = serde_json::from_str(input)?;
     validate_hlc(input.local)?;
     if let Some(remote) = input.remote {
@@ -90,6 +97,7 @@ struct UuidV7Output {
 }
 
 pub(crate) fn uuid_v7_from_parts_json(input: &str) -> Result<String, CoreError> {
+    check_input_len(input)?;
     let input: UuidV7Input = serde_json::from_str(input)?;
     if !(0..=MAX_UUID_TIMESTAMP).contains(&input.timestamp_ms) {
         return Err(CoreError::InvalidInput(

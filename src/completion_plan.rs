@@ -59,6 +59,7 @@ struct CompletionPlan {
 }
 
 pub(crate) fn plan_v1_json(input: &str) -> Result<String, CoreError> {
+    crate::check_input_len(input)?;
     let input: PlanInput = serde_json::from_str(input)?;
     Ok(serde_json::to_string(&plan(input)?)?)
 }

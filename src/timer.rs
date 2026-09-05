@@ -3,7 +3,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use chrono::{DateTime, Duration, Timelike, Utc};
 use serde::{Deserialize, Serialize};
 
-use crate::CoreError;
+use crate::{CoreError, MAX_COMMANDS, MAX_HISTORY_ITEMS, check_input_len};
 
 const MAX_SAFE_INTEGER: i64 = 9_007_199_254_740_991;
 
@@ -211,7 +211,9 @@ struct WireSession {
 }
 
 pub(crate) fn reduce_timer_v1_json(input: &str) -> Result<String, CoreError> {
+    check_input_len(input)?;
     let input: TimerReductionInput = serde_json::from_str(input)?;
+    check_command_counts(input.commands.len(), input.history.len())?;
     validate_replay_state(&input.canonical_timer, &input.history)?;
     let now = parse_time(&input.now)?;
     let commands = input
@@ -227,7 +229,21 @@ pub(crate) fn reduce_timer_v1_json(input: &str) -> Result<String, CoreError> {
     )?)?)
 }
 
-fn reduce(commands: Vec<Command>, now: DateTime<Utc>) -> TimerReductionOutput {
+fn check_command_counts(commands: usize, history: usize) -> Result<(), CoreError> {
+    if commands > MAX_COMMANDS {
+        return Err(CoreError::InvalidInput(format!(
+            "commands exceed {MAX_COMMANDS}"
+        )));
+    }
+    if history > MAX_HISTORY_ITEMS {
+        return Err(CoreError::InvalidInput(format!(
+            "history exceeds {MAX_HISTORY_ITEMS}"
+        )));
+    }
+    Ok(())
+}
+
+fn reduce(commands: Vec<Command>, now: DateTime<Utc>) -> Result<TimerReductionOutput, CoreError> {
     reduce_from_state(commands, now, BTreeMap::new(), None)
 }
 
@@ -339,7 +355,7 @@ fn replay_parsed(
         let session = session_from_canonical(timer)?;
         sessions.insert(session.timer_id.clone(), session);
     }
-    Ok(reduce_from_state(commands, now, sessions, current_id))
+    reduce_from_state(commands, now, sessions, current_id)
 }
 
 fn reduce_from_state(
@@ -347,7 +363,7 @@ fn reduce_from_state(
     now: DateTime<Utc>,
     sessions: BTreeMap<String, Session>,
     current_id: Option<String>,
-) -> TimerReductionOutput {
+) -> Result<TimerReductionOutput, CoreError> {
     let mut reduction = ReductionState {
         sessions,
         current_id,
@@ -403,10 +419,10 @@ impl ReductionState {
             return;
         }
         self.supersede_active(&command);
-        let target = self
-            .sessions
-            .get_mut(&command.timer_id)
-            .expect("checked above");
+        let Some(target) = self.sessions.get_mut(&command.timer_id) else {
+            self.outcomes.insert(command.id, Outcome::ignored(status));
+            return;
+        };
         target.status = status.into();
         target.elapsed_at_anchor_ms =
             clamp(command.observed_elapsed_ms, 0, target.planned_duration_ms);
@@ -422,10 +438,11 @@ impl ReductionState {
             return;
         }
         self.supersede_active(&command);
-        let target = self
-            .sessions
-            .get_mut(&command.timer_id)
-            .expect("checked above");
+        let Some(target) = self.sessions.get_mut(&command.timer_id) else {
+            self.outcomes
+                .insert(command.id, Outcome::ignored("timer is not active"));
+            return;
+        };
         if command.kind == "finish" {
             target.status = "completed".into();
             target.elapsed_at_anchor_ms = target.planned_duration_ms;
@@ -479,21 +496,21 @@ impl ReductionState {
         }
     }
 
-    fn finish(mut self, now: DateTime<Utc>) -> TimerReductionOutput {
+    fn finish(mut self, now: DateTime<Utc>) -> Result<TimerReductionOutput, CoreError> {
         self.auto_complete_current(&now);
         let canonical_timer = self
             .current_id
             .as_ref()
             .and_then(|id| self.sessions.get(id))
             .map(canonical);
-        let history = projected_history(&self.sessions);
+        let history = projected_history(&self.sessions)?;
         let sessions = self.sessions.values().map(wire_session).collect();
-        TimerReductionOutput {
+        Ok(TimerReductionOutput {
             canonical_timer,
             history,
             sessions,
             outcomes: self.outcomes,
-        }
+        })
     }
 }
 
@@ -563,7 +580,7 @@ fn transition_session(
     target.last_intent = Some(intent);
 }
 
-fn projected_history(sessions: &BTreeMap<String, Session>) -> Vec<HistoryItem> {
+fn projected_history(sessions: &BTreeMap<String, Session>) -> Result<Vec<HistoryItem>, CoreError> {
     let mut terminal = sessions
         .values()
         .filter(|session| {
@@ -579,12 +596,23 @@ fn projected_history(sessions: &BTreeMap<String, Session>) -> Vec<HistoryItem> {
             .cmp(&left.ended_at)
             .then_with(|| left.timer_id.cmp(&right.timer_id))
     });
-    terminal.into_iter().map(history_item).collect()
+    terminal
+        .into_iter()
+        .map(history_item)
+        .collect::<Result<Vec<_>, _>>()
 }
 
-fn history_item(session: &Session) -> HistoryItem {
+fn history_item(session: &Session) -> Result<HistoryItem, CoreError> {
     let ended_at = session.ended_at.as_ref().map(format_time);
-    HistoryItem {
+    let completed_at = match session.status.as_str() {
+        "completed" => Some(
+            ended_at
+                .clone()
+                .ok_or(CoreError::MissingProjection("history.endedAt"))?,
+        ),
+        _ => None,
+    };
+    Ok(HistoryItem {
         id: session.history_id.clone(),
         timer_id: session.timer_id.clone(),
         task_id: session.task_id.clone(),
@@ -592,13 +620,9 @@ fn history_item(session: &Session) -> HistoryItem {
         phase: session.phase.clone(),
         status: session.status.clone(),
         planned_duration_ms: session.planned_duration_ms,
-        completed_at: (session.status == "completed").then(|| {
-            ended_at
-                .clone()
-                .expect("terminal completed session has an end time")
-        }),
+        completed_at,
         ended_at,
-    }
+    })
 }
 
 fn session_from_canonical(timer: CanonicalTimer) -> Result<Session, CoreError> {
@@ -829,13 +853,16 @@ struct FixtureHistory {
 }
 
 pub fn reduce_timer_fixture_case_json(input: &str) -> Result<String, CoreError> {
+    check_input_len(input)?;
     let input: FixtureInput = serde_json::from_str(input)?;
+    check_command_counts(input.commands.len(), 0)?;
     let epoch = parse_time(&input.epoch)?;
     let now = epoch + Duration::milliseconds(input.now_ms);
-    let reduction = reduce(fixture_commands(input.commands, epoch), now);
+    let reduction = reduce(fixture_commands(input.commands, epoch), now)?;
     let timer = reduction
         .canonical_timer
-        .map(|timer| fixture_timer(timer, epoch));
+        .map(|timer| fixture_timer(timer, epoch))
+        .transpose()?;
     let history = fixture_history(reduction.history, epoch)?;
     Ok(serde_json::to_string(&FixtureOutput { timer, history })?)
 }
@@ -862,15 +889,14 @@ fn fixture_commands(commands: Vec<FixtureCommand>, epoch: DateTime<Utc>) -> Vec<
         .collect()
 }
 
-fn fixture_timer(timer: CanonicalTimer, epoch: DateTime<Utc>) -> FixtureTimer {
-    FixtureTimer {
+fn fixture_timer(timer: CanonicalTimer, epoch: DateTime<Utc>) -> Result<FixtureTimer, CoreError> {
+    Ok(FixtureTimer {
         id: timer.id,
         status: timer.status,
         phase: timer.phase,
         duration_ms: timer.planned_duration_ms,
         elapsed_ms: timer.elapsed_at_anchor_ms,
-        anchor_ms: parse_time(&timer.anchor_at)
-            .expect("reducer emitted a valid timestamp")
+        anchor_ms: parse_time(&timer.anchor_at)?
             .signed_duration_since(epoch)
             .num_milliseconds(),
         last_command_id: timer
@@ -878,7 +904,7 @@ fn fixture_timer(timer: CanonicalTimer, epoch: DateTime<Utc>) -> FixtureTimer {
             .map(|intent| intent.command_id)
             .unwrap_or_default(),
         task_id: timer.task_id,
-    }
+    })
 }
 
 fn fixture_history(

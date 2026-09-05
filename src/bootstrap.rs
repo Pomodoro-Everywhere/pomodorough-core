@@ -3,7 +3,7 @@ use std::collections::BTreeSet;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::CoreError;
+use crate::{CoreError, MAX_BOOTSTRAP_HISTORY, check_input_len};
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -37,7 +37,15 @@ struct BootstrapPlanOutput {
 }
 
 pub(crate) fn plan_v1_json(input: &str) -> Result<String, CoreError> {
+    check_input_len(input)?;
     let input: BootstrapPlanInput = serde_json::from_str(input)?;
+    if input.local_history.len() > MAX_BOOTSTRAP_HISTORY
+        || input.remote_history.len() > MAX_BOOTSTRAP_HISTORY
+    {
+        return Err(CoreError::InvalidInput(format!(
+            "history exceeds {MAX_BOOTSTRAP_HISTORY}"
+        )));
+    }
     let output = plan(input)?;
     Ok(serde_json::to_string(&output)?)
 }

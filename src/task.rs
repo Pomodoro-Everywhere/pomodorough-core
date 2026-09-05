@@ -39,6 +39,7 @@ pub(crate) fn identity(title: &str) -> Result<(String, String), CoreError> {
 }
 
 pub(crate) fn identity_json(input: &str) -> Result<String, CoreError> {
+    crate::check_input_len(input)?;
     let input: TaskIdentityInput = serde_json::from_str(input)?;
     let (id, title) = identity(&input.title)?;
     let utf8_bytes = title.len();
@@ -109,6 +110,7 @@ fn task_id(normalized_title: &str) -> String {
     let mut digest = Sha256::new();
     digest.update(TASK_NAMESPACE);
     digest.update(normalized_title.as_bytes());
+    // Infallible: SHA-256 always yields 32 bytes, so [..16] is exactly 16 bytes.
     let mut bytes: [u8; 16] = digest.finalize()[..16]
         .try_into()
         .expect("SHA-256 prefix is exactly 16 bytes");

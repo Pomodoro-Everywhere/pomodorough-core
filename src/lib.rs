@@ -90,12 +90,37 @@ struct SelectedTaskEnvelope {
 }
 
 pub fn classify_selected_task_field_json(input: &str) -> Result<String, CoreError> {
+    check_input_len(input)?;
     let envelope: SelectedTaskEnvelope = serde_json::from_str(input)?;
     Ok(match envelope.selected_task_id {
         SelectedTaskField::Omitted => "omitted".into(),
         SelectedTaskField::Deselected => "deselected".into(),
         SelectedTaskField::Selected(id) => format!("selected:{id}"),
     })
+}
+
+/// Maximum native JSON input accepted before deserialization.
+/// Matches the WASM ABI buffer cap so native and WASM reject the same class.
+pub(crate) const MAX_INPUT_BYTES: usize = 16 * 1024 * 1024;
+/// Maximum timer commands accepted in one reduction.
+pub(crate) const MAX_COMMANDS: usize = 10_000;
+/// Maximum timer history items accepted in one reduction.
+pub(crate) const MAX_HISTORY_ITEMS: usize = 10_000;
+/// Maximum HLC clocks accepted in one head computation.
+pub(crate) const MAX_OBSERVED_CLOCKS: usize = 10_000;
+/// Maximum bootstrap history entries accepted per side.
+pub(crate) const MAX_BOOTSTRAP_HISTORY: usize = 10_000;
+/// Maximum operation name bytes accepted by native dispatch.
+/// Matches the WASM ABI operation cap.
+pub(crate) const MAX_OPERATION_BYTES: usize = 256;
+
+pub(crate) fn check_input_len(input: &str) -> Result<(), CoreError> {
+    if input.len() > MAX_INPUT_BYTES {
+        return Err(CoreError::InvalidInput(format!(
+            "input exceeds {MAX_INPUT_BYTES} bytes"
+        )));
+    }
+    Ok(())
 }
 
 #[derive(Debug, Error)]
@@ -124,6 +149,12 @@ pub fn dispatch_envelope_json(operation: &str, input: &str) -> String {
 }
 
 pub fn dispatch_json(operation: &str, input: &str) -> Result<String, CoreError> {
+    if operation.len() > MAX_OPERATION_BYTES {
+        return Err(CoreError::InvalidInput(format!(
+            "operation exceeds {MAX_OPERATION_BYTES} bytes"
+        )));
+    }
+    check_input_len(input)?;
     match operation {
         "core.version" => Ok(serde_json::json!({
             "schemaVersion": 1,
