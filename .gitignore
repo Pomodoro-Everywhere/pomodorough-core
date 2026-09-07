@@ -6,6 +6,7 @@ __pycache__/
 *.pyc
 .cache_ggshield
 .ruff_cache/
+.pytest_cache/
 /.audit/
 .env
 *.log
