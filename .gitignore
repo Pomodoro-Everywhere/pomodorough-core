@@ -7,3 +7,10 @@ __pycache__/
 .cache_ggshield
 .ruff_cache/
 /.audit/
+.env
+*.log
+.idea/
+.vscode/
+coverage/
+lcov.info
+*.profraw
