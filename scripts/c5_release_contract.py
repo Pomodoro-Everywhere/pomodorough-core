@@ -9,6 +9,7 @@ import json
 from pathlib import Path
 import re
 import subprocess
+import time
 import tomllib
 from typing import NamedTuple, Sequence
 
@@ -1062,10 +1063,34 @@ def _release_by_id(repository: str, release_id: int, tag: str) -> dict[str, obje
 
 def _current_release(repository: str, tag: str) -> dict[str, object]:
     listed = _unique_release(repository, tag)
+    return _confirm_listed_release(repository, tag, listed)
+
+
+def _confirm_listed_release(
+    repository: str, tag: str, listed: dict[str, object]
+) -> dict[str, object]:
     current = _release_by_id(repository, int(listed["id"]), tag)
     if current != listed:
         raise ReleaseContractError("release changed between tag list and ID lookup")
     return current
+
+
+def _await_created_draft(repository: str, tag: str) -> dict[str, object]:
+    # Creation can complete before GitHub's paginated release list catches up.
+    # Retry absence only; never retry a conflicting identity or failed API call.
+    for attempt in range(6):
+        matches = _matching_releases(repository, tag)
+        if matches:
+            if len(matches) != 1:
+                raise ReleaseContractError("release tag has duplicate records after creation")
+            release = _confirm_listed_release(
+                repository, tag, _normalize_release(matches[0], tag)
+            )
+            _require_draft_state(release, tag)
+            return release
+        if attempt < 5:
+            time.sleep(2 ** attempt)
+    raise ReleaseContractError("created draft absent after six release list lookups")
 
 
 def _require_draft_state(release: dict[str, object], tag: str) -> None:
@@ -1263,7 +1288,7 @@ def capture_draft_release(
     identity = _workflow_identity(
         repository, tag, expected_sha, workflow_sha, run_id, run_attempt
     )
-    release = require_draft_release(repository, tag)
+    release = _await_created_draft(repository, tag)
     actual_identity = _release_workflow_identity(
         release, identity, int(identity["creator_run_attempt"])
     )

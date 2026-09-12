@@ -843,6 +843,50 @@ class ReleaseStateTests(unittest.TestCase):
         self.assertEqual(len(download.call_args_list), 2)
         self.assertEqual(json.loads(seal_path.read_text(encoding="utf-8")), seal)
 
+    def test_created_draft_retries_only_missing_list_before_sealing(self) -> None:
+        draft = self.release()
+        responses = [self.list_result(), self.list_result(),
+                     self.list_result(draft), self.object_result(draft)]
+        with mock.patch.object(self.contract, "_run_gh", side_effect=responses), \
+                mock.patch.object(self.contract.time, "sleep") as sleep, \
+                mock.patch.object(self.contract, "_run_gh_bytes", side_effect=self.download):
+            seal = self.capture(self.root / "delayed-download", self.root / "delayed-seal")
+        self.assertEqual(seal["release"]["id"], 7)
+        self.assertEqual(sleep.call_args_list, [mock.call(1), mock.call(2)])
+
+    def test_created_draft_absence_exhausts_bound_without_seal_or_download(self) -> None:
+        destination, seal = self.root / "absent-download", self.root / "absent-seal"
+        with mock.patch.object(self.contract, "_run_gh", return_value=self.list_result()) as run, \
+                mock.patch.object(self.contract.time, "sleep") as sleep, \
+                mock.patch.object(self.contract, "_run_gh_bytes") as download:
+            with self.assertRaisesRegex(self.contract.ReleaseContractError, "six release list"):
+                self.capture(destination, seal)
+        self.assertEqual(run.call_count, 6)
+        self.assertEqual(sleep.call_args_list, [mock.call(delay) for delay in (1, 2, 4, 8, 16)])
+        download.assert_not_called()
+        self.assertFalse(destination.exists())
+        self.assertFalse(seal.exists())
+
+    def test_created_draft_conflicts_and_api_errors_never_retry(self) -> None:
+        draft = self.release()
+        cases = (
+            [self.list_result(draft, self.release(release_id=8))],
+            [self.result(1, stderr="HTTP 403")],
+            [self.result(0, stdout='{"malformed": true}')],
+            [self.list_result(draft), self.object_result(self.release(release_id=8))],
+            [self.list_result(self.release(draft=False)),
+             self.object_result(self.release(draft=False))],
+        )
+        for responses in cases:
+            with self.subTest(responses=responses), \
+                    mock.patch.object(self.contract, "_run_gh", side_effect=responses), \
+                    mock.patch.object(self.contract.time, "sleep") as sleep, \
+                    mock.patch.object(self.contract, "_run_gh_bytes") as download:
+                with self.assertRaises(self.contract.ReleaseContractError):
+                    self.capture(self.root / "conflict-download", self.root / "conflict-seal")
+                sleep.assert_not_called()
+                download.assert_not_called()
+
     def test_changed_release_id_or_update_timestamp_rejects_publication(self) -> None:
         draft = self.release()
         seal_path = self.write_seal(draft)
