@@ -77,13 +77,22 @@ fn production_projection_operations_are_versioned_and_keep_legacy_dispatch_stabl
     );
 }
 
+fn task_identity(title: &str) -> Value {
+    let input = json!({ "title": title }).to_string();
+    serde_json::from_str(&dispatch_json("task.identity.v1", &input).unwrap()).unwrap()
+}
+
 #[test]
 fn task_reduce_v1_is_lww_sorted_and_returns_winning_operation_ids() {
+    let alpha = task_identity("Alpha");
+    let zulu = task_identity("Zulu");
+    let id_alpha = alpha["id"].as_str().unwrap().to_owned();
+    let id_zulu = zulu["id"].as_str().unwrap().to_owned();
     let operations = vec![
         json!({
             "id": "operation-old",
             "deviceId": "device-a",
-            "taskId": "task-a",
+            "taskId": id_zulu,
             "type": "upsert",
             "title": "Zulu",
             "occurredAt": timestamp(0),
@@ -93,7 +102,7 @@ fn task_reduce_v1_is_lww_sorted_and_returns_winning_operation_ids() {
         json!({
             "id": "operation-delete",
             "deviceId": "device-a",
-            "taskId": "task-a",
+            "taskId": id_zulu,
             "type": "delete",
             "occurredAt": timestamp(1_000),
             "hlcWallMs": 200,
@@ -102,7 +111,7 @@ fn task_reduce_v1_is_lww_sorted_and_returns_winning_operation_ids() {
         json!({
             "id": "operation-revive",
             "deviceId": "device-a",
-            "taskId": "task-a",
+            "taskId": id_zulu,
             "type": "upsert",
             "title": "Zulu",
             "occurredAt": timestamp(2_000),
@@ -112,7 +121,7 @@ fn task_reduce_v1_is_lww_sorted_and_returns_winning_operation_ids() {
         json!({
             "id": "operation-beta",
             "deviceId": "device-b",
-            "taskId": "task-b",
+            "taskId": id_alpha,
             "type": "upsert",
             "title": "Alpha",
             "occurredAt": timestamp(3_000),
@@ -120,16 +129,19 @@ fn task_reduce_v1_is_lww_sorted_and_returns_winning_operation_ids() {
             "hlcCounter": 0
         }),
     ];
-    let expected = json!({
-        "tasks": [
-            {"id": "task-b", "title": "Alpha"},
-            {"id": "task-a", "title": "Zulu"}
-        ],
-        "winningOperationIds": {
-            "task-a": "operation-revive",
-            "task-b": "operation-beta"
-        }
-    });
+    let mut winners = Map::new();
+    winners.insert(id_zulu.clone(), json!("operation-revive"));
+    winners.insert(id_alpha.clone(), json!("operation-beta"));
+    let expected = Value::Object(Map::from_iter([
+        (
+            "tasks".to_owned(),
+            json!([
+                {"id": id_alpha, "title": "Alpha"},
+                {"id": id_zulu, "title": "Zulu"}
+            ]),
+        ),
+        ("winningOperationIds".to_owned(), Value::Object(winners)),
+    ]));
     for order in permutations(&operations) {
         assert_eq!(
             dispatch("task.reduce.v1", json!({"operations": order})),
@@ -436,9 +448,11 @@ fn production_projection_reducers_match_every_fixture_permutation_and_winner() {
 
 #[test]
 fn production_projection_operations_decode_real_occurred_at_and_hlc_fields() {
+    let alpha = task_identity("Alpha");
+    let id_alpha = alpha["id"].as_str().unwrap().to_owned();
     let mut task = operation_clock("task-operation", "device-a", 10, 2);
     task.extend([
-        ("taskId".to_owned(), json!("task-a")),
+        ("taskId".to_owned(), json!(id_alpha)),
         ("type".to_owned(), json!("upsert")),
         ("title".to_owned(), json!("Alpha")),
     ]);
@@ -446,7 +460,7 @@ fn production_projection_operations_decode_real_occurred_at_and_hlc_fields() {
         dispatch(
             "task.reduce.v1",
             json!({"operations": [Value::Object(task)]})
-        )["winningOperationIds"]["task-a"],
+        )["winningOperationIds"][id_alpha.as_str()],
         "task-operation"
     );
 }

@@ -172,7 +172,7 @@ pub(crate) fn replay_tasks(
 ) -> Result<TaskReductionOutput, CoreError> {
     for operation in &operations {
         validate_operation_clock(&operation.clock)?;
-        validate_task_id(&operation.task_id)?;
+        validate_task_operation_fields(operation)?;
     }
 
     let winners = select_clock_winners(
@@ -247,7 +247,8 @@ fn apply_task_operations(
             "delete" => {
                 tasks_by_id.remove(&operation.task_id);
             }
-            _ => {}
+            // Unreachable: replay_tasks validates every kind above.
+            _ => unreachable!("task operation kind validated above"),
         }
     }
     tasks_by_id
