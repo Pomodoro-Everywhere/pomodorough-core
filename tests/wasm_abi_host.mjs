@@ -60,7 +60,7 @@ const operation = encoder.encode("core.version");
 const input = encoder.encode("{}");
 assert.deepEqual(invoke(operation, input), {
   ok: true,
-  value: { schemaVersion: 1, coreVersion: "0.32.0" },
+  value: { schemaVersion: 1, coreVersion: "0.33.0" },
 });
 assert.deepEqual(
   invoke(
