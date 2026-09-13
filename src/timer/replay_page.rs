@@ -3,7 +3,7 @@ use super::*;
 const PAGE_SIZE: usize = 256;
 
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq, PartialOrd, Ord)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[serde(rename_all = "camelCase")]
 struct Order {
     hlc_wall_ms: i64,
     hlc_counter: i64,
@@ -23,7 +23,7 @@ impl From<&Command> for Order {
 }
 
 #[derive(Deserialize)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[serde(rename_all = "camelCase")]
 struct Input {
     commands: Vec<WireCommand>,
     sessions: Vec<WireSession>,
@@ -43,6 +43,9 @@ struct Output {
 
 // Replay the full sorted log; the host retains untouched sessions verbatim.
 // Never feed projected history back here: it omits resumable session state.
+// C31: unknown fields stay tolerated (like `timer.reduce.v1` and the C27 ack
+// precedent) so a newer host can extend commands or persist a richer `after`
+// cursor without breaking paged replay. `PAGE_SIZE`/ordering checks remain.
 pub(crate) fn reduce_json(input: &str) -> Result<String, CoreError> {
     let input: Input = serde_json::from_value(crate::strict_json::parse(input)?)?;
     if input.commands.len() > PAGE_SIZE || input.sessions.len() > PAGE_SIZE + 1 {
@@ -50,6 +53,7 @@ pub(crate) fn reduce_json(input: &str) -> Result<String, CoreError> {
             "timer replay page exceeds limit".into(),
         ));
     }
+    super::check_unique_command_ids(input.commands.iter().map(|command| command.id.as_str()))?;
     let mut state = restore(input.sessions, input.current_timer_id)?;
     let mut after = input.after;
     for wire in input.commands {

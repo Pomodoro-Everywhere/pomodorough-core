@@ -276,7 +276,11 @@ fn validate_set(
         let Some(outcome) = acknowledgement.outcome() else {
             return invalid_set(field);
         };
-        if acknowledgement.reason.as_deref().is_none()
+        // C29: the protocol fixture ships reason-less `applied` acks, so a
+        // `reason` is only required for `rejected` outcomes that must explain
+        // themselves. Missing/null/non-string reasons stay invalid there.
+        let reason_missing = acknowledgement.reason.as_deref().is_none();
+        if (outcome == "rejected" && reason_missing)
             || !matches!(outcome, "applied" | "ignored" | "rejected")
             || !expected_ids.contains(identifier)
             || !acknowledged_ids.insert(identifier.to_owned())

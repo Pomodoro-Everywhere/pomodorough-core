@@ -154,6 +154,12 @@ pub(super) fn canonical_response(response: &CanonicalResponse) -> Result<(), Cor
 }
 
 pub(super) fn local_queue_ids(local: &LocalQueues) -> Result<(), CoreError> {
+    // C30: timer commands skipped uniqueness here while every sibling queue
+    // enforces it; duplicates collapse in the outcomes map and share one
+    // rebased clock, so reject them with the shared timer check.
+    crate::timer::check_unique_command_ids(
+        local.commands.iter().map(|command| command.id.as_str()),
+    )?;
     validate_unique_local_ids(
         "taskOperations",
         local

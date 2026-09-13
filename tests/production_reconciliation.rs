@@ -237,8 +237,11 @@ fn reconcile_rebase_v1_rejects_missing_extra_duplicate_and_malformed_acknowledge
             ])),
             Some(json!([{(id_field): expected_id.clone(), "outcome": "unknown", "reason": ""}])),
             Some(json!([{(id_field): 7, "outcome": "applied", "reason": ""}])),
-            Some(json!([{(id_field): expected_id.clone(), "outcome": "applied"}])),
-            Some(json!([{(id_field): expected_id, "outcome": "applied", "reason": null}])),
+            // C29: a missing/null reason is only invalid for `rejected`
+            // outcomes (`applied`/`ignored` ship reason-less from the
+            // protocol fixture); rejected cases stay invalid here.
+            Some(json!([{(id_field): expected_id.clone(), "outcome": "rejected"}])),
+            Some(json!([{(id_field): expected_id, "outcome": "rejected", "reason": null}])),
         ];
 
         for invalid_set in invalid_sets {

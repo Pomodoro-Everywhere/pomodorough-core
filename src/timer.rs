@@ -232,6 +232,7 @@ pub(crate) fn reduce_timer_v1_json(input: &str) -> Result<String, CoreError> {
     check_input_len(input)?;
     let input: TimerReductionInput = serde_json::from_str(input)?;
     check_command_counts(input.commands.len(), input.history.len())?;
+    check_unique_command_ids(input.commands.iter().map(|command| command.id.as_str()))?;
     validate_replay_state(&input.canonical_timer, &input.history)?;
     let now = parse_time(&input.now)?;
     let commands = input
@@ -261,6 +262,21 @@ fn check_command_counts(commands: usize, history: usize) -> Result<(), CoreError
     Ok(())
 }
 
+// C30: duplicate timer command ids silently collapse in the outcomes map
+// (one key) while HLC rebase stamps both copies, so every timer entry point
+// rejects them up front with the same `InvalidInput`.
+pub(crate) fn check_unique_command_ids<'a>(
+    identifiers: impl IntoIterator<Item = &'a str>,
+) -> Result<(), CoreError> {
+    let mut seen = BTreeSet::new();
+    for identifier in identifiers {
+        if !seen.insert(identifier) {
+            return Err(CoreError::InvalidInput("duplicate timer command".into()));
+        }
+    }
+    Ok(())
+}
+
 fn reduce(commands: Vec<Command>, now: DateTime<Utc>) -> Result<TimerReductionOutput, CoreError> {
     reduce_from_state(commands, now, BTreeMap::new(), None)
 }
@@ -271,6 +287,7 @@ pub(crate) fn replay(
     commands: Vec<WireCommand>,
     now: &str,
 ) -> Result<TimerReductionOutput, CoreError> {
+    check_unique_command_ids(commands.iter().map(|command| command.id.as_str()))?;
     validate_replay_state(&canonical_timer, &history)?;
     let now = parse_time(now)?;
     let commands = commands
