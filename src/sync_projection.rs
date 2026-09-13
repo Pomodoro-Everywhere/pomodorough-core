@@ -184,7 +184,7 @@ pub(crate) fn replay_tasks(
         .iter()
         .map(|(task_id, operation)| (task_id.clone(), operation.clock.id.clone()))
         .collect();
-    let mut tasks = apply_task_operations(base_tasks, winners)
+    let mut tasks = apply_task_operations(base_tasks, winners)?
         .into_values()
         .collect::<Vec<_>>();
     tasks.sort_by(|left, right| {
@@ -228,7 +228,7 @@ pub(crate) fn validate_task_operation_fields(operation: &TaskOperation) -> Resul
 fn apply_task_operations(
     base_tasks: Vec<Task>,
     winners: BTreeMap<String, TaskOperation>,
-) -> BTreeMap<String, Task> {
+) -> Result<BTreeMap<String, Task>, CoreError> {
     let mut tasks_by_id = base_tasks
         .into_iter()
         .map(|task| (task.id.clone(), task))
@@ -247,11 +247,14 @@ fn apply_task_operations(
             "delete" => {
                 tasks_by_id.remove(&operation.task_id);
             }
-            // Unreachable: replay_tasks validates every kind above.
-            _ => unreachable!("task operation kind validated above"),
+            _ => {
+                return Err(CoreError::InvalidInput(
+                    "invalid task operation type".into(),
+                ));
+            }
         }
     }
-    tasks_by_id
+    Ok(tasks_by_id)
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -467,5 +470,37 @@ pub(crate) fn validate_selected_task_fields(
         _ => Err(CoreError::InvalidInput(
             "invalid selected task operation".into(),
         )),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn test_clock() -> OperationClock {
+        OperationClock {
+            id: "operation-unknown-kind".to_owned(),
+            device_id: "device-test".to_owned(),
+            occurred_at: "2026-08-25T12:00:00Z".to_owned(),
+            hlc_wall_ms: 1,
+            hlc_counter: 0,
+        }
+    }
+
+    #[test]
+    fn unknown_task_kind_returns_invalid_input() {
+        let operation = TaskOperation {
+            clock: test_clock(),
+            task_id: "task-unknown-kind".to_owned(),
+            kind: "rename".to_owned(),
+            title: "Task".to_owned(),
+        };
+        let winners = BTreeMap::from([("task-unknown-kind".to_owned(), operation)]);
+        let error = apply_task_operations(Vec::new(), winners).unwrap_err();
+        assert!(
+            matches!(error, CoreError::InvalidInput(ref message)
+                if message == "invalid task operation type"),
+            "expected InvalidInput, got {error}"
+        );
     }
 }
