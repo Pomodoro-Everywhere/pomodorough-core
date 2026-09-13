@@ -179,6 +179,20 @@ fn retarget_participates_in_hlc_rebase_ordering() {
     assert_eq!(output["pending"][1]["id"], "command-retarget");
     assert_eq!(output["pending"][1]["hlcWallMs"], REBASE_WALL_MS + 10_000);
     assert_eq!(output["pending"][1]["hlcCounter"], 9);
+    // Reduce must apply the retarget (not reject as unsupported) and move task.
+    let mut start = command(0, "start", "timer-a");
+    start["taskId"] = json!("task-original");
+    let mut retarget = command(1, "retarget", "timer-a");
+    retarget["taskId"] = json!("task-next");
+    let reduced = call(
+        "timer.reduce.v1",
+        json!({"commands": [start, retarget], "now": "2026-09-13T12:00:02Z"}),
+    );
+    assert_eq!(
+        reduced["outcomes"]["command-00000001"]["outcome"],
+        "applied"
+    );
+    assert_eq!(reduced["canonicalTimer"]["taskId"], "task-next");
 }
 
 // C20: empty Selected task identity is InvalidInput for every command kind,
