@@ -558,13 +558,17 @@ fn validate_generated_break_batch(
     batch_ids: &BTreeSet<String>,
 ) -> Result<(), CoreError> {
     let generated_start = &commands[command_positions[generated_start_id]];
+    // Retarget shares the batch's timer but never changes lifecycle: reduce
+    // ignores a retarget whose target is not the active focus timer, so a
+    // break batch carrying one must normalize like any other member instead of
+    // hard-failing while timer.reduce.v1 succeeds on the same commands.
     if batch_ids.is_empty()
         || batch_ids.iter().any(|identifier| {
             let command = &commands[command_positions[identifier]];
             command.timer_id != generated_start.timer_id
                 || !matches!(
                     command.kind.as_str(),
-                    "start" | "pause" | "resume" | "finish" | "cancel" | "clear"
+                    "start" | "pause" | "resume" | "finish" | "cancel" | "clear" | "retarget"
                 )
                 || (command.kind == "start" && command.id != generated_start_id)
         })

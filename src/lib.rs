@@ -163,6 +163,7 @@ pub fn dispatch_json(operation: &str, input: &str) -> Result<String, CoreError> 
         .to_string()),
         "timer.reduce" => reduce_timer_fixture_case_json(input),
         "timer.reduce.v1" => timer::reduce_timer_v1_json(input),
+        "timer.replay.page.v1" => timer::replay_page::reduce_json(input),
         "projection.reduce" => fixture_projection::reduce_projection_fixture_case_json(input),
         "projection.apply.v2" => projection::apply_v2_json(input),
         "task.reduce.v1" => sync_projection::reduce_tasks_v1_json(input),

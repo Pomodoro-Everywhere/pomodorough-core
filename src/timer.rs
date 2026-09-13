@@ -5,6 +5,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::{CoreError, MAX_COMMANDS, MAX_HISTORY_ITEMS, check_input_len};
 
+pub(crate) mod replay_page;
+
 const MAX_SAFE_INTEGER: i64 = 9_007_199_254_740_991;
 
 #[derive(Deserialize)]
@@ -26,8 +28,8 @@ pub(crate) struct WireCommand {
     pub(crate) device_id: String,
     pub(crate) device_sequence: i64,
     pub(crate) timer_id: String,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub(crate) task_id: Option<String>,
+    #[serde(default, skip_serializing_if = "crate::SelectedTaskField::is_omitted")]
+    pub(crate) task_id: crate::SelectedTaskField,
     #[serde(rename = "type")]
     pub(crate) kind: String,
     pub(crate) phase: String,
@@ -40,6 +42,7 @@ pub(crate) struct WireCommand {
 
 impl WireCommand {
     fn into_command(self) -> Result<Command, CoreError> {
+        let task_id = command_task_id(&self.kind, self.task_id)?;
         if self.id.is_empty()
             || self.device_id.is_empty()
             || self.timer_id.is_empty()
@@ -56,7 +59,7 @@ impl WireCommand {
             id: self.id,
             device_id: self.device_id,
             timer_id: self.timer_id,
-            task_id: self.task_id,
+            task_id,
             kind: self.kind,
             phase: self.phase,
             planned_duration_ms: self.planned_duration_ms,
@@ -65,6 +68,21 @@ impl WireCommand {
             hlc_counter: self.hlc_counter,
             observed_elapsed_ms: self.observed_elapsed_ms,
         })
+    }
+}
+
+fn command_task_id(
+    kind: &str,
+    field: crate::SelectedTaskField,
+) -> Result<Option<String>, CoreError> {
+    use crate::SelectedTaskField::{Deselected, Omitted, Selected};
+    match field {
+        Omitted if kind == "retarget" => Err(CoreError::MissingProjection("command.taskId")),
+        Selected(id) if id.is_empty() => Err(CoreError::InvalidInput(
+            "invalid timer task identity".into(),
+        )),
+        Selected(id) => Ok(Some(id)),
+        Omitted | Deselected => Ok(None),
     }
 }
 
@@ -185,7 +203,7 @@ pub(crate) struct HistoryItem {
     pub(crate) ended_at: Option<String>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 struct WireSession {
     timer_id: String,
@@ -197,7 +215,7 @@ struct WireSession {
     elapsed_at_anchor_ms: i64,
     anchor_at: String,
     started_at: String,
-    #[serde(skip_serializing_if = "String::is_empty")]
+    #[serde(default, skip_serializing_if = "String::is_empty")]
     started_by_device_id: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     ended_at: Option<String>,
@@ -391,6 +409,7 @@ impl ReductionState {
             "resume" => self.apply_activation(command, intent, "running"),
             "finish" | "cancel" => self.apply_terminal(command, intent),
             "clear" => self.apply_clear(command, intent),
+            "retarget" => self.apply_retarget(command),
             _ => {
                 self.outcomes
                     .insert(command.id, Outcome::rejected("unsupported command type"));
@@ -470,6 +489,27 @@ impl ReductionState {
         self.outcomes.insert(command.id, Outcome::applied());
     }
 
+    fn apply_retarget(&mut self, command: Command) {
+        let target = self.sessions.get_mut(&command.timer_id).filter(|target| {
+            self.current_id.as_deref() == Some(target.timer_id.as_str())
+                && is_active(target)
+                && target.phase == "focus"
+                && command.phase == "focus"
+        });
+        let Some(target) = target else {
+            self.outcomes.insert(
+                command.id,
+                Outcome::ignored("timer is not the active focus timer"),
+            );
+            return;
+        };
+        target.task_id = command.task_id;
+        target.last_command_id = command.id.clone();
+        // Task attribution is not a lifecycle intent. Preserve the shipped
+        // intent vocabulary and pause/resume timing for older snapshot readers.
+        self.outcomes.insert(command.id, Outcome::applied());
+    }
+
     fn supersede_active(&mut self, command: &Command) {
         if let Some(current) = self
             .current_id
@@ -498,6 +538,10 @@ impl ReductionState {
 
     fn finish(mut self, now: DateTime<Utc>) -> Result<TimerReductionOutput, CoreError> {
         self.auto_complete_current(&now);
+        self.project()
+    }
+
+    fn project(&self) -> Result<TimerReductionOutput, CoreError> {
         let canonical_timer = self
             .current_id
             .as_ref()
@@ -509,7 +553,7 @@ impl ReductionState {
             canonical_timer,
             history,
             sessions,
-            outcomes: self.outcomes,
+            outcomes: self.outcomes.clone(),
         })
     }
 }
