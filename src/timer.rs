@@ -403,6 +403,11 @@ impl ReductionState {
     fn apply(&mut self, command: Command) {
         self.auto_complete_current(&command.occurred_at);
         let intent = command_intent(&command);
+        // Unknown timer kinds record a per-command `rejected` outcome and the
+        // batch continues: old cores must keep reducing known siblings when a
+        // newer client sends a kind they do not understand yet (forward
+        // compat). Unknown task kinds fail the whole batch instead because
+        // task replay has no per-command outcomes to record the rejection in.
         match command.kind.as_str() {
             "start" => self.apply_start(command, intent),
             "pause" => self.apply_activation(command, intent, "paused"),
@@ -902,7 +907,7 @@ pub fn reduce_timer_fixture_case_json(input: &str) -> Result<String, CoreError> 
     check_command_counts(input.commands.len(), 0)?;
     let epoch = parse_time(&input.epoch)?;
     let now = epoch + Duration::milliseconds(input.now_ms);
-    let reduction = reduce(fixture_commands(input.commands, epoch), now)?;
+    let reduction = reduce(fixture_commands(input.commands, epoch)?, now)?;
     let timer = reduction
         .canonical_timer
         .map(|timer| fixture_timer(timer, epoch))
@@ -911,24 +916,36 @@ pub fn reduce_timer_fixture_case_json(input: &str) -> Result<String, CoreError> 
     Ok(serde_json::to_string(&FixtureOutput { timer, history })?)
 }
 
-fn fixture_commands(commands: Vec<FixtureCommand>, epoch: DateTime<Utc>) -> Vec<Command> {
+fn fixture_commands(
+    commands: Vec<FixtureCommand>,
+    epoch: DateTime<Utc>,
+) -> Result<Vec<Command>, CoreError> {
     commands
         .into_iter()
         .map(|command| {
-            let _ = command.sequence;
-            Command {
+            // Route legacy fixtures through production validation so invalid
+            // fixture input fails exactly like `timer.reduce.v1` rejects it.
+            // Legacy `task_id: Option<String>` conflates omitted and null, as
+            // in `fixture_projection.rs`; both mean no task attribution here.
+            let task_id = command.task_id.map_or(
+                crate::SelectedTaskField::Deselected,
+                crate::SelectedTaskField::Selected,
+            );
+            WireCommand {
                 id: command.id,
                 device_id: command.device_id,
+                device_sequence: command.sequence,
                 timer_id: command.timer_id,
-                task_id: command.task_id,
+                task_id,
                 kind: command.kind,
                 phase: command.phase,
                 planned_duration_ms: command.duration_ms,
-                occurred_at: epoch + Duration::milliseconds(command.at_ms),
+                occurred_at: format_time(&(epoch + Duration::milliseconds(command.at_ms))),
                 hlc_wall_ms: command.wall_ms,
                 hlc_counter: command.counter,
                 observed_elapsed_ms: command.elapsed_ms,
             }
+            .into_command()
         })
         .collect()
 }

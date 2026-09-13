@@ -144,6 +144,11 @@ impl<'de> Visitor<'de> for AcknowledgementVisitor {
                 "operationId" => acknowledgement.operation_id = map.next_value()?,
                 "outcome" => acknowledgement.outcome = map.next_value()?,
                 "reason" => acknowledgement.reason = map.next_value()?,
+                // Unknown ack fields are ignored for forward compat: newer
+                // servers may attach extra ack metadata that old cores must
+                // not choke on. Exact object-count and outcome checks in
+                // `validate_set` still apply, unlike the fail-closed
+                // `deny_unknown_fields` timer/clock/projection inputs.
                 _ => {
                     map.next_value::<IgnoredAny>()?;
                 }

@@ -433,6 +433,10 @@ pub(crate) fn replay_selected_task(
         if operation.task_id == SelectedTaskField::Omitted {
             return Err(CoreError::MissingProjection("operations.taskId"));
         }
+        // Reject empty selection here so direct `selectedTask.reduce.v1` calls
+        // match `timer.reduce.v1`, `validate_selected_task_fields`, and
+        // `projection.apply.v2` instead of silently deselecting.
+        validate_selected_task_fields(operation)?;
     }
 
     let winner = operations.into_iter().max_by(|left, right| {

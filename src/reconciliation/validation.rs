@@ -234,7 +234,10 @@ fn validate_unique_local_ids<'a>(
 fn validate_tasks(tasks: &[Task]) -> Result<(), CoreError> {
     let mut ids = BTreeSet::new();
     for task in tasks {
-        let canonical = is_canonical_task_identity(&task.id, &task.title).unwrap_or(false);
+        // Fail closed on any non-canonical identity, including title errors:
+        // the generic message keeps the wire contract stable while the
+        // projection path propagates the detailed cause with `?`.
+        let canonical = matches!(is_canonical_task_identity(&task.id, &task.title), Ok(true));
         if !canonical || !ids.insert(task.id.as_str()) {
             return invalid_response("tasks");
         }
