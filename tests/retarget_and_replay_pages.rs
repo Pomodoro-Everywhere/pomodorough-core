@@ -130,6 +130,165 @@ fn replay_page_rejects_duplicate_or_reversed_order_and_missing_current() {
 
 const REBASE_WALL_MS: i64 = 1_784_548_800_000;
 
+fn immutable_request() -> Value {
+    let start = rebase_command("command-start", "start", 1, Some("task-original"));
+    let mut retarget = rebase_command("command-retarget", "retarget", 2, Some("task-next"));
+    retarget["hlcCounter"] = json!(1);
+    json!({"local": rebase_queues(vec![start, retarget]), "sent": rebase_queues(vec![]),
+        "response": rebase_response(json!([])), "timerDependencies": []})
+}
+
+#[test]
+fn immutable_reconciliation_does_not_discard_a_possibly_delivered_dependent() {
+    let mut input = immutable_request();
+    input["sent"]["commands"] = json!([{"id": "command-start"}]);
+    input["response"]["acknowledgements"] = json!([{
+        "commandId": "command-start", "outcome": "rejected", "reason": "conflict"}]);
+    input["timerDependencies"] = json!([{
+        "operationId": "command-retarget", "dependsOnOperationId": "command-start"}]);
+    let error = dispatch_json("reconcile.rebase.v2", &input.to_string()).unwrap_err();
+    assert!(error.to_string().contains("possibly delivered dependent"));
+    input["neverSent"] = json!({"commands": ["command-retarget"]});
+    let output = call("reconcile.rebase.v2", input);
+    assert_eq!(output["pending"], json!([]));
+    assert_eq!(
+        output["droppedTimerOperationIds"],
+        json!(["command-retarget"])
+    );
+}
+
+#[test]
+fn immutable_reconciliation_freezes_every_operation_domain() {
+    let mut input = immutable_request();
+    let operation = json!({"id": "operation-a", "deviceId": "device-a", "occurredAt": "2026-07-20T11:53:20Z",
+        "hlcWallMs": REBASE_WALL_MS - 400_000, "hlcCounter": 0});
+    for (queue, fields) in [
+        (
+            "taskOperations",
+            json!({"type": "delete", "taskId": "task-a"}),
+        ),
+        (
+            "durationOperations",
+            json!({"phase": "focus", "durationMs": 60000}),
+        ),
+        ("autoStartOperations", json!({"enabled": true})),
+        ("selectedTaskOperations", json!({"taskId": null})),
+    ] {
+        let mut value = operation.clone();
+        value
+            .as_object_mut()
+            .unwrap()
+            .extend(fields.as_object().unwrap().clone());
+        input["local"][queue] = json!([value]);
+    }
+    let output = call("reconcile.rebase.v2", input);
+    for queue in [
+        "pendingTaskOperations",
+        "pendingDurationOperations",
+        "pendingAutoStartOperations",
+        "pendingSelectedTaskOperations",
+    ] {
+        for field in ["id", "occurredAt", "hlcWallMs", "hlcCounter"] {
+            assert_eq!(output[queue][0][field], operation[field], "{queue}.{field}");
+        }
+    }
+    assert!(output["pendingSelectedTaskOperations"][0]["taskId"].is_null());
+}
+
+#[test]
+fn immutable_reconciliation_preserves_unknown_delivery_and_causal_order() {
+    let input = immutable_request();
+    let result = call("reconcile.rebase.v2", input.clone());
+    assert_eq!(result["pending"], input["local"]["commands"]);
+    let reduced = call(
+        "timer.reduce.v1",
+        json!({"commands": result["pending"],
+        "now": "2026-07-20T11:53:21Z"}),
+    );
+    assert_eq!(reduced["canonicalTimer"]["taskId"], "task-next");
+    let mut restarted: Value = serde_json::from_str(&input.to_string()).unwrap();
+    restarted["local"]["commands"] = result["pending"].clone();
+    restarted["response"]["serverHlcCounter"] = json!(99);
+    let retry = call("reconcile.rebase.v2", restarted);
+    assert_eq!(retry["pending"], input["local"]["commands"]);
+}
+
+#[test]
+fn immutable_reconciliation_accepts_start_ack_without_rewriting_remaining_retarget() {
+    let mut input = immutable_request();
+    let canonical = call(
+        "timer.reduce.v1",
+        json!({"commands": [input["local"]["commands"][0]],
+        "now": "2026-07-20T11:53:21Z"}),
+    );
+    input["response"]["canonicalTimer"] = canonical["canonicalTimer"].clone();
+    input["response"]["serverTime"] = json!("2026-07-20T11:53:21Z");
+    input["response"]["serverHlcWallMs"] = json!(REBASE_WALL_MS - 399_000);
+    input["response"]["acknowledgements"] = json!([{
+        "commandId": "command-start", "outcome": "applied", "reason": ""}]);
+    input["sent"]["commands"] = json!([{"id": "command-start"}]);
+    let output = call("reconcile.rebase.v2", input.clone());
+    assert_eq!(output["pending"], json!([input["local"]["commands"][1]]));
+    assert_eq!(output["timer"]["taskId"], "task-original");
+}
+
+#[test]
+fn immutable_reconciliation_does_not_replay_lost_ack_start_over_newer_pause() {
+    let mut input = immutable_request();
+    input["response"]["canonicalTimer"] = json!({"id": "timer-a", "taskId": "remote-task", "phase": "focus",
+        "status": "paused", "plannedDurationMs": 60000, "elapsedAtAnchorMs": 12000,
+        "anchorAt": "2026-07-20T12:00:00Z", "startedByDeviceId": "device-a",
+        "lastIntent": {"type": "pause", "commandId": "remote-pause", "occurredAt": "2026-07-20T12:00:00Z"}});
+    let output = call("reconcile.rebase.v2", input.clone());
+    assert_eq!(output["pending"], input["local"]["commands"]);
+    assert_eq!(output["timer"], input["response"]["canonicalTimer"]);
+    assert_eq!(output["projectionPending"], rebase_queues(vec![]));
+}
+
+#[test]
+fn immutable_reconciliation_rejects_reversed_cross_device_dependencies() {
+    let mut input = immutable_request();
+    input["local"]["commands"][1]["deviceId"] = json!("device-b");
+    input["timerDependencies"] = json!([{
+        "operationId": "command-start", "dependsOnOperationId": "command-retarget"}]);
+    let error = dispatch_json("reconcile.rebase.v2", &input.to_string()).unwrap_err();
+    assert!(error.to_string().contains("not causally ordered"));
+}
+
+#[test]
+fn immutable_reconciliation_never_rebases_even_wholly_never_sent_chains() {
+    let mut input = immutable_request();
+    input["neverSent"] = json!({"commands": ["command-start"]});
+    let result = call("reconcile.rebase.v2", input.clone());
+    assert_eq!(result["pending"], input["local"]["commands"]);
+    input["neverSent"]["commands"] = json!(["command-start", "command-retarget"]);
+    let result = call("reconcile.rebase.v2", input.clone());
+    assert_eq!(result["pending"], input["local"]["commands"]);
+    assert_eq!(result["projectionPending"]["commands"], json!([]));
+}
+
+#[test]
+fn immutable_reconciliation_rejects_false_delivery_claims_and_reordered_clocks() {
+    for claims in [
+        json!({"commands": ["absent"]}),
+        json!({"commands": ["command-start", "command-start"]}),
+        json!({"commands": null}),
+        json!({"typo": []}),
+    ] {
+        let mut input = immutable_request();
+        input["neverSent"] = claims;
+        assert!(dispatch_json("reconcile.rebase.v2", &input.to_string()).is_err());
+    }
+    let mut input = immutable_request();
+    input["sent"]["commands"] = json!([{"id": "command-start"}]);
+    input["neverSent"] = json!({"commands": ["command-start"]});
+    assert!(dispatch_json("reconcile.rebase.v2", &input.to_string()).is_err());
+    let mut input = immutable_request();
+    input["local"]["commands"][1]["hlcCounter"] = json!(0);
+    let error = dispatch_json("reconcile.rebase.v2", &input.to_string()).unwrap_err();
+    assert!(error.to_string().contains("device sequence"));
+}
+
 fn rebase_command(id: &str, kind: &str, sequence: i64, task: Option<&str>) -> Value {
     let mut cmd = json!({"id": id, "deviceId": "device-a", "deviceSequence": sequence,
         "timerId": "timer-a", "type": kind, "phase": "focus", "plannedDurationMs": 60000,
@@ -314,6 +473,17 @@ fn generated_break_batch_with_retarget_reconciles_like_reduce() {
              "dependsOnOperationId": "command-00000001"},
             {"operationId": "command-00000003",
              "dependsOnOperationId": "command-00000001"}]});
+    let error = dispatch_json("reconcile.rebase.v2", &input.to_string()).unwrap_err();
+    assert!(
+        error
+            .to_string()
+            .contains("rewrite a possibly delivered operation")
+    );
+    let mut never_sent = input.clone();
+    never_sent["neverSent"] =
+        json!({"commands": ["command-00000001", "command-00000002", "command-00000003"]});
+    let safe = call("reconcile.rebase.v2", never_sent);
+    assert_eq!(safe["droppedTimerOperationIds"], json!([]));
     let output: Value =
         serde_json::from_str(&dispatch_json("reconcile.rebase.v1", &input.to_string()).unwrap())
             .unwrap();

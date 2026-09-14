@@ -2,7 +2,7 @@ use std::collections::BTreeSet;
 use std::fmt;
 
 use serde::de::{Error as _, IgnoredAny, MapAccess, SeqAccess, Visitor};
-use serde::{Deserialize, Deserializer};
+use serde::{Deserialize, Deserializer, Serialize};
 
 use crate::CoreError;
 use crate::sync_projection::{
@@ -166,11 +166,16 @@ pub(super) struct AcknowledgedIds {
     selected_task: BTreeSet<String>,
 }
 
+#[derive(Serialize)]
 pub(super) struct PendingQueues {
     pub(super) commands: Vec<WireCommand>,
+    #[serde(rename = "taskOperations")]
     pub(super) tasks: Vec<TaskOperation>,
+    #[serde(rename = "durationOperations")]
     pub(super) durations: Vec<DurationOperation>,
+    #[serde(rename = "autoStartOperations")]
     pub(super) auto_start: Vec<AutoStartOperation>,
+    #[serde(rename = "selectedTaskOperations")]
     pub(super) selected_task: Vec<SelectedTaskOperation>,
 }
 

@@ -174,6 +174,7 @@ pub fn dispatch_json(operation: &str, input: &str) -> Result<String, CoreError> 
         "selectedTask.reduce.v1" => sync_projection::reduce_selected_task_v1_json(input),
         "selectedTask.classify" => classify_selected_task_field_json(input),
         "reconcile.rebase.v1" => reconciliation::rebase_v1_json(input),
+        "reconcile.rebase.v2" => reconciliation::rebase_v2_json(input),
         "bootstrap.plan.v1" => bootstrap::plan_v1_json(input),
         "timer.completionPlan.v1" => completion_plan::plan_v1_json(input),
         "hlc.head.v1" => clock::head_json(input),

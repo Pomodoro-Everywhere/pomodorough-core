@@ -34,10 +34,13 @@ pub(super) fn assemble(
     response: CanonicalResponse,
     pending: PendingQueues,
     timer_resolution: TimerDependencyResolution,
+    projected: Option<PendingQueues>,
 ) -> Result<RebaseOutput, CoreError> {
     let base = canonical_base(response)?;
-    let projection = project_pending(&base, &pending)?;
-    Ok(rebase_output(base, pending, timer_resolution, projection))
+    let projection = project_pending(&base, projected.as_ref().unwrap_or(&pending))?;
+    let mut output = rebase_output(base, pending, timer_resolution, projection);
+    output.projection_pending = projected;
+    Ok(output)
 }
 
 fn canonical_base(response: CanonicalResponse) -> Result<CanonicalBase, CoreError> {
@@ -96,6 +99,7 @@ fn rebase_output(
     projection: PendingProjection,
 ) -> RebaseOutput {
     RebaseOutput {
+        projection_pending: None,
         revision: base.revision,
         pending: pending.commands,
         pending_task_operations: pending.tasks,

@@ -56,11 +56,40 @@ function invoke(operationBytes, inputBytes, override = {}) {
 }
 
 const encoder = new TextEncoder();
+verifyImmutableReconciliation();
+
+function verifyImmutableReconciliation() {
+  const queues = { commands: [], taskOperations: [], durationOperations: [], autoStartOperations: [], selectedTaskOperations: [] };
+  const start = {
+    id: "start-immutable", deviceId: "device-immutable", deviceSequence: 1, timerId: "timer-immutable",
+    taskId: "task-original", type: "start", phase: "focus", plannedDurationMs: 60000,
+    occurredAt: "2026-09-13T12:00:00Z", hlcWallMs: 1789300800000, hlcCounter: 0, observedElapsedMs: 0,
+  };
+  const retarget = { ...start, id: "retarget-immutable", deviceSequence: 2, type: "retarget", taskId: null, hlcCounter: 1 };
+  const request = {
+    local: { ...queues, commands: [start, retarget] }, sent: queues, timerDependencies: [],
+    response: {
+      revision: 1, acknowledgements: [], taskAcknowledgements: [], durationAcknowledgements: [],
+      autoStartAcknowledgements: [], selectedTaskAcknowledgements: [], canonicalTimer: null, history: [], tasks: [],
+      durationsMs: { focus: 1500000, short_break: 300000, long_break: 900000 },
+      autoStartBreaks: false, selectedTaskId: null, serverTime: "2026-09-13T12:10:00Z",
+      serverHlcWallMs: 1789301400000, serverHlcCounter: 10,
+    },
+  };
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const result = invoke(encoder.encode("reconcile.rebase.v2"), encoder.encode(JSON.stringify(request)));
+    assert.equal(result.ok, true, result.error);
+    assert.deepEqual(result.value.pending, [start, retarget]);
+    request.local.commands = JSON.parse(JSON.stringify(result.value.pending));
+    request.response.serverHlcCounter++;
+  }
+}
+
 const operation = encoder.encode("core.version");
 const input = encoder.encode("{}");
 assert.deepEqual(invoke(operation, input), {
   ok: true,
-  value: { schemaVersion: 1, coreVersion: "0.37.0" },
+  value: { schemaVersion: 1, coreVersion: "0.38.0" },
 });
 assert.deepEqual(
   invoke(

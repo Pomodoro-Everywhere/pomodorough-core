@@ -12,6 +12,7 @@ use crate::timer::{CanonicalTimer, HistoryItem, WireCommand};
 mod acknowledgements;
 mod canonical_projection;
 mod clocks;
+mod delivery;
 mod timer_dependencies;
 mod validation;
 
@@ -52,7 +53,7 @@ struct SentQueues {
     selected_task_operations: Vec<Identified>,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 struct LocalQueues {
     #[serde(default)]
@@ -114,6 +115,8 @@ struct TimerDependency {
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 struct RebaseOutput {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    projection_pending: Option<acknowledgements::PendingQueues>,
     revision: i64,
     pending: Vec<WireCommand>,
     pending_task_operations: Vec<TaskOperation>,
@@ -146,10 +149,21 @@ pub(crate) fn rebase_v1_json(input: &str) -> Result<String, CoreError> {
     let value = crate::strict_json::parse(input)?;
     validation::request_structure(&value)?;
     let input: RebaseInput = serde_json::from_value(value)?;
-    Ok(serde_json::to_string(&rebase(input)?)?)
+    Ok(serde_json::to_string(&rebase(input, None)?)?)
 }
 
-fn rebase(mut input: RebaseInput) -> Result<RebaseOutput, CoreError> {
+pub(crate) fn rebase_v2_json(input: &str) -> Result<String, CoreError> {
+    let value = crate::strict_json::parse(input)?;
+    validation::request_structure(&value)?;
+    let policy = delivery::Policy::from_request(&value)?;
+    let input: RebaseInput = serde_json::from_value(value)?;
+    Ok(serde_json::to_string(&rebase(input, Some(policy))?)?)
+}
+
+fn rebase(
+    mut input: RebaseInput,
+    policy: Option<delivery::Policy>,
+) -> Result<RebaseOutput, CoreError> {
     validation::canonical_response(&input.response)?;
     validation::local_queue_ids(&input.local)?;
     clocks::validate_local(&input.local)?;
@@ -160,8 +174,18 @@ fn rebase(mut input: RebaseInput) -> Result<RebaseOutput, CoreError> {
         &input.timer_dependencies,
         &input.response,
     )?;
+    if let Some(policy) = &policy {
+        policy.validate_drops(&timer_resolution.dropped_operation_ids)?;
+    }
     let mut pending =
         acknowledgements::filter_pending(input.local, &acknowledged, &timer_resolution);
-    clocks::rebase(&mut pending, &input.response)?;
-    canonical_projection::assemble(input.response, pending, timer_resolution)
+    let projected = if let Some(policy) = policy {
+        let projected = policy.projection(&pending, &input.response)?;
+        delivery::validate_dependencies(&pending.commands, &input.timer_dependencies)?;
+        Some(projected)
+    } else {
+        clocks::rebase(&mut pending, &input.response)?;
+        None
+    };
+    canonical_projection::assemble(input.response, pending, timer_resolution, projected)
 }
