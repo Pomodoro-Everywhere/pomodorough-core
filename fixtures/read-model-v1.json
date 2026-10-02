@@ -1,0 +1,66 @@
+{
+  "request": {
+    "profile": "appleWorkspace",
+    "source": {
+      "kind": "workspace",
+      "value": {
+        "base": {
+          "canonicalTimer": null,
+          "history": [],
+          "tasks": [],
+          "durationsMs": {"focus": 1500000, "short_break": 300000, "long_break": 900000},
+          "autoStartBreaks": false,
+          "selectedTaskId": null
+        },
+        "local": {
+          "commands": [], "taskOperations": [], "durationOperations": [],
+          "autoStartOperations": [], "selectedTaskOperations": []
+        },
+        "canonicalHead": null,
+        "neverSent": {},
+        "timerDependencies": []
+      }
+    },
+    "selectedPhase": "focus",
+    "observedAt": "2026-03-08T07:30:00Z",
+    "calendarIntervals": [
+      {"start": "2026-03-08T05:00:00Z", "end": "2026-03-09T04:00:00Z"}
+    ]
+  },
+  "timer": {
+    "id": "timer-one", "phase": "focus", "status": "running",
+    "plannedDurationMs": 1500000, "elapsedAtAnchorMs": 120000,
+    "anchorAt": "2026-03-08T07:29:00Z"
+  },
+  "checkerHistory": [
+    {"id": "yesterday", "timerId": "yesterday", "phase": "focus", "status": "completed", "plannedDurationMs": 600000, "completedAt": "2026-03-08T04:59:59Z", "taskId": "current"},
+    {"id": "today", "timerId": "today", "phase": "focus", "status": "completed", "plannedDurationMs": 900000, "completedAt": "2026-03-08T05:00:00Z", "taskId": "current"},
+    {"id": "deleted", "timerId": "deleted", "phase": "focus", "status": "completed", "plannedDurationMs": 300000, "completedAt": "2026-03-08T06:00:00Z", "taskId": "removed"},
+    {"id": "unassigned", "timerId": "unassigned", "phase": "focus", "status": "completed", "plannedDurationMs": 120000, "completedAt": "2026-03-08T06:30:00Z", "taskId": null}
+  ],
+  "checkerDailyTotals": {
+    "focusCount": 3, "focusPlannedDurationMs": 1320000,
+    "currentTaskCount": 1, "currentTaskPlannedDurationMs": 900000
+  },
+  "desktopPrimary": [
+    {"status": "idle", "intents": ["start", "selectPhase"]},
+    {"status": "completed", "intents": ["restart", "clear", "selectPhase"]},
+    {"status": "cancelled", "intents": ["restart", "clear", "selectPhase"]},
+    {"status": "superseded", "intents": ["restart", "clear", "selectPhase"]}
+  ],
+  "cadence": [
+    {"count": 0, "progress": 0, "skip": "short_break", "next": "short_break"},
+    {"count": 1, "progress": 1, "skip": "short_break", "next": "short_break"},
+    {"count": 2, "progress": 2, "skip": "short_break", "next": "short_break"},
+    {"count": 3, "progress": 3, "skip": "long_break", "next": "short_break"},
+    {"count": 4, "progress": 4, "skip": "short_break", "next": "long_break"},
+    {"count": 5, "progress": 1, "skip": "short_break", "next": "short_break"},
+    {"count": 6, "progress": 2, "skip": "short_break", "next": "short_break"},
+    {"count": 7, "progress": 3, "skip": "long_break", "next": "short_break"},
+    {"count": 8, "progress": 4, "skip": "short_break", "next": "long_break"},
+    {"count": 9, "progress": 1, "skip": "short_break", "next": "short_break"},
+    {"count": 10, "progress": 2, "skip": "short_break", "next": "short_break"},
+    {"count": 11, "progress": 3, "skip": "long_break", "next": "short_break"},
+    {"count": 12, "progress": 4, "skip": "short_break", "next": "long_break"}
+  ]
+}

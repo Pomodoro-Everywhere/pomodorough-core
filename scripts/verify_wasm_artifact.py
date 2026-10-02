@@ -15,6 +15,14 @@ EXPECTED_EXPORTS = {
     "pomodorough_free": 0,
     "pomodorough_free_v2": 0,
 }
+I32 = 0x7F
+I64 = 0x7E
+EXPECTED_FUNC_SIGS = {
+    "pomodorough_alloc": ((I32,), (I32,)),
+    "pomodorough_dispatch": ((I32, I32, I32, I32), (I64,)),
+    "pomodorough_free": ((I32, I32), ()),
+    "pomodorough_free_v2": ((I32, I32), (I32,)),
+}
 MAX_ARTIFACT_BYTES = 16 * 1024 * 1024
 MAX_MEMORY_PAGES = 4096
 
@@ -90,6 +98,129 @@ def validate_memory(payload: bytes) -> None:
         )
 
 
+def read_limits(payload: bytes, offset: int) -> int:
+    flags, offset = read_u32(payload, offset)
+    _, offset = read_u32(payload, offset)
+    if flags & 1:
+        _, offset = read_u32(payload, offset)
+    return offset
+
+
+def parse_func_types(payload: bytes) -> list[tuple[tuple[int, ...], tuple[int, ...]]]:
+    count, offset = read_u32(payload, 0)
+    types: list[tuple[tuple[int, ...], tuple[int, ...]]] = []
+    for _ in range(count):
+        if offset >= len(payload):
+            raise ContractError("truncated function type")
+        if payload[offset] != 0x60:
+            raise ContractError("expected function type marker 0x60")
+        offset += 1
+        params: list[int] = []
+        results: list[int] = []
+        param_count, offset = read_u32(payload, offset)
+        for _ in range(param_count):
+            if offset >= len(payload):
+                raise ContractError("truncated function type parameters")
+            params.append(payload[offset])
+            offset += 1
+        result_count, offset = read_u32(payload, offset)
+        for _ in range(result_count):
+            if offset >= len(payload):
+                raise ContractError("truncated function type results")
+            results.append(payload[offset])
+            offset += 1
+        types.append((tuple(params), tuple(results)))
+    if offset != len(payload):
+        raise ContractError("trailing type-section data")
+    return types
+
+
+def count_imported_funcs(payload: bytes) -> int:
+    count, offset = read_u32(payload, 0)
+    imported = 0
+    for _ in range(count):
+        _, offset = read_name(payload, offset)
+        _, offset = read_name(payload, offset)
+        if offset >= len(payload):
+            raise ContractError("truncated import description")
+        kind = payload[offset]
+        offset += 1
+        if kind == 0:
+            _, offset = read_u32(payload, offset)
+            imported += 1
+        elif kind == 1:
+            if offset >= len(payload):
+                raise ContractError("truncated table import")
+            offset += 1
+            offset = read_limits(payload, offset)
+        elif kind == 2:
+            offset = read_limits(payload, offset)
+        elif kind == 3:
+            if offset + 2 > len(payload):
+                raise ContractError("truncated global import")
+            offset += 2
+        else:
+            raise ContractError(f"unknown import kind {kind}")
+    if offset != len(payload):
+        raise ContractError("trailing import-section data")
+    return imported
+
+
+def parse_func_type_indices(payload: bytes) -> list[int]:
+    count, offset = read_u32(payload, 0)
+    indices: list[int] = []
+    for _ in range(count):
+        index, offset = read_u32(payload, offset)
+        indices.append(index)
+    if offset != len(payload):
+        raise ContractError("trailing function-section data")
+    return indices
+
+
+def parse_func_export_indices(payload: bytes) -> dict[str, int]:
+    count, offset = read_u32(payload, 0)
+    exports: dict[str, int] = {}
+    for _ in range(count):
+        name, offset = read_name(payload, offset)
+        if offset >= len(payload):
+            raise ContractError("truncated export kind")
+        kind = payload[offset]
+        offset += 1
+        index, offset = read_u32(payload, offset)
+        if name in exports:
+            raise ContractError(f"duplicate export {name!r}")
+        if kind == 0:
+            exports[name] = index
+    return exports
+
+
+def validate_func_signatures(parsed: dict[int, bytes]) -> None:
+    if 1 not in parsed or 3 not in parsed:
+        raise ContractError("artifact is missing type or function section")
+    func_types = parse_func_types(parsed[1])
+    imported_funcs = count_imported_funcs(parsed[2]) if 2 in parsed else 0
+    type_indices = parse_func_type_indices(parsed[3])
+    func_exports = parse_func_export_indices(parsed[7])
+    for name, (params, results) in EXPECTED_FUNC_SIGS.items():
+        if name not in func_exports:
+            raise ContractError(f"missing function export {name!r}")
+        func_index = func_exports[name]
+        if func_index < imported_funcs:
+            raise ContractError(f"export {name!r} resolves to an import, not a defined function")
+        defined = func_index - imported_funcs
+        if defined >= len(type_indices):
+            raise ContractError(f"export {name!r} function index out of range")
+        type_index = type_indices[defined]
+        if type_index >= len(func_types):
+            raise ContractError(f"export {name!r} type index out of range")
+        actual = func_types[type_index]
+        if actual != (params, results):
+            raise ContractError(
+                f"export {name!r} has incompatible signature "
+                f"params={list(actual[0])} results={list(actual[1])}"
+            )
+
+
 def validate_exports(payload: bytes) -> None:
     count, offset = read_u32(payload, 0)
     exports: dict[str, int] = {}
@@ -122,6 +253,7 @@ def validate(path: Path, expected_sha256: str | None = None) -> str:
         raise ContractError("artifact is missing memory or export section")
     validate_memory(parsed[5])
     validate_exports(parsed[7])
+    validate_func_signatures(parsed)
     return digest
 
 

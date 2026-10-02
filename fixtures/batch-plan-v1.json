@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "domains": ["commands", "taskOperations", "durationOperations", "autoStartOperations", "selectedTaskOperations"],
+  "descriptorExpansion": "For index i in each domain: id=op- plus i padded to five decimal digits, deviceId=device-a, hlcWallMs=i+1, hlcCounter=0; commands alone add deviceSequence=i+1. Reverse each input queue. Expected selected IDs are the ascending prefix of each domain of length selectedCounts.",
+  "boundaries": [
+    {"name":"sync-511", "mode":"sync", "counts":[256,255,0,0,0], "status":"planned", "selectedCounts":[256,255,0,0,0]},
+    {"name":"sync-512", "mode":"sync", "counts":[256,256,0,0,0], "status":"planned", "selectedCounts":[256,256,0,0,0]},
+    {"name":"sync-513", "mode":"sync", "counts":[256,256,1,0,0], "status":"planned", "selectedCounts":[256,255,1,0,0]},
+    {"name":"sync-all-domains", "mode":"sync", "counts":[256,256,256,256,256], "status":"planned", "selectedCounts":[103,103,102,102,102]},
+    {"name":"bootstrap-8191", "mode":"replace_remote", "counts":[4096,4095,0,0,0], "status":"planned", "selectedCounts":[4096,4095,0,0,0]},
+    {"name":"bootstrap-8192", "mode":"replace_remote", "counts":[4096,4096,0,0,0], "status":"planned", "selectedCounts":[4096,4096,0,0,0]},
+    {"name":"bootstrap-8193", "mode":"replace_remote", "counts":[4096,4096,1,0,0], "status":"oversized", "selectedCounts":[0,0,0,0,0]},
+    {"name":"bootstrap-five-domains", "mode":"merge", "counts":[1639,1639,1638,1638,1638], "status":"planned", "selectedCounts":[1639,1639,1638,1638,1638]},
+    {"name":"bootstrap-domain-overflow", "mode":"replace_remote", "counts":[0,4097,0,0,0], "status":"oversized", "selectedCounts":[0,0,0,0,0]}
+  ],
+  "mixes": {"masks":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31], "countPerPresentDomain":257, "perDomain":256, "total":512},
+  "ordering": {
+    "commands": [
+      {"id":"late","deviceId":"device-a","hlcWallMs":2,"hlcCounter":0,"deviceSequence":3},
+      {"id":"z","deviceId":"device-a","hlcWallMs":1,"hlcCounter":0,"deviceSequence":2},
+      {"id":"a","deviceId":"device-b","hlcWallMs":1,"hlcCounter":0,"deviceSequence":1},
+      {"id":"b","deviceId":"device-a","hlcWallMs":1,"hlcCounter":0,"deviceSequence":1},
+      {"id":"counter","deviceId":"device-a","hlcWallMs":2,"hlcCounter":1,"deviceSequence":4}
+    ],
+    "selected":["b","z","a","late","counter"]
+  },
+  "barriers": [
+    {"name":"held-retarget", "operations":["start","retarget","finish"], "child":1, "parent":0, "selected":["op-00000"]},
+    {"name":"generated-finish-start", "operations":["finish","generated-start","pause","retarget"], "child":1, "parent":0, "selected":["op-00000"]},
+    {"name":"dependency-at-256-boundary", "count":258, "child":256, "parent":255, "selectedCount":256}
+  ]
+}

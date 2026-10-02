@@ -1,0 +1,35 @@
+{
+  "selection": [
+    {"profile": "appleWorkspace", "status": "running", "phase": "focus", "commands": ["retarget"], "selected": 1},
+    {"profile": "androidCoordinator", "status": "paused", "phase": "focus", "commands": ["retarget"], "selected": 1},
+    {"profile": "desktopStorage", "status": "running", "phase": "focus", "commands": ["retarget"], "selected": 1},
+    {"profile": "pwaStorage", "status": "paused", "phase": "focus", "commands": ["retarget"], "selected": 1},
+    {"profile": "appleWorkspace", "status": "running", "phase": "short_break", "commands": [], "selected": 1},
+    {"profile": "androidCoordinator", "status": "paused", "phase": "long_break", "commands": [], "selected": 1},
+    {"profile": "desktopStorage", "status": "completed", "phase": "focus", "commands": [], "selected": 1},
+    {"profile": "pwaStorage", "status": "running", "phase": "short_break", "commands": [], "selected": 1}
+  ],
+  "androidAdd": [
+    {"title": "Café", "existing": true, "status": "running", "phase": "focus", "selected": false, "timerTask": false, "tasks": 0, "selection": 1, "commands": 1},
+    {"title": "Café", "existing": true, "status": "paused", "phase": "focus", "selected": true, "timerTask": false, "tasks": 0, "selection": 0, "commands": 1},
+    {"title": "Café", "existing": true, "status": "running", "phase": "short_break", "selected": false, "timerTask": false, "tasks": 0, "selection": 1, "commands": 0},
+    {"title": "Café", "existing": true, "status": "paused", "phase": "long_break", "selected": true, "timerTask": false, "tasks": 0, "selection": 0, "commands": 0},
+    {"title": "Café", "existing": false, "status": "running", "phase": "focus", "selected": false, "timerTask": false, "tasks": 0, "selection": 0, "commands": 0},
+    {"title": "Café", "existing": false, "status": "paused", "phase": "short_break", "selected": false, "timerTask": false, "tasks": 0, "selection": 0, "commands": 0},
+    {"title": "Café", "existing": false, "status": "idle", "phase": "focus", "selected": false, "timerTask": false, "tasks": 1, "selection": 1, "commands": 0}
+  ],
+  "androidDurationDivergence": [
+    {"localMs": 60000, "projectedMs": 120000, "delta": 1, "operationMs": 120000},
+    {"localMs": 120000, "projectedMs": 60000, "delta": 0, "operationMs": null},
+    {"localMs": 60000, "projectedMs": 120000, "delta": 0, "operationMs": null},
+    {"localMs": 120000, "projectedMs": 60000, "delta": 1, "operationMs": 180000}
+  ],
+  "duration": [
+    {"profile": "appleWorkspace", "status": "running", "commands": [], "duration": 2400000},
+    {"profile": "appleWorkspace", "status": "completed", "commands": ["clear"], "duration": 2400000},
+    {"profile": "androidCoordinator", "status": "paused", "commands": [], "duration": 60000},
+    {"profile": "androidCoordinator", "status": "completed", "commands": [], "duration": 120000},
+    {"profile": "desktopStorage", "status": "running", "commands": [], "duration": 2400000},
+    {"profile": "pwaStorage", "status": "completed", "commands": [], "duration": 2400000}
+  ]
+}

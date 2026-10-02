@@ -121,7 +121,14 @@ fn restore_session(wire: WireSession) -> Result<Session, CoreError> {
         superseded_by_timer_id: wire.superseded_by_timer_id,
         last_intent: wire.last_intent,
     };
+    let mut session = session;
+    if let Some(intent) = &mut session.last_intent {
+        intent.device_id = None;
+    }
     validate_canonical_timer(&canonical(&session))?;
+    if !(0..=session.planned_duration_ms).contains(&session.elapsed_at_anchor_ms) {
+        return Err(CoreError::InvalidInput("invalid canonical timer".into()));
+    }
     let terminal = !is_active(&session);
     if terminal != session.ended_at.is_some() {
         return Err(CoreError::InvalidInput(

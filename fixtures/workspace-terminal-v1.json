@@ -1,0 +1,58 @@
+{
+  "request": {
+    "base": {"canonicalTimer": null, "history": [], "tasks": [], "durationsMs": {"focus": 60000, "short_break": 120000, "long_break": 180000}, "autoStartBreaks": false, "selectedTaskId": null},
+    "local": {"commands": [], "taskOperations": [], "durationOperations": [], "autoStartOperations": [], "selectedTaskOperations": []},
+    "canonicalHead": {"wallMs": 1784548800000, "counter": 0}, "neverSent": {}, "timerDependencies": [], "now": "2026-07-20T12:01:00Z"
+  },
+  "timer": {"id": "existing-timer", "taskId": "12345678-1234-4234-8234-123456789010", "phase": "focus", "status": "completed", "plannedDurationMs": 60000, "elapsedAtAnchorMs": 60000, "anchorAt": "2026-07-20T12:00:00Z", "startedByDeviceId": "device-local", "lastIntent": {"type": "finish", "commandId": "finish-existing", "occurredAt": "2026-07-20T12:00:00Z"}},
+  "history": {"id": "existing-timer", "timerId": "existing-timer", "taskId": "12345678-1234-4234-8234-123456789010", "phase": "focus", "status": "completed", "plannedDurationMs": 60000, "commandId": "finish-existing", "completedAt": "2026-07-20T12:00:00Z", "endedAt": "2026-07-20T12:00:00Z"},
+  "command": {"id": "clear-existing", "deviceId": "device-local", "deviceSequence": 8, "timerId": "existing-timer", "taskId": "12345678-1234-4234-8234-123456789010", "type": "clear", "phase": "focus", "plannedDurationMs": 60000, "observedElapsedMs": 60000, "occurredAt": "2026-07-20T12:00:10Z", "hlcWallMs": 1784548810000, "hlcCounter": 0},
+  "cases": [
+    {"name": "persisted finish overlap", "timerOverrides": {}, "historyOverrides": {}, "expectedTimer": "retained"},
+    {"name": "legacy distinct history identity", "timerOverrides": {}, "historyOverrides": {"id": "legacy-history"}, "expectedTimer": "retained"},
+    {"name": "automatic deadline preserves start intent", "timerOverrides": {"lastIntent": {"type": "start", "commandId": "start-existing", "occurredAt": "2026-07-20T11:59:00Z"}}, "historyOverrides": {"commandId": null}, "expectedTimer": "retained"},
+    {"name": "automatic deadline without intent", "timerOverrides": {"lastIntent": null}, "historyOverrides": {"commandId": null}, "expectedTimer": "retained"},
+    {"name": "persisted cancel preserves elapsed", "timerOverrides": {"status": "cancelled", "elapsedAtAnchorMs": 17000, "lastIntent": {"type": "cancel", "commandId": "cancel-existing", "occurredAt": "2026-07-20T12:00:00Z"}}, "historyOverrides": {"status": "cancelled", "commandId": "cancel-existing", "completedAt": null}, "expectedTimer": "retained"},
+    {"name": "superseded retains prior lifecycle intent", "timerOverrides": {"status": "superseded", "elapsedAtAnchorMs": 21000, "lastIntent": {"type": "pause", "commandId": "pause-existing", "occurredAt": "2026-07-20T11:59:45Z"}}, "historyOverrides": {"status": "superseded", "commandId": "start-replacement", "completedAt": null}, "expectedTimer": "retained"},
+    {"name": "standalone terminal synthesizes history", "timerOverrides": {}, "historyOverrides": {}, "missingHistory": true, "expectedTimer": "retained"},
+    {"name": "explicit null does not pick latest history", "timerOverrides": {}, "historyOverrides": {}, "cleared": true, "expectedTimer": "null"},
+    {"name": "safe clear preserves history", "timerOverrides": {}, "historyOverrides": {}, "commands": ["clear"], "safe": true, "expectedTimer": "null"},
+    {"name": "uncertain clear cannot hide retained terminal", "timerOverrides": {}, "historyOverrides": {}, "commands": ["clear"], "safe": false, "expectedTimer": "retained"},
+    {"name": "same timestamp distinct session not latest selection", "timerOverrides": {}, "historyOverrides": {}, "sameTimeSibling": true, "expectedTimer": "retained"},
+    {"name": "missing deadline history has no synthetic finish command", "timerOverrides": {"lastIntent": {"type": "start", "commandId": "start-existing", "occurredAt": "2026-07-20T11:59:00Z"}}, "historyOverrides": {}, "missingHistory": true, "expectedHistoryOverrides": {"commandId": null}, "expectedTimer": "retained"},
+    {"name": "superseded imported session without prior intent", "timerOverrides": {"status": "superseded", "elapsedAtAnchorMs": 21000, "lastIntent": null}, "historyOverrides": {"status": "superseded", "commandId": "start-replacement", "completedAt": null}, "expectedTimer": "retained"},
+    {"name": "missing superseded history does not invent replacement", "timerOverrides": {"status": "superseded", "elapsedAtAnchorMs": 21000, "lastIntent": {"type": "pause", "commandId": "pause-existing", "occurredAt": "2026-07-20T11:59:45Z"}}, "historyOverrides": {}, "missingHistory": true, "expectedHistoryOverrides": {"status": "superseded", "commandId": null, "completedAt": null}, "expectedTimer": "retained"},
+    {"name": "retained finish ignores task phase and duration", "timerOverrides": {}, "historyOverrides": {}, "expectedTimer": "retained", "retainedCommands": [{"id": "finish-existing", "deviceId": "device-local", "deviceSequence": 8, "timerId": "existing-timer", "type": "finish", "phase": "long_break", "plannedDurationMs": 180000, "observedElapsedMs": 0, "occurredAt": "2026-07-20T12:00:00Z", "hlcWallMs": 1784548800000, "hlcCounter": 1}]},
+    {"name": "HLC supersession permits occurrence rollback", "timerOverrides": {"status": "superseded", "elapsedAtAnchorMs": 0, "anchorAt": "2026-07-20T11:59:59Z", "lastIntent": {"type": "start", "commandId": "start-existing", "occurredAt": "2026-07-20T12:00:00Z"}}, "historyOverrides": {"status": "superseded", "commandId": "start-replacement", "completedAt": null, "endedAt": "2026-07-20T11:59:59Z"}, "expectedTimer": "retained"},
+    {"name": "native intent device metadata remains present", "timerOverrides": {"lastIntent": {"type": "finish", "commandId": "finish-existing", "occurredAt": "2026-07-20T12:00:00Z", "deviceId": "device-origin"}}, "historyOverrides": {}, "expectedTimer": "retained"}
+  ],
+  "conflictError": "invalid shared-core input: conflicting workspace terminal timer/history",
+  "rejections": [
+    {"name": "task", "historyOverrides": {"taskId": "other-task"}},
+    {"name": "phase", "historyOverrides": {"phase": "short_break"}},
+    {"name": "duration", "historyOverrides": {"plannedDurationMs": 120000}},
+    {"name": "status", "historyOverrides": {"status": "cancelled"}},
+    {"name": "command", "historyOverrides": {"commandId": "other-finish"}},
+    {"name": "missing command", "historyOverrides": {"commandId": null}},
+    {"name": "empty command", "historyOverrides": {"commandId": ""}},
+    {"name": "completion time", "historyOverrides": {"completedAt": "2026-07-20T12:00:01Z"}},
+    {"name": "end time", "historyOverrides": {"endedAt": "2026-07-20T11:59:59Z"}},
+    {"name": "partial elapsed", "timerOverrides": {"elapsedAtAnchorMs": 59999}},
+    {"name": "clear intent", "timerOverrides": {"lastIntent": {"type": "clear", "commandId": "finish-existing", "occurredAt": "2026-07-20T12:00:00Z"}}},
+    {"name": "unknown intent", "timerOverrides": {"lastIntent": {"type": "forged", "commandId": "finish-existing", "occurredAt": "2026-07-20T12:00:00Z"}}},
+    {"name": "intent time", "timerOverrides": {"lastIntent": {"type": "finish", "commandId": "finish-existing", "occurredAt": "2026-07-20T12:00:01Z"}}},
+    {"name": "missing intent with command", "timerOverrides": {"lastIntent": null}},
+    {"name": "C02 unrelated history identity", "historyOverrides": {"timerId": "other-timer"}},
+    {"name": "active overlap", "timerOverrides": {"status": "running"}},
+    {"name": "paused overlap", "timerOverrides": {"status": "paused"}},
+    {"name": "standalone underelapsed completion", "missingHistory": true, "timerOverrides": {"elapsedAtAnchorMs": 59999}},
+    {"name": "standalone clear intent", "missingHistory": true, "timerOverrides": {"lastIntent": {"type": "clear", "commandId": "finish-existing", "occurredAt": "2026-07-20T12:00:00Z"}}}
+  ],
+  "ignoredCommandFields": [
+    {"omitTask": true}, {"taskId": null}, {"taskId": "other-task"},
+    {"phase": "short_break"}, {"phase": "long_break"},
+    {"plannedDurationMs": 120000}, {"plannedDurationMs": 14400000},
+    {"observedElapsedMs": -100}, {"observedElapsedMs": 900000},
+    {"omitTask": true, "phase": "long_break", "plannedDurationMs": 180000}
+  ]
+}

@@ -15,6 +15,7 @@ mod clocks;
 mod delivery;
 mod timer_dependencies;
 mod validation;
+pub(crate) mod workspace;
 
 const MAX_CLOCK_SKEW_MS: i64 = 5 * 60_000;
 const MAX_SAFE_INTEGER: i64 = 9_007_199_254_740_991;
@@ -157,12 +158,12 @@ pub(crate) fn rebase_v2_json(input: &str) -> Result<String, CoreError> {
     validation::request_structure(&value)?;
     let policy = delivery::Policy::from_request(&value)?;
     let input: RebaseInput = serde_json::from_value(value)?;
-    Ok(serde_json::to_string(&rebase(input, Some(policy))?)?)
+    policy.serialize(rebase(input, Some(&policy))?)
 }
 
 fn rebase(
     mut input: RebaseInput,
-    policy: Option<delivery::Policy>,
+    policy: Option<&delivery::Policy>,
 ) -> Result<RebaseOutput, CoreError> {
     validation::canonical_response(&input.response)?;
     validation::local_queue_ids(&input.local)?;

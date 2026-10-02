@@ -1,0 +1,71 @@
+{
+  "request": {
+    "compatibility": "appleWorkspace",
+    "replicationMode": "centralized",
+    "intent": {"kind": "start"},
+    "workspace": {
+      "base": {"canonicalTimer": null, "history": [], "tasks": [], "durationsMs": {"focus": 60000, "short_break": 120000, "long_break": 180000}, "autoStartBreaks": false, "selectedTaskId": null},
+      "local": {"commands": [], "taskOperations": [], "durationOperations": [], "autoStartOperations": [], "selectedTaskOperations": []},
+      "canonicalHead": {"wallMs": 1784548800000, "counter": 0},
+      "neverSent": {},
+      "timerDependencies": []
+    },
+    "selection": {"phase": "focus", "generation": "5", "explicit": true},
+    "allocation": {"deviceId": "device-local", "deviceSequence": 7, "hlc": {"wallMs": 1784548800000, "counter": 0}, "lastUuid": null},
+    "observation": {"canonicalAnchorAt": null, "commandTimes": {}},
+    "clock": {"occurredAt": "2026-07-20T12:00:10Z", "physicalNow": "2026-07-20T12:00:10Z", "observedAt": "2026-07-20T12:00:10Z"},
+    "identities": {"commandUuids": ["019f7f65-dd10-7000-8000-000000000001", "019f7f65-dd10-7000-8000-000000000002"], "timerUuid": "12345678-1234-4234-8234-123456789012"},
+    "calendarIntervals": [{"start": "2026-07-20T00:00:00Z", "end": "2026-07-21T00:00:00Z"}]
+  },
+  "timer": {"id": "existing-timer", "phase": "focus", "status": "running", "plannedDurationMs": 60000, "elapsedAtAnchorMs": 5000, "anchorAt": "2026-07-20T12:00:00Z", "startedByDeviceId": "device-local"},
+  "retainedCompletion": {"id": "history-existing-timer", "timerId": "existing-timer", "phase": "focus", "status": "completed", "plannedDurationMs": 60000, "completedAt": "2026-07-20T12:00:00Z"},
+  "checkerCases": [
+    {"name": "terminalCancelStaleAnchor", "profile": "desktopTerminal", "intent": "cancel", "status": "running", "presentedAnchorAt": "2026-07-20T11:59:59Z", "commands": []},
+    {"name": "terminalCancelSameTimer", "profile": "desktopTerminal", "intent": "cancel", "status": "running", "commands": ["cancel", "clear"]},
+    {"name": "storageRestartEvicted", "profile": "desktopStorage", "intent": "restart", "status": "completed", "retainedHistory": true, "commands": ["clear", "start"]},
+    {"name": "storageRestartUnrelatedId", "profile": "desktopStorage", "intent": "restart", "status": "completed", "retainedHistory": true, "presentedTimerId": "unrelated-timer", "commands": []},
+    {"name": "terminalRestartEvicted", "profile": "desktopTerminal", "intent": "restart", "status": "completed", "retainedHistory": true, "commands": ["clear", "start"]},
+    {"name": "centralizedStartOwnership", "profile": "desktopStorage", "intent": "start", "status": "idle", "replicationMode": "centralized", "centralOwnership": true, "commands": ["start"]},
+    {"name": "irohStartOwnership", "profile": "desktopStorage", "intent": "start", "status": "idle", "replicationMode": "iroh", "centralOwnership": false, "commands": ["start"]}
+  ],
+  "statuses": ["idle", "running", "paused", "completed", "cancelled", "superseded"],
+  "common": {
+    "pause": [[], ["pause"], [], [], [], []],
+    "resume": [[], [], ["resume"], [], [], []],
+    "clear": [[], [], [], ["clear"], ["clear"], ["clear"]]
+  },
+  "profiles": {
+    "appleWorkspace": {
+      "start": [["start"], [], [], ["start"], ["start"], ["start"]],
+      "cancel": [[], ["cancel", "clear"], ["cancel", "clear"], [], [], []],
+      "cancelAndClear": [[], ["cancel", "clear"], ["cancel", "clear"], [], [], []],
+      "restart": [[], [], [], [], [], []]
+    },
+    "androidCoordinator": {
+      "start": [["start"], ["start"], ["start"], ["start"], ["start"], ["start"]],
+      "resume": [[], [], ["resume"], [], [], ["resume"]],
+      "clear": [[], [], [], ["clear"], ["clear"], []],
+      "cancel": [[], ["cancel"], ["cancel"], [], [], []],
+      "cancelAndClear": [[], ["cancel", "clear"], ["cancel", "clear"], ["clear"], ["clear"], []],
+      "restart": [[], [], [], [], [], []]
+    },
+    "desktopStorage": {
+      "start": [["start"], ["start"], ["start"], ["start"], ["start"], ["start"]],
+      "cancel": [[], ["cancel"], ["cancel"], [], [], []],
+      "cancelAndClear": [[], ["cancel", "clear"], ["cancel", "clear"], [], [], []],
+      "restart": [[], [], [], ["clear", "start"], ["clear", "start"], ["clear", "start"]]
+    },
+    "desktopTerminal": {
+      "start": [["start"], [], [], [], [], []],
+      "cancel": [[], ["cancel", "clear"], ["cancel", "clear"], [], [], []],
+      "cancelAndClear": [[], ["cancel", "clear"], ["cancel", "clear"], [], [], []],
+      "restart": [[], [], [], ["clear", "start"], ["clear", "start"], ["clear", "start"]]
+    },
+    "pwaStorage": {
+      "start": [["start"], ["start"], ["start"], ["start"], ["start"], ["start"]],
+      "cancel": [[], ["cancel"], ["cancel"], [], [], []],
+      "cancelAndClear": [[], ["cancel", "clear"], ["cancel", "clear"], ["clear"], ["clear"], []],
+      "restart": [[], [], [], [], [], []]
+    }
+  }
+}

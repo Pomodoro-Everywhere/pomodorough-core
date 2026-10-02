@@ -1,0 +1,103 @@
+{
+  "formatVersion": 1,
+  "operation": "workspace.project.v1",
+  "request": {
+    "base": {
+      "canonicalTimer": null,
+      "history": [],
+      "tasks": [{"id": "33f9d32c-a7ee-8aa9-897a-13e19bc4e5d4", "title": "Ship release"}],
+      "durationsMs": {"focus": 1500000, "short_break": 300000, "long_break": 900000},
+      "autoStartBreaks": false,
+      "selectedTaskId": "33f9d32c-a7ee-8aa9-897a-13e19bc4e5d4"
+    },
+    "local": {
+      "commands": [{"id": "start", "deviceId": "device-a", "deviceSequence": 1,
+        "timerId": "timer-a", "type": "start", "phase": "focus", "plannedDurationMs": 60000,
+        "observedElapsedMs": 0, "occurredAt": "2026-07-20T12:00:00Z",
+        "hlcWallMs": 1784548800000, "hlcCounter": 11, "extension": {"keep": null}}],
+      "taskOperations": [{"id": "delete", "deviceId": "device-a",
+        "taskId": "33f9d32c-a7ee-8aa9-897a-13e19bc4e5d4", "type": "delete", "title": "",
+        "occurredAt": "2026-07-20T12:00:00Z", "hlcWallMs": 1784548800000, "hlcCounter": 11}],
+      "durationOperations": [{"id": "duration", "deviceId": "device-a", "phase": "focus",
+        "durationMs": 1800000, "occurredAt": "2026-07-20T12:00:00Z",
+        "hlcWallMs": 1784548800000, "hlcCounter": 11}],
+      "autoStartOperations": [{"id": "auto", "deviceId": "device-a", "enabled": true,
+        "occurredAt": "2026-07-20T12:00:00Z", "hlcWallMs": 1784548800000, "hlcCounter": 11}],
+      "selectedTaskOperations": [{"id": "select", "deviceId": "device-a", "taskId": null,
+        "occurredAt": "2026-07-20T12:00:00Z", "hlcWallMs": 1784548800000, "hlcCounter": 11}]
+    },
+    "canonicalHead": {"wallMs": 1784548800000, "counter": 10},
+    "neverSent": {"commands": ["start"], "taskOperations": ["delete"],
+      "durationOperations": ["duration"], "autoStartOperations": ["auto"],
+      "selectedTaskOperations": ["select"]},
+    "timerDependencies": [],
+    "now": "2026-07-20T12:00:00Z"
+  },
+  "cases": [
+    {
+      "name": "all-five-safe",
+      "overrides": {},
+      "expectedEligibleQueues": ["commands", "taskOperations", "durationOperations", "autoStartOperations", "selectedTaskOperations"],
+      "expectedWorkspace": {
+        "canonicalTimer": {"id": "timer-a", "phase": "focus", "status": "running",
+          "plannedDurationMs": 60000, "elapsedAtAnchorMs": 0, "anchorAt": "2026-07-20T12:00:00Z",
+          "startedByDeviceId": "device-a",
+           "lastIntent": {"type": "start", "commandId": "start", "occurredAt": "2026-07-20T12:00:00Z", "deviceId": "device-a"}},
+        "history": [], "tasks": [],
+        "durationsMs": {"focus": 1800000, "short_break": 300000, "long_break": 900000},
+        "autoStartBreaks": true, "selectedTaskId": null,
+        "timerOutcomes": {"start": {"outcome": "applied", "reason": ""}},
+        "winningOperationIds": {"tasks": {"33f9d32c-a7ee-8aa9-897a-13e19bc4e5d4": "delete"},
+          "durations": {"focus": "duration"}, "autoStart": "auto", "selectedTask": "select"}
+      }
+    },
+    {
+      "name": "no-proof",
+      "overrides": {"neverSent": {}},
+      "expectedEligibleQueues": [],
+      "expectedWorkspace": {
+        "canonicalTimer": null, "history": [],
+        "tasks": [{"id": "33f9d32c-a7ee-8aa9-897a-13e19bc4e5d4", "title": "Ship release"}],
+        "durationsMs": {"focus": 1500000, "short_break": 300000, "long_break": 900000},
+        "autoStartBreaks": false, "selectedTaskId": "33f9d32c-a7ee-8aa9-897a-13e19bc4e5d4",
+        "timerOutcomes": {}, "winningOperationIds": {"tasks": {}, "durations": {}, "autoStart": null, "selectedTask": null}
+      }
+    },
+    {
+      "name": "head-covers-all-retained-writes",
+      "overrides": {"canonicalHead": {"wallMs": 1784548800000, "counter": 11}},
+      "expectedEligibleQueues": [],
+      "expectedWorkspace": {
+        "canonicalTimer": null, "history": [],
+        "tasks": [{"id": "33f9d32c-a7ee-8aa9-897a-13e19bc4e5d4", "title": "Ship release"}],
+        "durationsMs": {"focus": 1500000, "short_break": 300000, "long_break": 900000},
+        "autoStartBreaks": false, "selectedTaskId": "33f9d32c-a7ee-8aa9-897a-13e19bc4e5d4",
+        "timerOutcomes": {}, "winningOperationIds": {"tasks": {}, "durations": {}, "autoStart": null, "selectedTask": null}
+      }
+    },
+    {
+      "name": "unknown-covering-head",
+      "overrides": {"canonicalHead": null},
+      "expectedEligibleQueues": [],
+      "expectedWorkspace": {
+        "canonicalTimer": null, "history": [],
+        "tasks": [{"id": "33f9d32c-a7ee-8aa9-897a-13e19bc4e5d4", "title": "Ship release"}],
+        "durationsMs": {"focus": 1500000, "short_break": 300000, "long_break": 900000},
+        "autoStartBreaks": false, "selectedTaskId": "33f9d32c-a7ee-8aa9-897a-13e19bc4e5d4",
+        "timerOutcomes": {}, "winningOperationIds": {"tasks": {}, "durations": {}, "autoStart": null, "selectedTask": null}
+      }
+    },
+    {
+      "name": "independent-duration-domain",
+      "overrides": {"neverSent": {"durationOperations": ["duration"]}},
+      "expectedEligibleQueues": ["durationOperations"],
+      "expectedWorkspace": {
+        "canonicalTimer": null, "history": [],
+        "tasks": [{"id": "33f9d32c-a7ee-8aa9-897a-13e19bc4e5d4", "title": "Ship release"}],
+        "durationsMs": {"focus": 1800000, "short_break": 300000, "long_break": 900000},
+        "autoStartBreaks": false, "selectedTaskId": "33f9d32c-a7ee-8aa9-897a-13e19bc4e5d4",
+        "timerOutcomes": {}, "winningOperationIds": {"tasks": {}, "durations": {"focus": "duration"}, "autoStart": null, "selectedTask": null}
+      }
+    }
+  ]
+}

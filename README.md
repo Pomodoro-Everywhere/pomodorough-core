@@ -39,6 +39,11 @@ The `ubuntu-24.04` Core CI job is the canonical producer. It uses pinned Rust `1
 
 The [immutable reconciliation contract](IMMUTABLE_RECONCILIATION.md) defines retarget retries, delivery proof, v2 projection queues, and client migration requirements.
 
+The [safe workspace projection contract](WORKSPACE_PROJECTION.md) defines
+`workspace.project.v1`, which selects safe queues inside Core for later mutations
+and restart. Its [adapter migration guide](WORKSPACE_PROJECTION_MIGRATION.md)
+specifies separate canonical persistence and shared fixture verification.
+
 ```sh
 cargo fmt --all -- --check
 cargo test --all-targets

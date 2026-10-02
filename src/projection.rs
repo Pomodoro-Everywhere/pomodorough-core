@@ -73,13 +73,51 @@ struct WinningOperationIds {
 }
 
 pub(crate) fn apply_v2_json(input: &str) -> Result<String, CoreError> {
+    apply_json(input, replay)
+}
+
+pub(crate) fn apply_workspace_json(input: &str) -> Result<String, CoreError> {
+    crate::timer::workspace::validate_native_device(&crate::strict_json::parse(input)?)?;
+    apply_json(input, crate::timer::workspace::replay)
+}
+
+pub(crate) fn apply_observed_workspace_json(
+    input: &str,
+    observation: &crate::timer::workspace::observation::Observation<'_>,
+) -> Result<String, CoreError> {
+    crate::timer::workspace::validate_native_device(&crate::strict_json::parse(input)?)?;
+    apply_json(input, |timer, history, commands, now| {
+        crate::timer::workspace::observation::replay(timer, history, commands, now, observation)
+    })
+}
+
+fn apply_json(
+    input: &str,
+    replay_timer: impl FnOnce(
+        Option<CanonicalTimer>,
+        Vec<HistoryItem>,
+        Vec<WireCommand>,
+        &str,
+    ) -> Result<crate::timer::TimerReductionOutput, CoreError>,
+) -> Result<String, CoreError> {
     let value = crate::strict_json::parse(input)?;
     validate_projection_shape(&value)?;
     let input: ProjectionApplyInput = serde_json::from_value(value)?;
     validate_base_durations(&input.base.durations_ms)?;
     validate_projection_input(&input)?;
+    Ok(serde_json::to_string(&project(input, replay_timer)?)?)
+}
 
-    let timer = replay(
+fn project(
+    input: ProjectionApplyInput,
+    replay_timer: impl FnOnce(
+        Option<CanonicalTimer>,
+        Vec<HistoryItem>,
+        Vec<WireCommand>,
+        &str,
+    ) -> Result<crate::timer::TimerReductionOutput, CoreError>,
+) -> Result<ProjectionApplyOutput, CoreError> {
+    let timer = replay_timer(
         input.base.canonical_timer,
         input.base.history,
         input.pending.commands,
@@ -94,18 +132,14 @@ pub(crate) fn apply_v2_json(input: &str) -> Result<String, CoreError> {
         input.base.auto_start_breaks,
         input.pending.auto_start_operations,
     )?;
-    let active_task_ids = tasks
-        .tasks
-        .iter()
-        .map(|task| task.id.clone())
-        .collect::<BTreeSet<_>>();
+    let active_task_ids = tasks.tasks.iter().map(|task| task.id.clone()).collect();
     let selected_task = replay_selected_task(
         input.base.selected_task_id,
         input.pending.selected_task_operations,
         active_task_ids,
     )?;
 
-    Ok(serde_json::to_string(&ProjectionApplyOutput {
+    Ok(ProjectionApplyOutput {
         canonical_timer: timer.canonical_timer,
         history: timer.history,
         tasks: tasks.tasks,
@@ -119,7 +153,7 @@ pub(crate) fn apply_v2_json(input: &str) -> Result<String, CoreError> {
             auto_start: auto_start.winning_operation_id,
             selected_task: selected_task.winning_operation_id,
         },
-    })?)
+    })
 }
 
 fn validate_projection_shape(value: &serde_json::Value) -> Result<(), CoreError> {
@@ -166,7 +200,7 @@ fn validate_queue_shape(
 
 fn validate_projection_input(input: &ProjectionApplyInput) -> Result<(), CoreError> {
     validate_base_tasks(&input.base.tasks)?;
-    validate_base_selected_task(&input.base.selected_task_id)?;
+    validate_base_selected_task(&input.base.selected_task_id, &input.base.tasks)?;
     validate_task_operations(&input.pending.task_operations)?;
     validate_duration_operations(&input.pending.duration_operations)?;
     validate_auto_start_operations(&input.pending.auto_start_operations)?;
@@ -185,14 +219,16 @@ fn validate_base_tasks(tasks: &[Task]) -> Result<(), CoreError> {
     Ok(())
 }
 
-fn validate_base_selected_task(selected_task_id: &Option<String>) -> Result<(), CoreError> {
-    if selected_task_id
-        .as_ref()
-        .is_some_and(|task_id| task_id.is_empty())
-    {
-        return Err(CoreError::InvalidInput(
-            "invalid base selected task identity".into(),
-        ));
+fn validate_base_selected_task(
+    selected_task_id: &Option<String>,
+    tasks: &[Task],
+) -> Result<(), CoreError> {
+    if let Some(task_id) = selected_task_id {
+        if task_id.is_empty() || !tasks.iter().any(|task| &task.id == task_id) {
+            return Err(CoreError::InvalidInput(
+                "invalid base selected task identity".into(),
+            ));
+        }
     }
     Ok(())
 }

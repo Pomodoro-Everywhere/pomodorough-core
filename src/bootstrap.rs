@@ -5,6 +5,8 @@ use serde_json::Value;
 
 use crate::{CoreError, MAX_BOOTSTRAP_HISTORY, check_input_len};
 
+pub(crate) mod workspace;
+
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct BootstrapPlanInput {
@@ -38,7 +40,7 @@ struct BootstrapPlanOutput {
 
 pub(crate) fn plan_v1_json(input: &str) -> Result<String, CoreError> {
     check_input_len(input)?;
-    let input: BootstrapPlanInput = serde_json::from_str(input)?;
+    let input: BootstrapPlanInput = serde_json::from_value(crate::strict_json::parse(input)?)?;
     if input.local_history.len() > MAX_BOOTSTRAP_HISTORY
         || input.remote_history.len() > MAX_BOOTSTRAP_HISTORY
     {

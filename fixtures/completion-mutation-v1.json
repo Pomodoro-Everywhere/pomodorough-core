@@ -1,0 +1,70 @@
+{
+  "profiles": ["appleWorkspace", "androidCoordinator", "desktopStorage", "desktopTerminal", "pwaStorage"],
+  "states": ["running", "paused"],
+  "focusPhases": ["short_break", "short_break", "short_break", "long_break", "short_break", "short_break", "short_break", "long_break", "short_break", "short_break", "short_break", "long_break", "short_break"],
+  "source": "workspace-intent-v1.json",
+  "retargetCommand": {"id": "retarget-1", "deviceId": "device-local", "deviceSequence": 1,
+    "timerId": "existing-timer", "taskId": "task-retargeted", "type": "retarget", "phase": "focus",
+    "plannedDurationMs": 60000, "observedElapsedMs": 5000, "occurredAt": "2026-07-20T12:00:01Z",
+    "hlcWallMs": 1784548801000, "hlcCounter": 0},
+  "automaticCases": [
+    {"name": "pwa-own-tab", "profile": "pwaStorage", "ownerDeviceId": "device-local", "ownerTabId": "tab-local", "leaseExpiresAtMs": 1784548870000, "leaseNowMs": 1784548860000, "expected": "planned"},
+    {"name": "pwa-peer-live", "profile": "pwaStorage", "ownerDeviceId": "device-local", "ownerTabId": "tab-peer", "leaseExpiresAtMs": 1784548870000, "leaseNowMs": 1784548860000, "expected": "not_owner", "retryAtMs": 1784548870000},
+    {"name": "pwa-peer-one-ms-before", "profile": "pwaStorage", "ownerDeviceId": "device-local", "ownerTabId": "tab-peer", "leaseExpiresAtMs": 1784548870000, "leaseNowMs": 1784548869999, "expected": "not_owner", "retryAtMs": 1784548870000},
+    {"name": "pwa-peer-boundary", "profile": "pwaStorage", "ownerDeviceId": "device-local", "ownerTabId": "tab-peer", "leaseExpiresAtMs": 1784548870000, "leaseNowMs": 1784548870000, "expected": "planned"},
+    {"name": "pwa-foreign-expired", "profile": "pwaStorage", "ownerDeviceId": "device-foreign", "ownerTabId": "tab-peer", "leaseExpiresAtMs": 1784548850000, "leaseNowMs": 1784548860000, "expected": "not_owner"},
+    {"name": "pwa-missing-claim", "profile": "pwaStorage", "ownerDeviceId": null, "ownerTabId": null, "leaseExpiresAtMs": null, "leaseNowMs": 1784548860000, "expected": "planned"},
+    {"name": "pwa-own-tab-missing-lease", "profile": "pwaStorage", "ownerDeviceId": "device-local", "ownerTabId": "tab-local", "leaseExpiresAtMs": null, "leaseNowMs": 1784548860000, "expected": "planned"},
+    {"name": "pwa-peer-missing-lease", "profile": "pwaStorage", "ownerDeviceId": "device-local", "ownerTabId": "tab-peer", "leaseExpiresAtMs": null, "leaseNowMs": 1784548860000, "expected": "planned"},
+    {"name": "apple-record-own", "profile": "appleWorkspace", "ownerDeviceId": "device-local", "expected": "planned"},
+    {"name": "apple-record-foreign", "profile": "appleWorkspace", "ownerDeviceId": "device-foreign", "expected": "notOwner"},
+    {"name": "apple-start-origin", "profile": "appleWorkspace", "ownerDeviceId": null, "expected": "planned"},
+    {"name": "android-local-own", "profile": "androidCoordinator", "ownerDeviceId": "device-local", "expected": "planned"},
+    {"name": "android-no-local-owner", "profile": "androidCoordinator", "ownerDeviceId": null, "expected": "notOwner"},
+    {"name": "android-foreign", "profile": "androidCoordinator", "ownerDeviceId": "device-foreign", "expected": "notOwner"}
+  ],
+  "pwaParityCases": [
+    {"name": "missing-canonical-foreign-start", "stage": "automaticFinishCommit", "expectedOutcome": "planned", "expectedReason": "", "retryAtMsPresent": false},
+    {"name": "manual-foreign-timer-owner", "stage": "finishCommit", "expectedOutcome": "planned", "expectedReason": "", "retryAtMsPresent": false},
+    {"name": "foreign-owner-denied", "stage": "automaticFinishCommit", "expectedOutcome": "noop", "expectedReason": "not_owner", "retryAtMsPresent": false, "retryDelayMs": 5001},
+    {"name": "peer-lease-live", "stage": "automaticFinishCommit", "expectedOutcome": "noop", "expectedReason": "not_owner", "retryAtMsPresent": true, "retryAtMs": 1784548870000, "retryDelayMs": 10001},
+    {"name": "same-tab-missing-lease", "stage": "automaticFinishCommit", "expectedOutcome": "planned", "expectedReason": "", "retryAtMsPresent": false}
+  ],
+  "snapshotCases": [
+    {"name": "desktop-task-changed", "profile": "desktopStorage", "outcome": "noop", "changes": [
+      {"path": "workspace.base.canonicalTimer.taskId", "value": "task-new"},
+      {"path": "requestedTimer.taskId", "value": "task-old"}]},
+    {"name": "desktop-retarget-stale", "profile": "desktopTerminal", "outcome": "noop", "changes": [
+      {"path": "workspace.base.canonicalTimer.taskId", "value": "task-retargeted"},
+      {"path": "requestedTimer.taskId", "value": "task-before-retarget"},
+      {"path": "workspace.base.canonicalTimer.lastIntent", "value": {"type": "start", "commandId": "start-1", "occurredAt": "2026-07-20T12:00:00Z"}},
+      {"path": "requestedTimer.lastIntent", "value": {"type": "start", "commandId": "start-1", "occurredAt": "2026-07-20T12:00:00Z"}}]},
+    {"name": "apple-intent-type-changed", "profile": "appleWorkspace", "outcome": "noop", "changes": [
+      {"path": "workspace.base.canonicalTimer.lastIntent", "value": {"type": "resume", "commandId": "shared-id", "occurredAt": "2026-07-20T12:00:00Z"}},
+      {"path": "requestedTimer.lastIntent", "value": {"type": "start", "commandId": "shared-id", "occurredAt": "2026-07-20T12:00:00Z"}}]},
+    {"name": "android-intent-time-changed", "profile": "androidCoordinator", "outcome": "noop", "changes": [
+      {"path": "workspace.base.canonicalTimer.lastIntent", "value": {"type": "start", "commandId": "shared-id", "occurredAt": "2026-07-20T12:00:01Z"}},
+      {"path": "requestedTimer.lastIntent", "value": {"type": "start", "commandId": "shared-id", "occurredAt": "2026-07-20T12:00:00Z"}}]},
+    {"name": "pwa-intent-presence-changed", "profile": "pwaStorage", "outcome": "noop", "changes": [
+      {"path": "workspace.base.canonicalTimer.lastIntent", "value": {"type": "start", "commandId": "start-1", "occurredAt": "2026-07-20T12:00:00Z"}}]},
+    {"name": "extraneous-workspace-now", "profile": "pwaStorage", "outcome": "error", "changes": [
+      {"path": "workspace.now", "value": "2026-07-20T12:00:10Z"}]},
+    {"name": "no-task-same-snapshot", "profile": "desktopStorage", "outcome": "planned", "changes": []},
+    {"name": "retarget-current-snapshot", "profile": "desktopTerminal", "outcome": "planned", "changes": [
+      {"path": "workspace.base.canonicalTimer.taskId", "value": "task-retargeted"},
+      {"path": "requestedTimer.taskId", "value": "task-retargeted"},
+      {"path": "workspace.base.canonicalTimer.lastIntent", "value": {"type": "start", "commandId": "start-1", "occurredAt": "2026-07-20T12:00:00Z"}},
+      {"path": "requestedTimer.lastIntent", "value": {"type": "start", "commandId": "start-1", "occurredAt": "2026-07-20T12:00:00Z"}}]},
+    {"name": "android-same-resume-intent", "profile": "androidCoordinator", "outcome": "planned", "changes": [
+      {"path": "workspace.base.canonicalTimer.lastIntent", "value": {"type": "resume", "commandId": "resume-1", "occurredAt": "2026-07-20T12:00:00Z"}},
+      {"path": "requestedTimer.lastIntent", "value": {"type": "resume", "commandId": "resume-1", "occurredAt": "2026-07-20T12:00:00Z"}}]},
+    {"name": "pwa-same-start-intent", "profile": "pwaStorage", "outcome": "planned", "changes": [
+      {"path": "workspace.base.canonicalTimer.lastIntent", "value": {"type": "start", "commandId": "start-1", "occurredAt": "2026-07-20T12:00:00Z"}},
+      {"path": "requestedTimer.lastIntent", "value": {"type": "start", "commandId": "start-1", "occurredAt": "2026-07-20T12:00:00Z"}}]},
+    {"name": "manual-at-deadline", "profile": "appleWorkspace", "outcome": "planned", "changes": [
+      {"path": "workspace.base.canonicalTimer.lastIntent", "value": {"type": "start", "commandId": "start-1", "occurredAt": "2026-07-20T12:00:00Z"}},
+      {"path": "requestedTimer.lastIntent", "value": {"type": "start", "commandId": "start-1", "occurredAt": "2026-07-20T12:00:00Z"}},
+      {"path": "clock.physicalNow", "value": "2026-07-20T12:01:00Z"},
+      {"path": "clock.observedAt", "value": "2026-07-20T12:01:00Z"}]}
+  ]
+}

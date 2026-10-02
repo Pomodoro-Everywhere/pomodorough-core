@@ -229,3 +229,66 @@ fn c31_unknown_fields_accepted_by_reduce_and_page() {
     }
     assert_eq!(Value::Object(outcomes), full["outcomes"]);
 }
+
+// C30 follow-up: duplicate task operation ids fail `task.reduce.v1` and
+// `projection.apply.v2` instead of mapping one acknowledgement id to two
+// payloads.
+#[test]
+fn c30_duplicate_task_operation_ids_rejected_by_reduce_and_projection() {
+    let operation = |task_id: &str, title: &str, wall: i64| {
+        json!({"id": "dup-op", "deviceId": "d1",
+            "occurredAt": "2026-08-22T12:00:00Z", "hlcWallMs": wall,
+            "hlcCounter": 0, "taskId": task_id, "type": "upsert",
+            "title": title})
+    };
+    let operations = json!([
+        operation("8d42fcde-20c0-8634-b2f6-4ef6a1162f71", "Alpha", 1000),
+        operation("dbbd578d-e71b-8d4c-8525-426366e4bb07", "Beta", 1001),
+    ]);
+    let error = dispatch_json(
+        "task.reduce.v1",
+        &json!({"operations": operations.clone()}).to_string(),
+    )
+    .unwrap_err()
+    .to_string();
+    assert!(
+        error.contains("invalid local taskOperations identities"),
+        "{error}"
+    );
+    let input = json!({"base": {"canonicalTimer": null, "history": [],
+            "tasks": [], "durationsMs": {"focus": 1_500_000,
+                "short_break": 300_000, "long_break": 900_000},
+            "autoStartBreaks": false, "selectedTaskId": null},
+        "pending": {"commands": [], "taskOperations": operations,
+            "durationOperations": [], "autoStartOperations": [],
+            "selectedTaskOperations": []},
+        "now": "2026-08-22T12:00:00Z"});
+    let error = dispatch_json("projection.apply.v2", &input.to_string())
+        .unwrap_err()
+        .to_string();
+    assert!(
+        error.contains("invalid local taskOperations identities"),
+        "{error}"
+    );
+}
+
+// A forged base selection that names no known task fails instead of being
+// scrubbed to null, matching rebase canonical-response validation.
+#[test]
+fn projection_rejects_dangling_base_selected_task() {
+    let input = json!({"base": {"canonicalTimer": null, "history": [],
+            "tasks": [], "durationsMs": {"focus": 1_500_000,
+                "short_break": 300_000, "long_break": 900_000},
+            "autoStartBreaks": false, "selectedTaskId": "task-missing"},
+        "pending": {"commands": [], "taskOperations": [],
+            "durationOperations": [], "autoStartOperations": [],
+            "selectedTaskOperations": []},
+        "now": "2026-08-22T12:00:00Z"});
+    let error = dispatch_json("projection.apply.v2", &input.to_string())
+        .unwrap_err()
+        .to_string();
+    assert!(
+        error.contains("invalid base selected task identity"),
+        "{error}"
+    );
+}

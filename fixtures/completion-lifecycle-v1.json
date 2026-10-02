@@ -1,0 +1,11 @@
+{
+  "profiles": ["appleWorkspace", "androidCoordinator", "desktopStorage", "desktopTerminal"],
+  "deadlineCases": [
+    {"observedAt": "2026-07-20T12:00:54.999Z", "commands": 0, "consumed": 0},
+    {"observedAt": "2026-07-20T12:00:55.000Z", "commands": 1, "consumed": 1},
+    {"observedAt": "2026-07-20T12:00:55.001Z", "commands": 1, "consumed": 1}
+  ],
+  "lifecycle": {"consumedCompletions": [], "pendingBreaks": []},
+  "centralizedSession": {"userId": null, "authenticated": false},
+  "event": {"kind": "observation"}
+}

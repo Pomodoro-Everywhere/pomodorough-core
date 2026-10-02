@@ -1,16 +1,20 @@
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use thiserror::Error;
 
+mod batch_plan;
 mod bootstrap;
 mod clock;
 mod completion_plan;
 mod fixture_projection;
 mod projection;
+mod read_model;
 mod reconciliation;
 mod strict_json;
 mod sync_projection;
 mod task;
 mod timer;
+mod trusted_clock;
+mod workspace_intent;
 
 #[cfg(any(target_arch = "wasm32", test))]
 mod wasm_abi;
@@ -140,6 +144,9 @@ pub enum CoreError {
 pub fn dispatch_envelope_json(operation: &str, input: &str) -> String {
     match dispatch_json(operation, input) {
         Ok(value) => {
+            if operation == "clock.observe.v1" {
+                return format!("{{\"ok\":true,\"value\":{value}}}");
+            }
             let value = serde_json::from_str::<serde_json::Value>(&value)
                 .unwrap_or(serde_json::Value::String(value));
             serde_json::json!({"ok": true, "value": value}).to_string()
@@ -175,9 +182,19 @@ pub fn dispatch_json(operation: &str, input: &str) -> Result<String, CoreError> 
         "selectedTask.classify" => classify_selected_task_field_json(input),
         "reconcile.rebase.v1" => reconciliation::rebase_v1_json(input),
         "reconcile.rebase.v2" => reconciliation::rebase_v2_json(input),
+        "workspace.project.v1" => reconciliation::workspace::project_json(input),
+        "workspace.readModel.v1" => read_model::read_json(input),
+        "workspace.intent.v1" => workspace_intent::plan_json(input),
+        "workspace.completionMutation.v1" => {
+            workspace_intent::completion_mutation::plan_json(input)
+        }
         "bootstrap.plan.v1" => bootstrap::plan_v1_json(input),
+        "bootstrap.workspacePlan.v1" => bootstrap::workspace::plan_json(input),
+        "sync.batchPlan.v1" => batch_plan::plan_json(input),
         "timer.completionPlan.v1" => completion_plan::plan_v1_json(input),
+        "timer.completionState.v1" => completion_plan::state::plan_json(input),
         "hlc.head.v1" => clock::head_json(input),
+        "clock.observe.v1" => trusted_clock::observe_json(input),
         "hlc.tick.v1" => clock::tick_json(input),
         "uuidv7.fromParts.v1" => clock::uuid_v7_from_parts_json(input),
         other => Err(CoreError::UnsupportedOperation(other.to_owned())),

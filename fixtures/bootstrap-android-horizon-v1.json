@@ -1,0 +1,30 @@
+{
+  "timer": {"id":"running-focus", "phase":"focus", "status":"running", "plannedDurationMs":60000,
+    "elapsedAtAnchorMs":0, "anchorAt":"2026-09-21T12:00:00Z",
+    "lastIntent":{"type":"start", "commandId":"original-start", "occurredAt":"2026-09-21T12:00:00Z"}},
+  "cases": [
+    {"name":"before_deadline", "now":"2026-09-21T12:00:30Z", "count":0},
+    {"name":"at_deadline", "now":"2026-09-21T12:01:00Z", "count":0},
+    {"name":"after_deadline", "now":"2026-09-21T12:02:00Z", "count":0},
+    {"name":"after_deadline_remote_task", "now":"2026-09-21T12:02:00Z", "remoteTask":true, "count":0},
+    {"name":"remote_state_only", "now":"2026-09-21T12:02:00Z", "noTimer":true, "remoteTask":true, "count":0},
+    {"name":"non_timer_queue_does_not_advance_horizon", "now":"2026-09-21T12:02:00Z", "durationQueue":true, "count":0},
+    {"name":"latest_command_before_deadline", "now":"2026-09-21T12:02:00Z", "commands":[
+      {"id":"clock-early", "at":"2026-09-21T12:00:30Z", "wall":1790000000001}], "count":0},
+    {"name":"latest_command_at_deadline", "now":"2026-09-21T11:59:00Z", "commands":[
+      {"id":"clock-deadline", "at":"2026-09-21T12:01:00Z", "wall":1790000000001}], "count":1},
+    {"name":"latest_command_after_deadline", "now":"2026-09-21T12:00:30Z", "commands":[
+      {"id":"clock-late", "at":"2026-09-21T12:02:00Z", "wall":1790000000001}], "count":1},
+    {"name":"hlc_not_occurrence_maximum", "now":"2026-09-21T12:02:00Z", "commands":[
+      {"id":"clock-late", "at":"2026-09-21T12:02:00Z", "wall":1790000000001},
+      {"id":"clock-early", "at":"2026-09-21T12:00:30Z", "wall":1790000000002, "type":"resume", "timerId":"running-focus"}], "count":0},
+    {"name":"same_clock_id_tie", "now":"2026-09-21T12:02:00Z", "commands":[
+      {"id":"clock-a", "at":"2026-09-21T12:00:30Z", "wall":1790000000001},
+      {"id":"clock-z", "at":"2026-09-21T12:02:00Z", "wall":1790000000001}], "separateDevices":true, "count":1},
+    {"name":"null_canonical_pending_start", "now":"2026-09-21T12:02:00Z", "noTimer":true, "start":true, "count":0},
+    {"name":"terminal_canonical", "now":"2026-09-21T12:02:00Z", "terminal":true, "count":1},
+    {"name":"utf8_command_identity_order", "now":"2026-09-21T12:02:00Z", "commands":[
+      {"id":"clock-\ue000", "at":"2026-09-21T12:02:00Z", "wall":1790000000001},
+      {"id":"clock-\ud800\udc00", "at":"2026-09-21T12:00:30Z", "wall":1790000000001, "type":"resume", "timerId":"running-focus"}], "count":0}
+  ]
+}

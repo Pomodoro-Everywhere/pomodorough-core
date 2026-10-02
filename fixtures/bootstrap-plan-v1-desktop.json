@@ -1,0 +1,140 @@
+{
+  "cases": [
+    {
+      "name": "empty_defaults",
+      "input": {},
+      "expected": {"mode": "auto", "strategy": "keep_remote", "reason": "empty"},
+      "desktop": {"returned": "keep_remote"}
+    },
+    {
+      "name": "empty_explicit",
+      "input": {"localHistory": [], "remoteHistory": [], "hasLocalState": false, "hasRemoteState": false},
+      "expected": {"mode": "auto", "strategy": "keep_remote", "reason": "empty"},
+      "desktop": {"returned": "keep_remote"}
+    },
+    {
+      "name": "local_state_only",
+      "input": {"localHistory": [], "remoteHistory": [], "hasLocalState": true, "hasRemoteState": false},
+      "expected": {"mode": "auto", "strategy": "merge", "reason": "local_state_only"},
+      "desktop": {"returned": "merge"}
+    },
+    {
+      "name": "remote_state_only",
+      "input": {"localHistory": [], "remoteHistory": [], "hasLocalState": false, "hasRemoteState": true},
+      "expected": {"mode": "auto", "strategy": "keep_remote", "reason": "empty"},
+      "desktop": {"returned": "keep_remote"}
+    },
+    {
+      "name": "both_state_only",
+      "input": {"localHistory": [], "remoteHistory": [], "hasLocalState": true, "hasRemoteState": true},
+      "expected": {"mode": "auto", "strategy": "merge", "reason": "local_state_only"},
+      "desktop": {"returned": "merge"}
+    },
+    {
+      "name": "local_history_only",
+      "input": {"localHistory": [{"id": "local", "timerId": "local-timer", "status": "completed"}], "remoteHistory": [], "hasLocalState": false, "hasRemoteState": false},
+      "expected": {"mode": "auto", "strategy": "replace_remote", "reason": "local_only"},
+      "desktop": {"returned": "replace_remote"}
+    },
+    {
+      "name": "local_history_and_local_state",
+      "input": {"localHistory": [{"id": "local", "timerId": "local-timer", "status": "completed"}], "remoteHistory": [], "hasLocalState": true, "hasRemoteState": false},
+      "expected": {"mode": "auto", "strategy": "replace_remote", "reason": "local_only"},
+      "desktop": {"returned": "replace_remote"}
+    },
+    {
+      "name": "local_history_and_remote_state",
+      "input": {"localHistory": [{"id": "local", "timerId": "local-timer", "status": "completed"}], "remoteHistory": [], "hasLocalState": false, "hasRemoteState": true},
+      "expected": {"mode": "choose", "localHistoryCount": 1, "remoteHistoryCount": 0},
+      "desktop": {"returned": null}
+    },
+    {
+      "name": "local_history_and_both_state",
+      "input": {"localHistory": [{"id": "local", "timerId": "local-timer", "status": "completed"}], "remoteHistory": [], "hasLocalState": true, "hasRemoteState": true},
+      "expected": {"mode": "choose", "localHistoryCount": 1, "remoteHistoryCount": 0},
+      "desktop": {"returned": null}
+    },
+    {
+      "name": "remote_history_only",
+      "input": {"localHistory": [], "remoteHistory": [{"id": "remote", "timerId": "remote-timer", "status": "completed"}], "hasLocalState": false, "hasRemoteState": false},
+      "expected": {"mode": "auto", "strategy": "keep_remote", "reason": "remote_only"},
+      "desktop": {"returned": "keep_remote"}
+    },
+    {
+      "name": "remote_history_and_remote_state",
+      "input": {"localHistory": [], "remoteHistory": [{"id": "remote", "timerId": "remote-timer", "status": "completed"}], "hasLocalState": false, "hasRemoteState": true},
+      "expected": {"mode": "auto", "strategy": "keep_remote", "reason": "remote_only"},
+      "desktop": {"returned": "keep_remote"}
+    },
+    {
+      "name": "remote_history_and_local_state",
+      "input": {"localHistory": [], "remoteHistory": [{"id": "remote", "timerId": "remote-timer", "status": "completed"}], "hasLocalState": true, "hasRemoteState": false},
+      "expected": {"mode": "choose", "localHistoryCount": 0, "remoteHistoryCount": 1},
+      "desktop": {"returned": null}
+    },
+    {
+      "name": "remote_history_and_both_state",
+      "input": {"localHistory": [], "remoteHistory": [{"id": "remote", "timerId": "remote-timer", "status": "completed"}], "hasLocalState": true, "hasRemoteState": true},
+      "expected": {"mode": "choose", "localHistoryCount": 0, "remoteHistoryCount": 1},
+      "desktop": {"returned": null}
+    },
+    {
+      "name": "both_history_without_state_flags",
+      "input": {"localHistory": [{"id": "local", "timerId": "local-timer", "status": "completed"}], "remoteHistory": [{"id": "remote", "timerId": "remote-timer", "status": "completed"}], "hasLocalState": false, "hasRemoteState": false},
+      "expected": {"mode": "choose", "localHistoryCount": 1, "remoteHistoryCount": 1},
+      "desktop": {"returned": null}
+    },
+    {
+      "name": "both_history_and_local_state",
+      "input": {"localHistory": [{"id": "local", "timerId": "local-timer", "status": "completed"}], "remoteHistory": [{"id": "remote", "timerId": "remote-timer", "status": "completed"}], "hasLocalState": true, "hasRemoteState": false},
+      "expected": {"mode": "choose", "localHistoryCount": 1, "remoteHistoryCount": 1},
+      "desktop": {"returned": null}
+    },
+    {
+      "name": "both_history_and_remote_state",
+      "input": {"localHistory": [{"id": "local", "timerId": "local-timer", "status": "completed"}], "remoteHistory": [{"id": "remote", "timerId": "remote-timer", "status": "completed"}], "hasLocalState": false, "hasRemoteState": true},
+      "expected": {"mode": "choose", "localHistoryCount": 1, "remoteHistoryCount": 1},
+      "desktop": {"returned": null}
+    },
+    {
+      "name": "both_history_and_both_state",
+      "input": {"localHistory": [{"id": "local", "timerId": "local-timer", "status": "completed"}], "remoteHistory": [{"id": "remote", "timerId": "remote-timer", "status": "completed"}], "hasLocalState": true, "hasRemoteState": true},
+      "expected": {"mode": "choose", "localHistoryCount": 1, "remoteHistoryCount": 1},
+      "desktop": {"returned": null}
+    },
+    {
+      "name": "both_state_with_noncompleted_history",
+      "input": {"localHistory": [{"id": "local", "status": "cancelled"}], "remoteHistory": [{"id": "remote", "status": "superseded"}], "hasLocalState": true, "hasRemoteState": true},
+      "expected": {"mode": "auto", "strategy": "merge", "reason": "local_state_only"},
+      "desktop": {"returned": "merge"}
+    },
+    {
+      "name": "remote_state_with_noncompleted_history",
+      "input": {"localHistory": [], "remoteHistory": [{"id": "remote", "status": "cancelled"}], "hasLocalState": false, "hasRemoteState": true},
+      "expected": {"mode": "auto", "strategy": "keep_remote", "reason": "empty"},
+      "desktop": {"returned": "keep_remote"}
+    },
+    {
+      "name": "completed_history_identity_counts",
+      "input": {
+        "localHistory": [{"id": "local-a", "timerId": "timer-a", "status": "completed"}, {"id": "local-b", "timerId": "timer-a", "status": "completed"}, {"id": "fallback", "timerId": "", "status": "completed"}, {"id": "fallback", "status": "completed"}, {"id": "ignored", "status": "cancelled"}, {"status": "completed"}],
+        "remoteHistory": [{"id": "remote", "status": "completed"}],
+        "hasLocalState": false, "hasRemoteState": false
+      },
+      "expected": {"mode": "choose", "localHistoryCount": 2, "remoteHistoryCount": 1},
+      "desktop": {"returned": null}
+    },
+    {
+      "name": "same_owner",
+      "input": {"localOwnerId": "user-a", "currentUserId": "user-a", "hasLocalState": true, "hasRemoteState": true},
+      "expected": {"mode": "normal_sync", "reason": "same_owner"},
+      "desktop": {"error": "Shared core returned an invalid bootstrap plan."}
+    },
+    {
+      "name": "different_owner",
+      "input": {"localOwnerId": "user-a", "currentUserId": "user-b", "hasLocalState": true, "hasRemoteState": true},
+      "expected": {"mode": "auto", "strategy": "keep_remote", "reason": "different_owner"},
+      "desktop": {"error": "Shared core returned an invalid bootstrap plan."}
+    }
+  ]
+}

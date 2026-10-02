@@ -2,6 +2,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use crate::CoreError;
+pub(crate) mod state;
 use crate::timer::{
     CanonicalTimer, HistoryItem, parse_time, validate_canonical_timer, validate_history,
 };
@@ -304,8 +305,21 @@ fn phase_after(
 
 fn break_phase(
     history: &[HistoryItem],
-    (day_start, day_end): (DateTime<Utc>, DateTime<Utc>),
+    bounds: (DateTime<Utc>, DateTime<Utc>),
 ) -> Result<String, CoreError> {
+    let completed = completed_focus_count(history, bounds)?;
+    Ok(if completed > 0 && completed % 4 == 0 {
+        "long_break"
+    } else {
+        "short_break"
+    }
+    .into())
+}
+
+fn completed_focus_count(
+    history: &[HistoryItem],
+    (day_start, day_end): (DateTime<Utc>, DateTime<Utc>),
+) -> Result<usize, CoreError> {
     let mut completed = 0;
     for item in history
         .iter()
@@ -316,12 +330,7 @@ fn break_phase(
         let completed_at = parse_time(timestamp)?;
         completed += usize::from(completed_at >= day_start && completed_at < day_end);
     }
-    Ok(if completed > 0 && completed % 4 == 0 {
-        "long_break"
-    } else {
-        "short_break"
-    }
-    .into())
+    Ok(completed)
 }
 
 fn parse_bounds(start: &str, end: &str) -> Result<(DateTime<Utc>, DateTime<Utc>), CoreError> {

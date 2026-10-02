@@ -1,0 +1,14 @@
+{
+  "focusCounts": [
+    {"prior": 2, "next": "short_break"},
+    {"prior": 3, "next": "long_break"},
+    {"prior": 6, "next": "short_break"},
+    {"prior": 7, "next": "long_break"}
+  ],
+  "commandUuids": [
+    "019f7f66-a060-7000-8000-000000000001",
+    "019f7f66-a060-7000-8000-000000000002"
+  ],
+  "timerUuid": "12345678-1234-4234-8234-123456789012",
+  "leaseDurationMs": 30000
+}

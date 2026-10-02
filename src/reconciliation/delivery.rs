@@ -1,13 +1,13 @@
 use std::collections::BTreeMap;
 
-use serde::Serialize;
+use serde::{Serialize, de::DeserializeOwned};
 use serde_json::Value;
 
 use super::acknowledgements::PendingQueues;
-use super::{CanonicalResponse, LocalQueues};
+use super::{CanonicalResponse, RebaseOutput};
 use crate::CoreError;
 
-const QUEUES: [&str; 5] = [
+pub(super) const QUEUES: [&str; 5] = [
     "commands",
     "taskOperations",
     "durationOperations",
@@ -40,10 +40,17 @@ impl Policy {
             .get("local")
             .or_else(|| value.get("pending"))
             .ok_or(CoreError::MissingProjection("local"))?;
-        let local: LocalQueues = serde_json::from_value(local.clone())?;
-        let original = serde_json::to_value(local)?;
         let empty = serde_json::json!({});
         let never_sent = value.get("neverSent").unwrap_or(&empty);
+        Self::from_queues(local, &value["sent"], never_sent)
+    }
+
+    pub(super) fn from_queues(
+        local: &Value,
+        sent: &Value,
+        never_sent: &Value,
+    ) -> Result<Self, CoreError> {
+        let empty_queue = serde_json::json!([]);
         let object = crate::strict_json::object(never_sent, "neverSent")?;
         if object.keys().any(|key| !QUEUES.contains(&key.as_str())) {
             return Err(CoreError::InvalidInput("unknown neverSent queue".into()));
@@ -52,20 +59,32 @@ impl Policy {
         for name in QUEUES {
             frozen.insert(
                 name.to_owned(),
-                frozen_queue(&original[name], &value["sent"][name], never_sent.get(name))?,
+                frozen_queue(
+                    local.get(name).unwrap_or(&empty_queue),
+                    &sent[name],
+                    never_sent.get(name),
+                )?,
             );
         }
         Ok(Self { frozen })
     }
 
     pub(super) fn projection(
-        self,
+        &self,
         pending: &PendingQueues,
         response: &CanonicalResponse,
     ) -> Result<PendingQueues, CoreError> {
         // Never move retained clocks: acknowledged ordering barriers are absent
         // from later queues. The canonical head covers those barriers on restart.
         let head = (response.server_hlc_wall_ms, response.server_hlc_counter);
+        self.project_queues(pending, Some(head))
+    }
+
+    pub(super) fn project_queues(
+        &self,
+        pending: &PendingQueues,
+        head: Option<(i64, i64)>,
+    ) -> Result<PendingQueues, CoreError> {
         let projected = PendingQueues {
             commands: self.projectable("commands", &pending.commands, head)?,
             tasks: self.projectable("taskOperations", &pending.tasks, head)?,
@@ -81,11 +100,37 @@ impl Policy {
         Ok(projected)
     }
 
-    fn projectable<T: Clone + Serialize>(
+    pub(super) fn serialize(&self, output: RebaseOutput) -> Result<String, CoreError> {
+        let mut value = serde_json::to_value(output)?;
+        for (name, field) in [
+            ("commands", "pending"),
+            ("taskOperations", "pendingTaskOperations"),
+            ("durationOperations", "pendingDurationOperations"),
+            ("autoStartOperations", "pendingAutoStartOperations"),
+            ("selectedTaskOperations", "pendingSelectedTaskOperations"),
+        ] {
+            let queue = value[field]
+                .as_array_mut()
+                .ok_or(CoreError::MissingProjection("pending queue"))?;
+            for operation in queue {
+                let id = operation["id"]
+                    .as_str()
+                    .ok_or(CoreError::MissingProjection("operation.id"))?;
+                if let Some(original) = self.frozen[name].get(id) {
+                    // Only retained, validated identities reach here. Restore the
+                    // whole object, never merge extensions into canonical fields.
+                    *operation = original.clone();
+                }
+            }
+        }
+        Ok(serde_json::to_string(&value)?)
+    }
+
+    fn projectable<T: Clone + Serialize + DeserializeOwned>(
         &self,
         name: &str,
         queue: &[T],
-        head: (i64, i64),
+        head: Option<(i64, i64)>,
     ) -> Result<Vec<T>, CoreError> {
         let mut safe = true;
         for operation in queue {
@@ -94,7 +139,10 @@ impl Policy {
                 .as_str()
                 .ok_or(CoreError::MissingProjection("operation.id"))?;
             if let Some(original) = self.frozen[name].get(id) {
-                if original != &value {
+                // Compare typed meanings for rewrite safety while keeping the
+                // original omission/empty/extension representation for delivery.
+                let canonical: T = serde_json::from_value(original.clone())?;
+                if serde_json::to_value(canonical)? != value {
                     return Err(CoreError::InvalidInput(
                         "reconciliation would rewrite a possibly delivered operation".into(),
                     ));
@@ -107,7 +155,7 @@ impl Policy {
             let counter = value["hlcCounter"]
                 .as_i64()
                 .ok_or(CoreError::MissingProjection("operation.hlcCounter"))?;
-            safe &= (wall, counter) > head;
+            safe &= head.is_some_and(|head| (wall, counter) > head);
         }
         Ok(if safe { queue.to_vec() } else { Vec::new() })
     }

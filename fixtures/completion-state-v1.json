@@ -1,0 +1,12 @@
+{
+  "operation": "timer.completionState.v1",
+  "cases": [
+    {"name":"AP04 equal-time greatest timer identity", "compatibility":"appleAp04", "before":[], "after":["a","z"], "selected":"focus", "explicit":false, "expectedSource":"z", "expectedPhase":"focus"},
+    {"name":"D03 equal-time smallest timer identity", "compatibility":"desktopD03", "before":[], "after":["a","z"], "selected":"focus", "explicit":false, "expectedSource":"a", "expectedPhase":"short_break"},
+    {"name":"D03 newly consumed tied completion", "compatibility":"desktopD03", "before":["a"], "after":["a","z"], "selected":"long_break", "explicit":false, "expectedSource":"z", "expectedPhase":"focus"},
+    {"name":"D03 repeated snapshot preserves choice", "compatibility":"desktopD03", "before":["a","z"], "after":["a","z"], "selected":"long_break", "explicit":false, "expectedSource":null, "expectedPhase":"long_break"},
+    {"name":"AP04 explicit choice protects same phase", "compatibility":"appleAp04", "before":[], "after":["a"], "selected":"focus", "explicit":true, "expectedSource":"a", "expectedPhase":"focus"},
+    {"name":"D03 explicit same phase has no historical fence", "compatibility":"desktopD03", "before":[], "after":["a"], "selected":"focus", "explicit":true, "expectedSource":"a", "expectedPhase":"short_break"},
+    {"name":"D03 different selected phase protects choice", "compatibility":"desktopD03", "before":[], "after":["a"], "selected":"long_break", "explicit":false, "expectedSource":"a", "expectedPhase":"long_break"}
+  ]
+}

@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 use crate::{CoreError, MAX_COMMANDS, MAX_HISTORY_ITEMS, check_input_len};
 
 pub(crate) mod replay_page;
+pub(crate) mod workspace;
 
 const MAX_SAFE_INTEGER: i64 = 9_007_199_254_740_991;
 
@@ -108,6 +109,10 @@ pub(crate) struct Intent {
     pub(crate) kind: String,
     pub(crate) command_id: String,
     pub(crate) occurred_at: String,
+    #[serde(skip_deserializing, skip_serializing_if = "Option::is_none")]
+    pub(crate) device_id: Option<String>,
+    #[serde(flatten, skip_serializing)]
+    pub(crate) native_extensions: BTreeMap<String, serde_json::Value>,
 }
 
 #[derive(Clone, Debug)]
@@ -304,11 +309,10 @@ pub(crate) fn validate_replay_state(
     if let Some(timer) = canonical_timer {
         validate_canonical_timer(timer)?;
     }
-    let timer_ids = validate_history(history)?;
-    if canonical_timer
-        .as_ref()
-        .is_some_and(|timer| timer_ids.contains(timer.id.as_str()))
-    {
+    let (history_ids, timer_ids) = validate_history(history)?;
+    if canonical_timer.as_ref().is_some_and(|timer| {
+        timer_ids.contains(timer.id.as_str()) || history_ids.contains(timer.id.as_str())
+    }) {
         return Err(CoreError::InvalidInput(
             "canonical timer overlaps timer history".into(),
         ));
@@ -341,7 +345,9 @@ pub(crate) fn validate_canonical_timer(timer: &CanonicalTimer) -> Result<(), Cor
     Ok(())
 }
 
-pub(crate) fn validate_history(history: &[HistoryItem]) -> Result<BTreeSet<&str>, CoreError> {
+pub(crate) fn validate_history(
+    history: &[HistoryItem],
+) -> Result<(BTreeSet<&str>, BTreeSet<&str>), CoreError> {
     let mut history_ids = BTreeSet::new();
     let mut timer_ids = BTreeSet::new();
     for item in history {
@@ -371,15 +377,21 @@ pub(crate) fn validate_history(history: &[HistoryItem]) -> Result<BTreeSet<&str>
             return Err(CoreError::InvalidInput("invalid timer history".into()));
         }
     }
-    Ok(timer_ids)
+    Ok((history_ids, timer_ids))
 }
 
 fn replay_parsed(
-    canonical_timer: Option<CanonicalTimer>,
+    mut canonical_timer: Option<CanonicalTimer>,
     history: Vec<HistoryItem>,
     commands: Vec<Command>,
     now: DateTime<Utc>,
 ) -> Result<TimerReductionOutput, CoreError> {
+    if let Some(intent) = canonical_timer
+        .as_mut()
+        .and_then(|timer| timer.last_intent.as_mut())
+    {
+        intent.device_id = None;
+    }
     let mut sessions = BTreeMap::new();
     for item in history {
         let session = session_from_history(item)?;
@@ -440,6 +452,16 @@ impl ReductionState {
     }
 
     fn apply_start(&mut self, command: Command, intent: Intent) {
+        // Starts derive their history ID from the timer ID; legacy sessions may not.
+        if self.sessions.values().any(|session| {
+            session.timer_id != command.timer_id && session.history_id == command.timer_id
+        }) {
+            self.outcomes.insert(
+                command.id,
+                Outcome::rejected("timer identity overlaps another session's history"),
+            );
+            return;
+        }
         self.supersede_active(&command);
         let timer_id = command.timer_id.clone();
         let command_id = command.id.clone();
@@ -603,6 +625,8 @@ fn command_intent(command: &Command) -> Intent {
         kind: command.kind.clone(),
         command_id: command.id.clone(),
         occurred_at: format_time(&command.occurred_at),
+        device_id: None,
+        native_extensions: BTreeMap::new(),
     }
 }
 
@@ -844,7 +868,7 @@ pub(crate) fn parse_time(value: &str) -> Result<DateTime<Utc>, CoreError> {
         .map_err(|_| CoreError::InvalidTimestamp(value.to_owned()))
 }
 
-fn format_time(value: &DateTime<Utc>) -> String {
+pub(crate) fn format_time(value: &DateTime<Utc>) -> String {
     let mut result = value.format("%Y-%m-%dT%H:%M:%S").to_string();
     let nanoseconds = value.nanosecond();
     if nanoseconds != 0 {

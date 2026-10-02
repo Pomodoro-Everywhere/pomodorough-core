@@ -1,0 +1,51 @@
+{
+  "cases": [
+    {
+      "name": "desktop-native-anchor-decodes-1001-not-1000",
+      "request": "{\"schemaVersion\":1,\"compatibility\":\"desktopTrustedClock\",\"action\":\"current\",\"state\":{\"sample\":{\"offsetMs\":100,\"uncertaintyMs\":1,\"acquiredPhysicalMs\":1000,\"acquiredMonotonicMs\":20000,\"acquiredTrustedMs\":1100}},\"reading\":{\"wallMs\":1001,\"monotonicMs\":20000},\"trustedAnchorMs\":1001}",
+      "nativeObservations": {"wallSeconds":"1.0015","monotonicNs":20000000000,"trustedAnchorAt":"1970-01-01T00:00:01.001500Z"},
+      "expected": {"physicalAnchorMs":901,"trustedNowMs":1100}
+    },
+    {
+      "name": "desktop-native-restore-drift-is-exactly-1000",
+      "request": "{\"schemaVersion\":1,\"compatibility\":\"desktopTrustedClock\",\"action\":\"restore\",\"state\":{\"sample\":{\"offsetMs\":100,\"uncertaintyMs\":1,\"acquiredPhysicalMs\":2001,\"acquiredMonotonicMs\":20000,\"acquiredTrustedMs\":2101}},\"reading\":{\"wallMs\":1001,\"monotonicMs\":20000}}",
+      "nativeObservations": {"wallSeconds":"1.0015","monotonicNs":20000000000},
+      "expected": {"state":{"sample":{"offsetMs":100,"uncertaintyMs":1,"acquiredPhysicalMs":2001,"acquiredMonotonicMs":20000,"acquiredTrustedMs":2101},"anchor":{"offsetMs":100,"uncertaintyMs":1,"acquiredPhysicalMs":2001,"acquiredMonotonicMs":20000,"acquiredTrustedMs":2101}}}
+    },
+    {
+      "name": "desktop-native-truncated-anchor-reports-1000",
+      "request": "{\"schemaVersion\":1,\"compatibility\":\"desktopTrustedClock\",\"action\":\"current\",\"state\":{\"sample\":{\"offsetMs\":100,\"uncertaintyMs\":1,\"acquiredPhysicalMs\":1000,\"acquiredMonotonicMs\":20000,\"acquiredTrustedMs\":1100}},\"reading\":{\"wallMs\":1000,\"monotonicMs\":20000},\"trustedAnchorMs\":1000}",
+      "nativeObservations": {"wallSeconds":"1.001","monotonicNs":20000000000,"trustedAnchorAt":"1970-01-01T00:00:01.001000Z"},
+      "expected": {"physicalAnchorMs":900,"trustedNowMs":1100}
+    },
+    {
+      "name": "desktop-native-restore-drift-over-bound-clears",
+      "request": "{\"schemaVersion\":1,\"compatibility\":\"desktopTrustedClock\",\"action\":\"restore\",\"state\":{\"sample\":{\"offsetMs\":100,\"uncertaintyMs\":1,\"acquiredPhysicalMs\":2001,\"acquiredMonotonicMs\":20000,\"acquiredTrustedMs\":2101}},\"reading\":{\"wallMs\":1000,\"monotonicMs\":20000}}",
+      "nativeObservations": {"wallSeconds":"1.001","monotonicNs":20000000000},
+      "expected": {"state":{"sample":null,"anchor":null}}
+    },
+    {
+      "name": "desktop-native-offset-iso-keeps-decoded-anchor",
+      "request": "{\"schemaVersion\":1,\"compatibility\":\"desktopTrustedClock\",\"action\":\"current\",\"state\":{\"sample\":{\"offsetMs\":100,\"uncertaintyMs\":1,\"acquiredPhysicalMs\":1000,\"acquiredMonotonicMs\":20000,\"acquiredTrustedMs\":1100}},\"reading\":{\"wallMs\":1001,\"monotonicMs\":20000},\"trustedAnchorMs\":1001}",
+      "nativeObservations": {"wallSeconds":"1.0015","monotonicNs":20000000000,"trustedAnchorAt":"1970-01-01T01:00:01.001500+01:00"},
+      "expected": {"physicalAnchorMs":901,"trustedNowMs":1100}
+    }
+  ],
+  "timestampDecodes": [
+    {"raw":"1970-01-01T00:00:01Z","milliseconds":1000},
+    {"raw":"1970-01-01T00:00:01.001000Z","milliseconds":1000},
+    {"raw":"1970-01-01T00:00:01.001500Z","milliseconds":1001},
+    {"raw":"1970-01-01T00:00:01.001999Z","milliseconds":1001},
+    {"raw":"1970-01-01T00:00:01.002000Z","milliseconds":1002},
+    {"raw":"1970-01-01T01:00:01.001500+01:00","milliseconds":1001},
+    {"raw":"1969-12-31T23:59:59.998500Z","milliseconds":-1}
+  ],
+  "wallDecodes": [
+    {"raw":"1.0009999999999997","milliseconds":1000},
+    {"raw":"1.001","milliseconds":1000},
+    {"raw":"1.0010000000000001","milliseconds":1001},
+    {"raw":"1.0014999999999998","milliseconds":1001},
+    {"raw":"1.0015","milliseconds":1001},
+    {"raw":"1.002","milliseconds":1002}
+  ]
+}

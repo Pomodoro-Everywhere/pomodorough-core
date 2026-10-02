@@ -194,7 +194,10 @@ CI_STEPS = (
     (
         "Install pinned Rust toolchain",
         "run",
-        ("rustup toolchain install 1.97.1", "rustup target add wasm32-unknown-unknown"),
+        (
+            "rustup toolchain install 1.97.1 --profile minimal --component clippy,rustfmt",
+            "rustup target add wasm32-unknown-unknown --toolchain 1.97.1",
+        ),
     ),
     ("Check formatting", "run", ("cargo +1.97.1 fmt --all -- --check",)),
     ("Test all targets", "run", ("cargo +1.97.1 test --all-targets --locked",)),
@@ -218,8 +221,8 @@ CI_STEPS = (
         "run",
         (
             "cargo +1.97.1 build --release --target wasm32-unknown-unknown --locked",
-            "python3 scripts/canonicalize_wasm_artifact.py",
-            "python3 scripts/verify_wasm_artifact.py",
+            "python3 scripts/canonicalize_wasm_artifact.py target/wasm32-unknown-unknown/release/pomodorough_core.wasm",
+            "python3 scripts/verify_wasm_artifact.py target/wasm32-unknown-unknown/release/pomodorough_core.wasm",
         ),
     ),
     (
@@ -227,6 +230,28 @@ CI_STEPS = (
         "uses",
         ("actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02",),
     ),
+)
+_VALIDATE_SOURCE_LINE = (
+    "python3 scripts/c5_release_contract.py validate-source "
+    '--tag "$GITHUB_REF_NAME" '
+    '--workflow-sha "$GITHUB_WORKFLOW_SHA" '
+    '--event-sha "$GITHUB_SHA" '
+    '--event-ref "$GITHUB_REF" '
+    '--workflow-ref "$GITHUB_WORKFLOW_REF" '
+    '--github-repository "$GITHUB_REPOSITORY"'
+)
+_REQUIRE_REMOTE_TAG_SOURCE_LINE = (
+    "python3 scripts/c5_release_contract.py require-remote-tag-source "
+    '--github-repository "$GITHUB_REPOSITORY" '
+    '--tag "$GITHUB_REF_NAME" '
+    '--expected-sha "$GITHUB_WORKFLOW_SHA"'
+)
+_ATTEST_VERIFY_LINE = (
+    'gh attestation verify "$asset" --repo "$GITHUB_REPOSITORY" '
+    '--signer-workflow "$GITHUB_REPOSITORY/.github/workflows/release.yml" '
+    '--signer-digest "$GITHUB_WORKFLOW_SHA" '
+    '--source-digest "$GITHUB_WORKFLOW_SHA" '
+    '--source-ref "$GITHUB_REF"'
 )
 RELEASE_STEPS = {
     "build-test-attest": (
@@ -239,7 +264,8 @@ RELEASE_STEPS = {
             "Validate tag-bound source and workflow contract",
             "run",
             (
-                "python3 scripts/c5_release_contract.py validate-source",
+                "set -euo pipefail",
+                "python3 scripts/c5_release_contract.py validate-source --tag \"$GITHUB_REF_NAME\" --workflow-sha \"$GITHUB_WORKFLOW_SHA\" --event-sha \"$GITHUB_SHA\" --event-ref \"$GITHUB_REF\" --workflow-ref \"$GITHUB_WORKFLOW_REF\" --github-repository \"$GITHUB_REPOSITORY\"",
                 "python3 scripts/c5_release_contract.py check-workflows",
             ),
         ),
@@ -247,8 +273,8 @@ RELEASE_STEPS = {
             "Install pinned Rust toolchain",
             "run",
             (
-                "rustup toolchain install 1.97.1",
-                "rustup target add wasm32-unknown-unknown",
+                "rustup toolchain install 1.97.1 --profile minimal --component clippy,rustfmt",
+                "rustup target add wasm32-unknown-unknown --toolchain 1.97.1",
             ),
         ),
         (
@@ -273,24 +299,41 @@ RELEASE_STEPS = {
             (
                 "python3 -m unittest scripts/test_canonicalize_wasm_artifact.py -v",
                 "python3 -m unittest scripts/test_c5_release_contract.py -v",
+                "python3 -m unittest scripts/test_aggregate_artifact_workflow.py -v",
+                "node --experimental-vm-modules --test scripts/test_aggregate_artifact_gate.mjs",
             ),
         ),
         (
             "Build and canonicalize release WASM",
             "run",
             (
+                "set -euo pipefail",
+                "wasm=target/wasm32-unknown-unknown/release/pomodorough_core.wasm",
                 "cargo +1.97.1 build --release --target wasm32-unknown-unknown --locked",
-                "python3 scripts/canonicalize_wasm_artifact.py",
-                "python3 scripts/verify_wasm_artifact.py",
+                "python3 scripts/canonicalize_wasm_artifact.py \"$wasm\"",
+                "python3 scripts/verify_wasm_artifact.py \"$wasm\"",
             ),
         ),
-        ("Exercise exact canonical WASM", "run", ('node "$test" "$wasm"',)),
+        (
+            "Exercise exact canonical WASM",
+            "run",
+            (
+                "set -euo pipefail",
+                "wasm=target/wasm32-unknown-unknown/release/pomodorough_core.wasm",
+                "for test in tests/*.mjs; do",
+                "node \"$test\" \"$wasm\"",
+                "done",
+            ),
+        ),
         (
             "Seal exact tested release candidate",
             "run",
             (
-                "python3 scripts/c5_release_contract.py create-manifest",
-                "python3 scripts/c5_release_contract.py verify-bundle",
+                "set -euo pipefail",
+                "mkdir dist",
+                "install -m 0644 target/wasm32-unknown-unknown/release/pomodorough_core.wasm dist/pomodorough_core.wasm",
+                "python3 scripts/c5_release_contract.py create-manifest --artifact dist/pomodorough_core.wasm --manifest dist/SHA256SUMS",
+                "python3 scripts/c5_release_contract.py verify-bundle --directory dist",
                 "(cd dist && sha256sum --check --strict SHA256SUMS)",
             ),
         ),
@@ -306,7 +349,8 @@ RELEASE_STEPS = {
             "Reverify candidate after attestation",
             "run",
             (
-                "python3 scripts/c5_release_contract.py verify-bundle",
+                "set -euo pipefail",
+                "python3 scripts/c5_release_contract.py verify-bundle --directory dist",
                 "(cd dist && sha256sum --check --strict SHA256SUMS)",
             ),
         ),
@@ -325,7 +369,10 @@ RELEASE_STEPS = {
         (
             "Revalidate tag-bound publication source",
             "run",
-            ("python3 scripts/c5_release_contract.py validate-source",),
+            (
+                "set -euo pipefail",
+                "python3 scripts/c5_release_contract.py validate-source --tag \"$GITHUB_REF_NAME\" --workflow-sha \"$GITHUB_WORKFLOW_SHA\" --event-sha \"$GITHUB_SHA\" --event-ref \"$GITHUB_REF\" --workflow-ref \"$GITHUB_WORKFLOW_REF\" --github-repository \"$GITHUB_REPOSITORY\"",
+            ),
         ),
         (
             "Download exact tested release candidate",
@@ -336,24 +383,32 @@ RELEASE_STEPS = {
             "Verify transferred candidate and provenance",
             "run",
             (
-                "python3 scripts/c5_release_contract.py require-remote-tag-source",
-                'digest="$(python3 scripts/c5_release_contract.py verify-bundle',
-                "python3 scripts/verify_wasm_artifact.py",
-                'gh attestation verify "$asset"',
+                "set -euo pipefail",
+                "python3 scripts/c5_release_contract.py require-remote-tag-source --github-repository \"$GITHUB_REPOSITORY\" --tag \"$GITHUB_REF_NAME\" --expected-sha \"$GITHUB_WORKFLOW_SHA\"",
+                "digest=\"$(python3 scripts/c5_release_contract.py verify-bundle --directory dist)\"",
+                "(cd dist && sha256sum --check --strict SHA256SUMS)",
+                "python3 scripts/verify_wasm_artifact.py dist/pomodorough_core.wasm --sha256 \"$digest\"",
+                "for asset in dist/pomodorough_core.wasm dist/SHA256SUMS; do",
+                "gh attestation verify \"$asset\" --repo \"$GITHUB_REPOSITORY\" --signer-workflow \"$GITHUB_REPOSITORY/.github/workflows/release.yml\" --signer-digest \"$GITHUB_WORKFLOW_SHA\" --source-digest \"$GITHUB_WORKFLOW_SHA\" --source-ref \"$GITHUB_REF\"",
+                "done",
             ),
         ),
         (
             "Create or adopt exact sealed draft release",
             "run",
             (
-                'mode="$(python3 scripts/c5_release_contract.py prepare-draft-release',
-                'case "$mode" in',
+                "set -euo pipefail",
+                "body=\"$RUNNER_TEMP/release-body.txt\"",
+                "seal=\"$RUNNER_TEMP/release-seal.json\"",
+                "download=\"$RUNNER_TEMP/draft-assets\"",
+                "mode=\"$(python3 scripts/c5_release_contract.py prepare-draft-release --github-repository \"$GITHUB_REPOSITORY\" --tag \"$GITHUB_REF_NAME\" --expected-sha \"$GITHUB_WORKFLOW_SHA\" --workflow-sha \"$GITHUB_WORKFLOW_SHA\" --run-id \"$GITHUB_RUN_ID\" --run-attempt \"$GITHUB_RUN_ATTEMPT\" --directory dist --download-directory \"$download\" --body-file \"$body\" --seal \"$seal\")\"",
+                "case \"$mode\" in",
                 "create)",
-                "python3 scripts/c5_release_contract.py require-remote-tag-source",
-                'gh release create "$GITHUB_REF_NAME"',
-                "python3 scripts/c5_release_contract.py capture-draft-release",
+                "python3 scripts/c5_release_contract.py require-remote-tag-source --github-repository \"$GITHUB_REPOSITORY\" --tag \"$GITHUB_REF_NAME\" --expected-sha \"$GITHUB_WORKFLOW_SHA\"",
+                "gh release create \"$GITHUB_REF_NAME\" dist/pomodorough_core.wasm dist/SHA256SUMS --repo \"$GITHUB_REPOSITORY\" --verify-tag --notes-file \"$body\" --draft --title \"$GITHUB_REF_NAME\"",
+                "python3 scripts/c5_release_contract.py capture-draft-release --github-repository \"$GITHUB_REPOSITORY\" --tag \"$GITHUB_REF_NAME\" --expected-sha \"$GITHUB_WORKFLOW_SHA\" --workflow-sha \"$GITHUB_WORKFLOW_SHA\" --run-id \"$GITHUB_RUN_ID\" --run-attempt \"$GITHUB_RUN_ATTEMPT\" --directory dist --download-directory \"$download\" --seal \"$seal\"",
                 "adopt) ;;",
-                '*) echo "Unexpected draft mode: $mode" >&2; exit 1 ;;',
+                "*) echo \"Unexpected draft mode: $mode\" >&2; exit 1 ;;",
                 "esac",
             ),
         ),
@@ -361,15 +416,23 @@ RELEASE_STEPS = {
             "Verify ID-bound draft assets",
             "run",
             (
-                'digest="$(python3 scripts/c5_release_contract.py verify-bundle',
-                "python3 scripts/verify_wasm_artifact.py",
-                'gh attestation verify "$asset"',
+                "set -euo pipefail",
+                "verified_dir=\"$RUNNER_TEMP/draft-assets\"",
+                "digest=\"$(python3 scripts/c5_release_contract.py verify-bundle --directory \"$verified_dir\")\"",
+                "(cd \"$verified_dir\" && sha256sum --check --strict SHA256SUMS)",
+                "python3 scripts/verify_wasm_artifact.py \"$verified_dir/pomodorough_core.wasm\" --sha256 \"$digest\"",
+                "for asset in \"$verified_dir/pomodorough_core.wasm\" \"$verified_dir/SHA256SUMS\"; do",
+                "gh attestation verify \"$asset\" --repo \"$GITHUB_REPOSITORY\" --signer-workflow \"$GITHUB_REPOSITORY/.github/workflows/release.yml\" --signer-digest \"$GITHUB_WORKFLOW_SHA\" --source-digest \"$GITHUB_WORKFLOW_SHA\" --source-ref \"$GITHUB_REF\"",
+                "done",
             ),
         ),
         (
             "Publish ID-bound verified draft",
             "run",
-            ("python3 scripts/c5_release_contract.py publish-verified-draft",),
+            (
+                "set -euo pipefail",
+                "python3 scripts/c5_release_contract.py publish-verified-draft --github-repository \"$GITHUB_REPOSITORY\" --tag \"$GITHUB_REF_NAME\" --expected-sha \"$GITHUB_WORKFLOW_SHA\" --workflow-sha \"$GITHUB_WORKFLOW_SHA\" --run-id \"$GITHUB_RUN_ID\" --run-attempt \"$GITHUB_RUN_ATTEMPT\" --directory dist --seal \"$RUNNER_TEMP/release-seal.json\"",
+            ),
         ),
     ),
 }
@@ -652,13 +715,11 @@ def _direct_run(lines: Sequence[str]) -> str | None:
 
 def _shell_lines(script: str) -> tuple[str, ...]:
     joined = re.sub(r"\\\n\s*", " ", script)
-    return tuple(line.strip() for line in joined.splitlines() if line.strip())
+    return tuple(re.sub(r"\s+", " ", line.strip()) for line in joined.splitlines() if line.strip())
 
 
 def _matches_command(line: str, command: str) -> bool:
-    if line == command:
-        return True
-    return line.startswith(command) and line[len(command)] in " \t"
+    return line == command
 
 
 def _require_run_commands(step: WorkflowStep, commands: Sequence[str]) -> None:
@@ -692,6 +753,10 @@ def _require_run_commands(step: WorkflowStep, commands: Sequence[str]) -> None:
     )
     if disabled:
         raise ReleaseContractError(f"required step {step.name} contains a disabled command gate")
+    # The artifact loop must execute every host before sealing. A subsequence
+    # check permits standalone continue, break, or exit commands to skip it.
+    if step.name == "Exercise exact canonical WASM" and lines != tuple(commands):
+        raise ReleaseContractError(f"required step {step.name} complete shell sequence changed")
 
 
 def _require_uses(step: WorkflowStep, action: str) -> None:
@@ -730,12 +795,20 @@ def _workflow_blocks(contents: str, indent: int, start: int, end: int) -> list[t
 
 
 def _workflow_steps(lines: Sequence[str]) -> tuple[WorkflowStep, ...]:
-    marker = re.compile(r"^      - name:\s*(\S(?:.*\S)?)\s*$")
+    marker = re.compile(r"^      - (.*)$")
+    name_marker = re.compile(r"^name:\s*(\S(?:.*\S)?)\s*$")
     starts = [(match.group(1), index) for index, line in enumerate(lines) if (match := marker.match(line))]
     steps: list[WorkflowStep] = []
-    for offset, (name, start) in enumerate(starts):
+    unnamed = 0
+    for offset, (first, start) in enumerate(starts):
         end = starts[offset + 1][1] if offset + 1 < len(starts) else len(lines)
         block = lines[start:end]
+        name_match = name_marker.match(first)
+        if name_match is None:
+            unnamed += 1
+            name = f"__unnamed_{unnamed}__"
+        else:
+            name = name_match.group(1)
         steps.append(
             WorkflowStep(
                 name,
@@ -793,6 +866,8 @@ def _require_job(
         raise ReleaseContractError(f"required job {job.name} permissions changed")
     names = [step.name for step in job.steps]
     expected_names = [name for name, _, _ in expected_steps]
+    if any(name.startswith("__unnamed_") for name in names):
+        raise ReleaseContractError(f"required job {job.name} contains a step without a name")
     if names != expected_names:
         raise ReleaseContractError(f"required job {job.name} step structure changed")
     for step, (_, kind, commands) in zip(job.steps, expected_steps, strict=True):

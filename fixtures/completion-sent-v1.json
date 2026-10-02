@@ -1,0 +1,78 @@
+{
+  "base": {
+    "kind": "install", "compatibility": "androidCapturedSend",
+    "beforeHistory": [], "afterHistory": [], "canonicalTimer": null,
+    "selection": {"phase": "short_break", "generation": "2", "explicit": false},
+    "pending": {"commandIds": [], "sendableCommandIds": [], "otherOperationIds": []},
+    "advances": [], "acknowledgements": [], "discardedCommandIds": [],
+    "referenceTime": "2026-08-25T12:00:00Z",
+    "calendarIntervals": [{"start": "2026-08-25T00:00:00Z", "end": "2026-08-26T00:00:00Z"}],
+    "sentContext": {"kind": "android", "commands": [], "selectionAtSend": {"phase": "short_break", "generation": "2"}, "acknowledgementHistory": [], "acknowledgementTimer": null, "nextProjectionTimer": null}
+  },
+  "commands": {
+    "f": {"id": "f", "timerId": "t", "type": "finish", "phase": "focus", "deviceSequence": 1, "occurredAt": "2026-08-25T12:00:00Z"},
+    "b": {"id": "b", "timerId": "b", "type": "finish", "phase": "short_break", "deviceSequence": 2, "occurredAt": "2026-08-25T12:00:00Z"}
+  },
+  "history": {"id": "h", "timerId": "t", "commandId": "other", "phase": "focus", "status": "completed", "plannedDurationMs": 60000, "completedAt": "2026-08-25T12:00:00Z"},
+  "timer": {"id": "t", "phase": "long_break", "status": "completed", "plannedDurationMs": 60000, "elapsedAtAnchorMs": 60000, "anchorAt": "2026-08-25T12:00:00Z", "lastIntent": {"commandId": "f", "type": "finish", "occurredAt": "2026-08-25T12:00:00Z"}},
+  "cases": [
+    {"name":"android-ended-only-completion-rejected", "commands":["f"], "ackHistory":true,
+     "patch":{"acknowledgements":[{"commandId":"f","outcome":"applied"}],
+       "afterHistory":[{"id":"h","timerId":"t","commandId":"f","phase":"focus","status":"completed","plannedDurationMs":60000,"endedAt":"2026-08-25T12:00:00Z"}]},
+     "error":"invalid timer history"},
+    {"name":"pwa-ended-only-completion-rejected", "profile":"pwaRejectedFinish", "commands":["f"],
+     "patch":{"acknowledgements":[{"commandId":"f","outcome":"rejected"}],
+       "sentContext":{"rollbackHistory":[{"id":"h","timerId":"t","commandId":"f","phase":"focus","status":"completed","plannedDurationMs":60000,"completedAt":null,"endedAt":"2026-08-25T12:00:00Z"}]}},
+     "error":"invalid timer history"},
+    {"name": "android-missing-ack", "commands": ["f"], "patch": {}, "phase": "short_break"},
+    {"name": "android-rejected", "commands": ["f"], "patch": {"acknowledgements": [{"commandId": "f", "outcome": "rejected"}]}, "phase": "focus"},
+    {"name": "android-ignored", "commands": ["f"], "patch": {"acknowledgements": [{"commandId": "f", "outcome": "ignored"}]}, "phase": "focus"},
+    {"name": "android-applied-no-evidence", "commands": ["f"], "patch": {"acknowledgements": [{"commandId": "f", "outcome": "applied"}]}, "phase": "short_break"},
+    {"name": "android-newer-choice-same-phase", "commands": ["f"], "patch": {"selection": {"generation": "3"}, "acknowledgements": [{"commandId": "f", "outcome": "rejected"}]}, "phase": "short_break"},
+    {"name": "android-newer-choice-different-phase", "commands": ["f"], "patch": {"selection": {"phase": "long_break"}, "acknowledgements": [{"commandId": "f", "outcome": "rejected"}]}, "phase": "long_break"},
+    {"name": "android-resolution-without-capture", "commands": ["f"], "patch": {"sentContext": {"selectionAtSend": null}, "selection": {"generation": "3"}, "acknowledgements": [{"commandId": "f", "outcome": "rejected"}]}, "phase": "focus"},
+    {"name": "android-ordered-rejections", "commands": ["b", "f"], "patch": {"acknowledgements": [{"commandId": "f", "outcome": "rejected"}, {"commandId": "b", "outcome": "rejected"}]}, "phase": "short_break"},
+    {"name": "android-canonical-restore", "commands": ["f"], "canonical": true, "patch": {"acknowledgements": [{"commandId": "f", "outcome": "rejected"}]}, "phase": "long_break"},
+    {"name": "android-projected-intent", "commands": ["f"], "projected": true, "patch": {"acknowledgements": [{"commandId": "f", "outcome": "applied"}]}, "phase": "long_break"},
+    {"name": "android-broad-history-evidence", "commands": ["f"], "ackHistory": true, "patch": {"selection": {"phase": "focus"}, "sentContext": {"selectionAtSend": null}, "acknowledgements": [{"commandId": "f", "outcome": "rejected"}]}, "phase": "short_break"},
+    {"name": "android-broad-timer-evidence", "commands": ["f"], "ackTimer": true, "canonical": true, "patch": {"selection": {"phase": "focus"}, "sentContext": {"selectionAtSend": null}, "acknowledgements": [{"commandId": "f", "outcome": "ignored"}]}, "phase": "short_break"},
+    {"name": "android-canonical-is-not-ack-evidence", "commands": ["f"], "history": true, "patch": {"acknowledgements": [{"commandId": "f", "outcome": "rejected"}]}, "phase": "focus"},
+    {"name": "android-a04-remote-completion-still-open", "commands": [], "history": true, "patch": {"selection": {"phase": "focus"}}, "phase": "focus", "desiredA04Phase": "short_break"},
+    {"name": "pwa-rejected", "profile": "pwaRejectedFinish", "commands": ["f"], "patch": {"acknowledgements": [{"commandId": "f", "outcome": "rejected"}]}, "phase": "focus"},
+    {"name": "pwa-ignored", "profile": "pwaRejectedFinish", "commands": ["f"], "patch": {"acknowledgements": [{"commandId": "f", "outcome": "ignored"}]}, "phase": "short_break"},
+    {"name": "pwa-applied", "profile": "pwaRejectedFinish", "commands": ["f"], "patch": {"acknowledgements": [{"commandId": "f", "outcome": "applied"}]}, "phase": "short_break"},
+    {"name": "pwa-no-generation-fence", "profile": "pwaRejectedFinish", "commands": ["f"], "patch": {"selection": {"generation": "3", "explicit": true}, "acknowledgements": [{"commandId": "f", "outcome": "rejected"}]}, "phase": "focus"},
+    {"name": "pwa-different-phase-protected", "profile": "pwaRejectedFinish", "commands": ["f"], "patch": {"selection": {"phase": "long_break"}, "acknowledgements": [{"commandId": "f", "outcome": "rejected"}]}, "phase": "long_break"},
+    {"name": "pwa-reverse-rejection-chain", "profile": "pwaRejectedFinish", "commands": ["f", "b"], "patch": {"selection": {"phase": "focus"}, "acknowledgements": [{"commandId": "f", "outcome": "rejected"}, {"commandId": "b", "outcome": "rejected"}]}, "phase": "focus"},
+    {"name": "pwa-evidence-does-not-protect", "profile": "pwaRejectedFinish", "commands": ["f"], "history": true, "patch": {"acknowledgements": [{"commandId": "f", "outcome": "rejected"}]}, "phase": "focus"},
+    {"name": "android-four-completions", "commands": ["f"], "ackHistory": true, "patch": {
+      "acknowledgements": [{"commandId":"f","outcome":"applied"}],
+      "afterHistory": [
+        {"id":"h1","timerId":"t1","phase":"focus","status":"completed","plannedDurationMs":60000,"completedAt":"2026-08-25T11:00:00Z"},
+        {"id":"h2","timerId":"t2","phase":"focus","status":"completed","plannedDurationMs":60000,"completedAt":"2026-08-25T11:10:00Z"},
+        {"id":"h3","timerId":"t3","phase":"focus","status":"completed","plannedDurationMs":60000,"completedAt":"2026-08-25T11:20:00Z"},
+        {"id":"h4","timerId":"t","commandId":"f","phase":"focus","status":"completed","plannedDurationMs":60000,"completedAt":"2026-08-25T12:00:00Z"}
+      ]}, "phase":"long_break"},
+    {"name": "pwa-optimistic-history-not-installed-history", "profile":"pwaRejectedFinish", "commands":["f"], "patch": {
+      "selection":{"phase":"long_break"}, "acknowledgements":[{"commandId":"f","outcome":"rejected"}],
+      "sentContext":{"rollbackHistory":[
+        {"id":"h1","timerId":"t1","phase":"focus","status":"completed","plannedDurationMs":60000,"completedAt":"2026-08-25T11:00:00Z"},
+        {"id":"h2","timerId":"t2","phase":"focus","status":"completed","plannedDurationMs":60000,"completedAt":"2026-08-25T11:10:00Z"},
+        {"id":"h3","timerId":"t3","phase":"focus","status":"completed","plannedDurationMs":60000,"completedAt":"2026-08-25T11:20:00Z"},
+        {"id":"h4","timerId":"t","commandId":"f","phase":"focus","status":"completed","plannedDurationMs":60000,"completedAt":"2026-08-25T12:00:00Z"}
+      ]}}, "phase":"focus"},
+    {"name":"android-invalid-physical-time-falls-back", "commands":[], "ackHistory":true, "patch": {
+      "acknowledgements":[{"commandId":"f","outcome":"applied"}],
+      "sentContext":{"commands":[{"id":"f","timerId":"t","type":"finish","phase":"focus","deviceSequence":1,"occurredAt":"2026-08-25T12:00:00Z","physicalOccurredAt":"invalid"}]}}, "phase":"short_break"},
+    {"name":"android-id-tie-order", "commands":[], "patch": {
+      "acknowledgements":[{"commandId":"f","outcome":"rejected"},{"commandId":"b","outcome":"rejected"}],
+      "sentContext":{"commands":[
+        {"id":"f","timerId":"t","type":"finish","phase":"focus","deviceSequence":1,"occurredAt":"2026-08-25T12:00:00Z"},
+        {"id":"b","timerId":"b","type":"finish","phase":"short_break","deviceSequence":1,"occurredAt":"2026-08-25T12:00:00Z"}]}}, "phase":"focus"},
+    {"name":"pwa-stable-tie-order", "profile":"pwaRejectedFinish", "commands":[], "patch": {
+      "selection":{"phase":"focus"}, "acknowledgements":[{"commandId":"f","outcome":"rejected"},{"commandId":"b","outcome":"rejected"}],
+      "sentContext":{"commands":[
+        {"id":"f","timerId":"t","type":"finish","phase":"focus","deviceSequence":1,"occurredAt":"2026-08-25T12:00:00Z"},
+        {"id":"b","timerId":"b","type":"finish","phase":"short_break","deviceSequence":1,"occurredAt":"2026-08-25T12:00:00Z"}]}}, "phase":"short_break"}
+  ]
+}

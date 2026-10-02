@@ -451,9 +451,14 @@ fn reconcile_rebase_v1_promotes_generated_long_break_after_fourth_canonical_focu
         reconcile_with_dependencies(local, sent, response, generated_break_dependencies()).unwrap();
     assert_eq!(
         output["promotedTimerOperationIds"],
-        json!(["generated-pause", "generated-start"])
+        json!(["generated-start"])
     );
-    assert_eq!(output["pendingTimerDependencies"], json!([]));
+    assert_eq!(
+        output["pendingTimerDependencies"],
+        json!([{
+            "operationId": "generated-pause", "dependsOnOperationId": "generated-start"
+        }])
+    );
     assert_eq!(output["droppedTimerOperationIds"], json!([]));
     assert_eq!(output["droppedTimerIds"], json!([]));
     for command in output["pending"].as_array().unwrap() {
@@ -492,6 +497,56 @@ fn reconcile_rebase_v1_preserves_a_completed_generated_break_phase_and_duration(
         assert_eq!(command["phase"], "short_break");
         assert_eq!(command["plannedDurationMs"], 300_000);
     }
+}
+
+#[test]
+fn reconcile_rebase_v1_ignores_foreign_device_sequences_for_generated_break() {
+    let mut finish = command("finish-sent", "focus-four", 1, 4_000);
+    finish["type"] = json!("finish");
+    finish["phase"] = json!("focus");
+    finish["plannedDurationMs"] = json!(1_500_000);
+    let generated_start = command("generated-start", "break-generated", 2, 5_000);
+    let mut generated_finish = command("generated-pause", "break-generated", 3, 6_000);
+    generated_finish["type"] = json!("finish");
+    generated_finish["observedElapsedMs"] = json!(300_000);
+
+    let history = json!([
+        completed_focus("history-one", "focus-one", "finish-one", 1_000),
+        completed_focus("history-two", "focus-two", "finish-two", 2_000),
+        completed_focus("history-three", "focus-three", "finish-three", 3_000),
+        completed_focus("history-four", "focus-four", "finish-sent", 4_000)
+    ]);
+    let run = |extra: Option<Value>| {
+        let mut sent = empty_queues();
+        sent["commands"] = json!([finish.clone()]);
+        let mut local = empty_queues();
+        let mut commands = vec![
+            finish.clone(),
+            generated_start.clone(),
+            generated_finish.clone(),
+        ];
+        if let Some(foreign) = extra {
+            commands.push(foreign);
+        }
+        local["commands"] = json!(commands);
+        let mut response = canonical_response(&sent);
+        response["history"] = history.clone();
+        reconcile_with_dependencies(local, sent, response, generated_break_dependencies()).unwrap()
+    };
+    let baseline = run(None);
+    // An unrelated device's high sequence must not read as a newer manual start.
+    let mut foreign = command("foreign-start", "foreign-timer", 999, 7_000);
+    foreign["deviceId"] = json!("device-b");
+    let with_foreign = run(Some(foreign));
+    assert_eq!(
+        with_foreign["promotedTimerOperationIds"],
+        baseline["promotedTimerOperationIds"]
+    );
+    assert_eq!(
+        with_foreign["droppedTimerOperationIds"],
+        baseline["droppedTimerOperationIds"]
+    );
+    assert_eq!(with_foreign["droppedTimerIds"], baseline["droppedTimerIds"]);
 }
 
 #[test]
@@ -1083,6 +1138,14 @@ fn bootstrap_plan_v1_covers_keep_remote_replace_remote_merge_and_choice() {
             json!({"mode": "choose", "localHistoryCount": 1, "remoteHistoryCount": 1}),
         ),
         (
+            json!({"localHistory": [], "remoteHistory": [], "hasLocalState": true, "hasRemoteState": true}),
+            json!({"mode": "auto", "strategy": "merge", "reason": "local_state_only"}),
+        ),
+        (
+            json!({"localHistory": [], "remoteHistory": [], "hasLocalState": false, "hasRemoteState": true}),
+            json!({"mode": "auto", "strategy": "keep_remote", "reason": "empty"}),
+        ),
+        (
             json!({"localOwnerId": "user-a", "currentUserId": "user-a"}),
             json!({"mode": "normal_sync", "reason": "same_owner"}),
         ),
@@ -1126,6 +1189,17 @@ fn bootstrap_plan_v1_counts_only_well_formed_completed_history() {
     .unwrap();
     assert_eq!(output["strategy"], "keep_remote");
     assert_eq!(output["reason"], "empty");
+}
+
+#[test]
+fn bootstrap_plan_v1_rejects_duplicate_fields_inside_history() {
+    let error = dispatch_json(
+        "bootstrap.plan.v1",
+        r#"{"localHistory": [{"id": "a", "id": "b", "status": "completed", "timerId": "t"}], "remoteHistory": []}"#,
+    )
+    .unwrap_err()
+    .to_string();
+    assert!(error.contains("duplicate field"), "{error}");
 }
 
 #[test]

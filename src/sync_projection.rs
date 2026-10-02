@@ -139,7 +139,7 @@ pub(crate) struct TaskOperation {
     pub(crate) task_id: String,
     #[serde(rename = "type")]
     pub(crate) kind: String,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "String::is_empty")]
     pub(crate) title: String,
 }
 
@@ -174,6 +174,12 @@ pub(crate) fn replay_tasks(
         validate_operation_clock(&operation.clock)?;
         validate_task_operation_fields(operation)?;
     }
+    check_unique_operation_ids(
+        "taskOperations",
+        operations
+            .iter()
+            .map(|operation| operation.clock.id.as_str()),
+    )?;
 
     let winners = select_clock_winners(
         operations,
@@ -291,6 +297,12 @@ pub(crate) fn replay_durations(
         validate_operation_clock(&operation.clock)?;
         validate_duration_fields(operation)?;
     }
+    check_unique_operation_ids(
+        "durationOperations",
+        operations
+            .iter()
+            .map(|operation| operation.clock.id.as_str()),
+    )?;
 
     let winners = select_clock_winners(
         operations,
@@ -358,6 +370,12 @@ pub(crate) fn replay_auto_start(
     for operation in &operations {
         validate_operation_clock(&operation.clock)?;
     }
+    check_unique_operation_ids(
+        "autoStartOperations",
+        operations
+            .iter()
+            .map(|operation| operation.clock.id.as_str()),
+    )?;
     let winner = operations.into_iter().max_by(|left, right| {
         operation_clock_key(&left.clock).cmp(&operation_clock_key(&right.clock))
     });
@@ -438,6 +456,12 @@ pub(crate) fn replay_selected_task(
         // `projection.apply.v2` instead of silently deselecting.
         validate_selected_task_fields(operation)?;
     }
+    check_unique_operation_ids(
+        "selectedTaskOperations",
+        operations
+            .iter()
+            .map(|operation| operation.clock.id.as_str()),
+    )?;
 
     let winner = operations.into_iter().max_by(|left, right| {
         operation_clock_key(&left.clock).cmp(&operation_clock_key(&right.clock))
@@ -475,6 +499,21 @@ pub(crate) fn validate_selected_task_fields(
             "invalid selected task operation".into(),
         )),
     }
+}
+
+fn check_unique_operation_ids<'a>(
+    field: &str,
+    identifiers: impl IntoIterator<Item = &'a str>,
+) -> Result<(), CoreError> {
+    let mut seen = BTreeSet::new();
+    for identifier in identifiers {
+        if identifier.is_empty() || !seen.insert(identifier) {
+            return Err(CoreError::InvalidInput(format!(
+                "invalid local {field} identities"
+            )));
+        }
+    }
+    Ok(())
 }
 
 #[cfg(test)]

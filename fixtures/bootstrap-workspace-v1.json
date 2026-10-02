@@ -1,0 +1,86 @@
+{
+  "request": {
+    "profile": "appleWorkspace",
+    "currentUserId": "incoming-owner",
+    "local": {
+      "ownerId": null,
+      "knownTasks": [],
+      "preferences": {
+        "durationsMs": {"focus": 1500000, "short_break": 300000, "long_break": 900000},
+        "autoStartBreaks": false,
+        "selectedTaskId": null
+      },
+      "workspace": {
+        "base": {
+          "canonicalTimer": null, "history": [], "tasks": [],
+          "durationsMs": {"focus": 1500000, "short_break": 300000, "long_break": 900000},
+          "autoStartBreaks": false, "selectedTaskId": null
+        },
+        "local": {
+          "commands": [], "taskOperations": [], "durationOperations": [],
+          "autoStartOperations": [], "selectedTaskOperations": []
+        },
+        "canonicalHead": null, "neverSent": {}, "timerDependencies": [],
+        "now": "2026-09-21T12:00:10Z"
+      }
+    },
+    "remote": {
+      "canonicalTimer": null, "history": [], "tasks": [],
+      "durationsMs": {"focus": 1500000, "short_break": 300000, "long_break": 900000},
+      "autoStartBreaks": false, "selectedTaskId": null
+    }
+  },
+  "command": {
+    "id": "start-legacy", "deviceId": "device-a", "deviceSequence": 1,
+    "timerId": "timer-legacy", "type": "start", "phase": "focus",
+    "plannedDurationMs": 60000, "occurredAt": "2026-09-21T12:00:00Z",
+    "hlcWallMs": 1790000000000, "hlcCounter": 0, "observedElapsedMs": 0
+  },
+  "operationClock": {
+    "id": "operation-legacy", "deviceId": "device-a",
+    "occurredAt": "2026-09-21T12:00:00Z", "hlcWallMs": 1790000000000, "hlcCounter": 0
+  },
+  "timer": {
+    "id": "legacy-timer", "phase": "focus", "status": "completed",
+    "plannedDurationMs": 60000, "elapsedAtAnchorMs": 60000,
+    "anchorAt": "2026-09-21T12:00:10Z", "startedAt": "2026-09-21T11:59:10Z",
+    "lastIntent": {"type": "finish", "commandId": "finish", "occurredAt": "2026-09-21T12:00:10Z", "deviceId": "device-a"}
+  },
+  "history": {
+    "id": "legacy-timer", "timerId": "legacy-timer", "phase": "focus", "status": "completed",
+    "plannedDurationMs": 60000, "elapsedMs": 60000, "completedAt": "2026-09-21T12:00:10Z",
+    "endedAt": "2026-09-21T12:00:10Z", "startedAt": "2026-09-21T11:59:10Z", "commandId": "finish"
+  },
+  "crossProduct": {
+    "history": {"id": "legacy-history", "status": "completed"},
+    "task": {"id": "legacy-task", "title": "Legacy task"}
+  },
+  "cases": [
+    {"name": "empty", "path": [], "value": null, "local": false, "remote": false},
+    {"name": "default_preferences", "path": ["local", "preferences", "selectedPhase"], "value": "long_break", "local": false, "remote": false},
+    {"name": "known_tasks_only", "path": ["local", "knownTasks"], "value": [{"id": "legacy", "title": "Previously deleted"}], "local": false, "remote": false},
+    {"name": "local_custom_duration", "path": ["local", "preferences", "durationsMs", "focus"], "value": 1800000, "local": true, "pwaLocal": false, "remote": false},
+    {"name": "local_auto_start", "path": ["local", "preferences", "autoStartBreaks"], "value": true, "local": true, "pwaLocal": false, "remote": false},
+    {"name": "local_selection", "path": ["local", "preferences", "selectedTaskId"], "value": "legacy-task", "local": true, "appleLocal": false, "pwaLocal": false, "remote": false},
+    {"name": "local_empty_selection", "path": ["local", "preferences", "selectedTaskId"], "value": "", "local": true, "appleLocal": false, "pwaLocal": false, "remote": false},
+    {"name": "local_base_selection", "path": ["local", "workspace", "base", "selectedTaskId"], "value": "legacy-task", "local": false, "desktopLocal": true, "pwaLocal": true, "remote": false},
+    {"name": "local_tasks", "path": ["local", "workspace", "base", "tasks"], "value": [{"id": "legacy-task", "title": "Legacy title"}], "local": true, "remote": false},
+    {"name": "local_cancelled_history", "path": ["local", "workspace", "base", "history"], "value": [{"id": "legacy", "status": "cancelled"}], "local": true, "remote": false},
+    {"name": "local_superseded_history", "path": ["local", "workspace", "base", "history"], "value": [{"timerId": "legacy", "status": "superseded"}], "local": true, "remote": false},
+    {"name": "local_completed_history", "path": ["local", "workspace", "base", "history"], "value": [{"id": "legacy", "status": "completed"}], "local": true, "remote": false, "localCount": 1},
+    {"name": "local_duplicate_history", "path": ["local", "workspace", "base", "history"], "value": [{"id": "one", "timerId": "same", "status": "completed"}, {"id": "two", "timerId": "same", "status": "completed"}], "local": true, "remote": false, "localCount": 1, "androidDisplay": 2},
+    {"name": "local_legacy_unclassified_history", "path": ["local", "workspace", "base", "history"], "value": [{"id": "old"}, {}], "local": true, "remote": false, "pwaDisplay": 2},
+    {"name": "local_null_empty_and_identityless_history", "path": ["local", "workspace", "base", "history"], "value": [{"id": "old", "status": null}, {"id": "other", "status": ""}, {"status": "completed"}, {"status": "completed"}], "local": true, "remote": false, "pwaDisplay": 4, "androidDisplay": 2},
+    {"name": "local_history_identity_namespaces", "path": ["local", "workspace", "base", "history"], "value": [{"id": "same", "timerId": "", "status": "completed"}, {"id": "same", "status": "completed"}, {"timerId": "same", "status": "completed"}], "local": true, "remote": false, "localCount": 2, "androidDisplay": 3},
+    {"name": "remote_custom_duration", "path": ["remote", "durationsMs", "short_break"], "value": 600000, "local": false, "remote": true},
+    {"name": "remote_auto_start", "path": ["remote", "autoStartBreaks"], "value": true, "local": false, "remote": true},
+    {"name": "remote_selection", "path": ["remote", "selectedTaskId"], "value": "legacy-task", "local": false, "remote": true, "appleRemote": false},
+    {"name": "remote_empty_selection", "path": ["remote", "selectedTaskId"], "value": "", "local": false, "remote": true, "appleRemote": false, "pwaRemote": false},
+    {"name": "remote_tasks", "path": ["remote", "tasks"], "value": [{"id": "not-a-uuid", "title": "Allowed legacy task"}], "local": false, "remote": true},
+    {"name": "remote_cancelled_history", "path": ["remote", "history"], "value": [{"id": "old", "status": "cancelled"}], "local": false, "remote": true},
+    {"name": "remote_completed_history", "path": ["remote", "history"], "value": [{"timerId": "old", "status": "completed"}], "local": false, "remote": true, "remoteCount": 1},
+    {"name": "remote_legacy_identityless_history", "path": ["remote", "history"], "value": [{"status": "completed"}, {"id": "old"}], "local": false, "remote": true, "pwaRemoteDisplay": 2, "androidRemoteDisplay": 1},
+    {"name": "same_owner", "path": ["local", "ownerId"], "value": "incoming-owner", "local": false, "remote": false, "plan": {"mode": "normal_sync", "reason": "same_owner"}},
+    {"name": "different_owner", "path": ["local", "ownerId"], "value": "previous-owner", "local": false, "remote": false, "plan": {"mode": "auto", "strategy": "keep_remote", "reason": "different_owner"}}
+  ]
+}

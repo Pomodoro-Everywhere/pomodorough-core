@@ -193,6 +193,8 @@ fn immutable_reconciliation_freezes_every_operation_domain() {
         }
     }
     assert!(output["pendingSelectedTaskOperations"][0]["taskId"].is_null());
+    // A title-less delete must freeze without a normalized `"title": ""`.
+    assert!(output["pendingTaskOperations"][0].get("title").is_none());
 }
 
 #[test]
@@ -489,7 +491,14 @@ fn generated_break_batch_with_retarget_reconciles_like_reduce() {
             .unwrap();
     assert_eq!(
         output["promotedTimerOperationIds"],
-        json!(["command-00000001", "command-00000002", "command-00000003"])
+        json!(["command-00000001"])
+    );
+    assert_eq!(
+        output["pendingTimerDependencies"],
+        json!([
+            {"operationId": "command-00000002", "dependsOnOperationId": "command-00000001"},
+            {"operationId": "command-00000003", "dependsOnOperationId": "command-00000001"}
+        ])
     );
     assert_eq!(output["droppedTimerOperationIds"], json!([]));
     let reduced = call(
@@ -500,4 +509,56 @@ fn generated_break_batch_with_retarget_reconciles_like_reduce() {
         reduced["outcomes"]["command-00000003"]["outcome"],
         "ignored"
     );
+}
+
+#[test]
+fn replay_page_rejects_out_of_range_elapsed_at_anchor() {
+    let session = |elapsed| {
+        json!({"timerId": "timer-a", "phase": "focus", "status": "running",
+            "plannedDurationMs": 60000, "elapsedAtAnchorMs": elapsed,
+            "anchorAt": "2026-09-13T12:00:01Z",
+            "startedAt": "2026-09-13T12:00:01Z", "lastCommandId": ""})
+    };
+    for elapsed in [json!(9_999_999), json!(-5)] {
+        let error = dispatch_json(
+            "timer.replay.page.v1",
+            &json!({"commands": [], "sessions": [session(elapsed)],
+                "currentTimerId": "timer-a", "after": null,
+                "now": "2026-09-13T12:00:02Z"})
+            .to_string(),
+        )
+        .unwrap_err()
+        .to_string();
+        assert!(error.contains("invalid canonical timer"), "{error}");
+    }
+    let page = call(
+        "timer.replay.page.v1",
+        json!({"commands": [], "sessions": [session(json!(0))],
+            "currentTimerId": "timer-a", "after": null,
+            "now": "2026-09-13T12:00:02Z"}),
+    );
+    assert_eq!(page["canonicalTimer"]["status"], "running");
+}
+
+#[test]
+fn reduce_rejects_canonical_id_matching_a_history_entry_id() {
+    let error = dispatch_json(
+        "timer.reduce.v1",
+        &json!({"commands": [],
+            "canonicalTimer": {"id": "dup-id", "phase": "focus",
+                "status": "completed", "plannedDurationMs": 60000,
+                "elapsedAtAnchorMs": 60000,
+                "anchorAt": "2026-09-13T12:00:02Z",
+                "lastIntent": {"type": "finish", "commandId": "fin-1",
+                    "occurredAt": "2026-09-13T12:00:02Z"}},
+            "history": [{"id": "dup-id", "timerId": "other-timer",
+                "phase": "focus", "status": "completed",
+                "plannedDurationMs": 60000,
+                "completedAt": "2026-09-13T12:00:01Z"}],
+            "now": "2026-09-13T12:00:03Z"})
+        .to_string(),
+    )
+    .unwrap_err()
+    .to_string();
+    assert!(error.contains("overlaps timer history"), "{error}");
 }

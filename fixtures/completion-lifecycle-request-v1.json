@@ -1,0 +1,35 @@
+{
+  "stage": "expiryObservation",
+  "compatibility": "appleWorkspace",
+  "replicationMode": "iroh",
+  "workspace": {
+    "base": {
+      "canonicalTimer": {"id": "existing-timer", "phase": "focus", "status": "running", "plannedDurationMs": 60000, "elapsedAtAnchorMs": 5000, "anchorAt": "2026-07-20T12:00:00Z", "startedByDeviceId": "device-local"},
+      "history": [], "tasks": [], "durationsMs": {"focus": 60000, "short_break": 120000, "long_break": 180000},
+      "autoStartBreaks": true, "selectedTaskId": null
+    },
+    "local": {"commands": [], "taskOperations": [], "durationOperations": [], "autoStartOperations": [], "selectedTaskOperations": []},
+    "canonicalHead": {"wallMs": 1784548800000, "counter": 0}, "neverSent": {}, "timerDependencies": []
+  },
+  "previousWorkspace": {
+    "base": {
+      "canonicalTimer": {"id": "existing-timer", "phase": "focus", "status": "running", "plannedDurationMs": 60000, "elapsedAtAnchorMs": 5000, "anchorAt": "2026-07-20T12:00:00Z", "startedByDeviceId": "device-local"},
+      "history": [], "tasks": [], "durationsMs": {"focus": 60000, "short_break": 120000, "long_break": 180000},
+      "autoStartBreaks": true, "selectedTaskId": null
+    },
+    "local": {"commands": [], "taskOperations": [], "durationOperations": [], "autoStartOperations": [], "selectedTaskOperations": []},
+    "canonicalHead": {"wallMs": 1784548800000, "counter": 0}, "neverSent": {}, "timerDependencies": []
+  },
+  "requestedTimer": {"id": "existing-timer", "phase": "focus", "status": "running", "plannedDurationMs": 60000, "elapsedAtAnchorMs": 5000, "anchorAt": "2026-07-20T12:00:00Z", "startedByDeviceId": "device-local"},
+  "selection": {"phase": "focus", "generation": "5", "explicit": false},
+  "allocation": {"deviceId": "device-local", "deviceSequence": 7, "hlc": {"wallMs": 1784548800000, "counter": 0}, "lastUuid": null},
+  "observation": {"canonicalAnchorAt": null, "commandTimes": {}},
+  "previousObservation": {"canonicalAnchorAt": null, "commandTimes": {}},
+  "clock": {"occurredAt": "2026-07-20T12:00:55.000Z", "observedAt": "2026-07-20T12:00:55.000Z", "physicalNow": "2026-07-20T12:00:55.000Z"},
+  "identities": {"commandUuids": ["019f7f66-8cd8-7000-8000-000000000010"], "timerUuid": "12345678-1234-4234-8234-123456789012"},
+  "calendarIntervals": [{"start": "2026-07-20T00:00:00Z", "end": "2026-07-21T00:00:00Z"}],
+  "ownership": {"timerId": "existing-timer", "deviceId": "device-local"},
+  "lifecycle": {"consumedCompletions": [], "pendingBreaks": []},
+  "centralizedSession": {"userId": null, "authenticated": false},
+  "event": {"kind": "observation"}
+}

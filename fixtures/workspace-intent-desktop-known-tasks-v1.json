@@ -1,0 +1,25 @@
+{
+  "knownTasks": [{"id": "aaf83054-24b2-8c0e-901f-a974147bfe82", "title": "Café"}],
+  "cases": [
+    {"name": "cacheOnly", "current": false, "selected": false, "status": "idle", "phase": "focus", "taskOperations": 1, "selectedTaskOperations": 0, "commands": 0},
+    {"name": "cacheOnlyRunning", "current": false, "selected": false, "status": "running", "phase": "focus", "taskOperations": 1, "selectedTaskOperations": 0, "commands": 0},
+    {"name": "cacheOnlyPaused", "current": false, "selected": false, "status": "paused", "phase": "focus", "taskOperations": 1, "selectedTaskOperations": 0, "commands": 0},
+    {"name": "selectedRunning", "current": true, "selected": true, "status": "running", "phase": "focus", "taskOperations": 1, "selectedTaskOperations": 1, "commands": 1},
+    {"name": "selectedPaused", "current": true, "selected": true, "status": "paused", "phase": "focus", "taskOperations": 1, "selectedTaskOperations": 1, "commands": 1},
+    {"name": "selectedShortBreak", "current": true, "selected": true, "status": "running", "phase": "short_break", "taskOperations": 1, "selectedTaskOperations": 1, "commands": 0},
+    {"name": "selectedLongBreak", "current": true, "selected": true, "status": "paused", "phase": "long_break", "taskOperations": 1, "selectedTaskOperations": 1, "commands": 0},
+    {"name": "selectedCompleted", "current": true, "selected": true, "status": "completed", "phase": "focus", "taskOperations": 1, "selectedTaskOperations": 1, "commands": 0},
+    {"name": "unknown", "current": false, "selected": false, "status": "running", "phase": "focus", "knownTasks": [], "taskOperations": 0, "selectedTaskOperations": 0, "commands": 0},
+    {"name": "unrelated", "current": false, "selected": false, "status": "paused", "phase": "focus", "taskId": "unrelated-task", "taskOperations": 0, "selectedTaskOperations": 0, "commands": 0},
+    {"name": "normalizedCacheTitle", "current": false, "selected": false, "status": "idle", "phase": "focus", "knownTasks": [{"id": "aaf83054-24b2-8c0e-901f-a974147bfe82", "title": "\nCafé\t", "extension": {"keep": null}}], "taskOperations": 1, "selectedTaskOperations": 0, "commands": 0},
+    {"name": "multipleDeletedHistoricalGroups", "current": false, "selected": false, "status": "idle", "phase": "focus", "knownTasks": [{"id": "aaf83054-24b2-8c0e-901f-a974147bfe82", "title": "Café"}, {"id": "98e176d6-b5a9-8123-b788-38f8dcaf022a", "title": "Other task"}], "history": [
+      {"id": "history-a", "timerId": "timer-a", "phase": "focus", "status": "completed", "plannedDurationMs": 60000, "completedAt": "2026-07-20T12:00:00Z", "taskId": "aaf83054-24b2-8c0e-901f-a974147bfe82"},
+      {"id": "history-b", "timerId": "timer-b", "phase": "focus", "status": "completed", "plannedDurationMs": 60000, "completedAt": "2026-07-20T12:00:00Z", "taskId": "98e176d6-b5a9-8123-b788-38f8dcaf022a"}
+    ], "taskOperations": 1, "selectedTaskOperations": 0, "commands": 0}
+  ],
+  "queuedCases": [
+    {"name": "cacheClaimRestart", "domains": ["taskOperations"], "uuidSuffixes": ["002"], "hlcCounters": [1], "outcomes": ["queued"]},
+    {"name": "selectedClaimRestart", "domains": ["taskOperations", "selectedTaskOperations", "commands"], "uuidSuffixes": ["003", "004", "005"], "hlcCounters": [2, 3, 4], "outcomes": ["applied", "queued", "queued"], "deviceSequence": 9, "observedElapsedMs": 15000},
+    {"name": "nullHead", "domains": ["taskOperations"], "uuidSuffixes": ["001"], "hlcCounters": [0], "outcomes": ["queued"]}
+  ]
+}

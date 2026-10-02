@@ -88,6 +88,15 @@ pub(super) fn resolve(
     })
 }
 
+pub(super) fn validate_retained(
+    commands: &[WireCommand],
+    dependencies: &[TimerDependency],
+) -> Result<(), CoreError> {
+    let index = index_timer_commands(commands)?;
+    validate_timer_dependency_graph(commands, dependencies, &index)?;
+    super::delivery::validate_dependencies(commands, dependencies)
+}
+
 fn index_timer_commands(commands: &[WireCommand]) -> Result<TimerCommandIndex, CoreError> {
     let positions = commands
         .iter()
@@ -344,6 +353,7 @@ impl GeneratedBreakContext<'_> {
         let newer_manual_start = self.commands.iter().any(|command| {
             command.kind == "start"
                 && command.id != generated_start.id
+                && command.device_id == generated_start.device_id
                 && command.device_sequence > generated_start.device_sequence
                 && !self.graph.parent_by_child.contains_key(&command.id)
         });
@@ -388,17 +398,19 @@ impl GeneratedBreakContext<'_> {
         phase: &String,
         duration_ms: i64,
     ) -> BTreeSet<String> {
-        let mut promoted = BTreeSet::new();
         for identifier in batch_ids {
             let command = &mut self.commands[self.index.positions[identifier]];
             command.phase.clone_from(phase);
             command.planned_duration_ms = duration_ms;
             command.observed_elapsed_ms = command.observed_elapsed_ms.clamp(0, duration_ms);
-            if !self.acknowledged_ids.contains(identifier) {
-                promoted.insert(identifier.clone());
-            }
         }
-        promoted
+        // The finish ACK only opens the generated Start. Descendants wait for
+        // their direct parent's ACK, even when their payload is normalized here.
+        if self.acknowledged_ids.contains(self.generated_start_id) {
+            BTreeSet::new()
+        } else {
+            BTreeSet::from([self.generated_start_id.to_owned()])
+        }
     }
 
     fn source(&self) -> &WireCommand {
