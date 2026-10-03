@@ -41,13 +41,21 @@ Core validates the complete retained ledger before it filters display records. T
 
 Every stored record must exactly equal a current retained record in the same domain. Unknown identities, stale removed identities, duplicate identities, rewritten fields, added or removed extensions, incomplete arrays, duplicate JSON keys, and unknown context controls fail closed. An exact extension on both records remains valid. Typed equivalence is insufficient.
 
-`reconciliation/workspace/display.rs` owns the selection and membership validator. Bootstrap uses the same functions. The selection preserves the original `server/web/app-state.js` policy at server commit `50c86a2`:
+`reconciliation/workspace/display.rs` owns selection and exact membership validation. CORE-PWA07 extends the workspace opt-in after Core 0.44.0. Bootstrap retains its existing command selector and shares the membership validator.
+
+The workspace selector applies these rules:
 
 - Existing matching stored arrays remain eligible for display after proof retirement, even when the head covers their records.
 - Core adds an undisplayed retained command only when it has durable never-sent proof and its clock exceeds the head. A null head permits this command addition.
 - Fresh command selection is per record. One old or claimed command does not suppress a newer proven command in the display context.
-- Read operations do not add fresh task or preference records to a non-null stored context.
-- A Core-planned task or preference mutation updates the affected display domain only when the existing whole-domain delivery policy accepts that domain. Claimed or stale domains retain their queued outcome. This preserves existing task and preference admission.
+- Task, duration, auto-start, and selected-task domains admit additions only when every retained row outside the stored domain has never-sent proof and exceeds the head. A null head permits these additions.
+- A stored row already has display membership. Its retired proof or covered clock does not block a newer proven row. Core replays both exact payloads and derives the latest domain winner.
+- An unstored claimed or head-covered row blocks all additions to that domain. Existing stored rows remain selected. A durable new edit can therefore return `queued` without appearing in the display context.
+- Reads, mutation projections, intent targeting, and completion use the same selector. Mutation results persist its Core-derived context through `persist_result`. No client eligibility flag or context repair enters this policy.
+
+The whole-domain gate applies to additions, not to already stored raw membership. Commands retain their established per-record rule. Core validates all retained rows before replay, including rows excluded from display. The delivery-safe `projectionPending` policy still requires a non-null head and complete never-sent proof for the entire retained domain.
+
+The original production JavaScript at server commit `50c86a2` preserves a newer local duration edit after an older row is claimed. CORE-PWA07 reproduces that display result when the claimed row already belongs to the stored context. An undisplayed claimed row remains a barrier. This distinction preserves existing raw display records without treating them as delivery evidence.
 
 The timer reducer owns the resulting timer and history. A read model exposes controls for that timer. Intent targeting and completion use the same display selection. Retained-ledger admission remains a separate check.
 
@@ -56,6 +64,8 @@ The timer reducer owns the resulting timer and history. A read model exposes con
 `workspace.project.v1` keeps `projectionPending` as its delivery-safe result. With a context, `workspace` is the display result and a separate root `displayContext` contains the Core-derived display records. These two queue sets can differ. In particular, a head-covered claimed Start can display a running timer while `projectionPending.commands` remains empty.
 
 Intent and completion return the updated context at `workspace.displayContext`. A null-head fresh Start receives an applied display outcome. Its returned context contains the new command, while the delivery-safe projector still suppresses the null-head queue. The intent does not create a covering head or retire proof.
+
+A null-head preference or task edit can also receive an applied display outcome. The returned context contains the eligible exact rows. For example, a retained 600000 ms short-break edit controls a generated Start instead of the 300000 ms canonical default. A fresh peer auto-start disable prevents that Start. Task deletion still preserves the PWA's existing timer association behavior. A separate selection change emits the existing retarget command.
 
 The host persistence contract commits the returned context atomically with the returned complete queues, proof, dependencies, allocation, observations, selection, and ownership writes. A failed transaction persists none of the group. The canonical snapshot stays unchanged by optimistic replay. Reads remain pure.
 
@@ -86,6 +96,38 @@ node scripts/pwa_display_context_probe.mjs \
 Native Rust tests verify both genuine observations, absent-context compatibility, exact extensions, stale records, and suppressed malformed preferences. The aggregate corpus covers fresh Start, claim selection, proof retirement, a covering head, serialized reload, Pause, Resume, manual and automatic Finish, generated Start, direct child dependencies, V3 ACK promotion and rejection drops, ownership denial, and no synthetic timer after removal. The head and proof matrix covers null, lower, equal, and higher heads with absent, partial, and complete proof. Task and preference cases compare complete production returns after removal of the new context field.
 
 The aggregate gate also asserts semantic branch counts and kills output mutants. `tests/aggregate_wasm_parity.mjs` transfers the same raw inputs and checks complete raw envelope parity against the exact hosted artifact.
+
+### CORE-PWA07 evidence
+
+`fixtures/pwa-display-admission-v1.json` preserves the independent checker's exact short-break duration request. `scripts/pwa_display_admission_probe.mjs` checks decoded equality with the original raw file. It also reads the independent long-break request and both completion requests without changing their fields. Each downloaded 0.44.0 return must equal the saved complete return and the preserved native 0.44.0 envelope.
+
+The new native returns display 600000 ms and 1800000 ms breaks. The downloaded 0.44.0 artifact displays 300000 ms and 900000 ms instead. The probe compares every aggregate request with both versions. It saves complete raw envelopes and rejects differences outside the named admission cases and the claimed-duration policy correction.
+
+```sh
+node scripts/pwa_display_admission_probe.mjs \
+	/path/to/downloaded-0.44.0/pomodorough_core.wasm \
+	/path/to/preserved-0.44.0/artifact_parity_oracle \
+	/path/to/independent-captures \
+	/path/to/core-pwa07-parity.json
+```
+
+`scripts/pwa_display_admission_source_probe.cjs` executes preserved original JavaScript and current production PWA methods through `fake-indexeddb` transactions. Only Core transport switches between native dispatch and downloaded official bytes. The probe checks complete production returns, actual persisted request metadata, cold reopen, claimed duration edits, task selection and retargeting, peer disable, mutation rollback, and the captured V3 HTTP install rollback. It compares complete installed rows and return values with the official terminal behavior. This probe does not exercise browser-native IndexedDB.
+
+The mixed-duration comparison also checks the original and current storage methods' complete returned objects. The original method receives its existing in-flight tracker IDs from the actual persisted outgoing claim. Those IDs protect the older retry row from coalescing. The new Core path reads the actual claim and delivery metadata through the production adapter.
+
+```sh
+CORE_PWA07_MODE=native \
+CORE_PWA07_OFFICIAL=/path/to/downloaded-0.44.0/pomodorough_core.wasm \
+CORE_PWA07_HTTP_EVIDENCE=/path/to/pwa044-checker-http.json \
+CORE_PWA07_SOURCE_EVIDENCE=/path/to/core-pwa07-source-green.json \
+	node --test scripts/pwa_display_admission_source_probe.cjs
+```
+
+`CORE_PWA07_MODE=official` records the same production scenarios with the known 0.44.0 display defects. The default native oracle is `target/debug/examples/artifact_parity_oracle`. `CORE_PWA07_ORACLE` selects an already compiled native oracle.
+
+CORE-PWA07 adds no operation, field, profile, schema version, or ABI export. Absent-context operations and legacy bootstrap behavior remain unchanged. The added artifact cases cover missing proof, stale clocks, exact extensions, malformed contexts, V3 ACK removal, retained claimed payloads, generated-break rejection drops, and no synthetic timer after removal. The hosted release gate must execute this expanded corpus against newly produced official bytes. Local native and downloaded-baseline evidence does not establish that future WASM parity.
+
+The touched production functions remain within 50 lines and need no size exceptions. The selector and admission functions add one combined cyclomatic decision and two cognitive points. The new whole-domain barrier and bootstrap opt-in distinction account for that increase. The mutation output function loses five lines, and the duplicate mutation-only admission function is removed.
 
 ## Official release requirements
 

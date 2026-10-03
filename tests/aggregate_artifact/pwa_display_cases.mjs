@@ -62,7 +62,7 @@ export function displayCases() {
 function corruptContexts() {
   const stored = rawWorkspace().displayContext.projectionPending;
   return [
-    ["null-wrapper", null], ["boolean", true], ["wrong-profile", { ...context(stored), profile: "appleWorkspace" }],
+    ["null-wrapper", null], ["boolean", true], ["false-wrapper", false], ["wrong-profile", { ...context(stored), profile: "appleWorkspace" }],
     ["eligibility", { ...context(stored), eligible: true }], ["missing-records", { profile: "pwaStorage" }],
     ["incomplete", context({ commands: [] })], ["unknown-domain", context({ ...stored, sendingAllowed: true })],
     ["malformed-array", context({ ...stored, commands: "corrupt" })],

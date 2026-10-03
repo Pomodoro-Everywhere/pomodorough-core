@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import { createContext, SourceTextModule, SyntheticModule } from "node:vm";
 import * as nodeUrl from "node:url";
 import { operations } from "../tests/aggregate_artifact/cases.mjs";
-import { requiredHits } from "../tests/aggregate_artifact/semantics.mjs";
+import { requiredHits, requiredRejections } from "../tests/aggregate_artifact/semantics.mjs";
 import { fakeHost } from "./aggregate_artifact_fake_host.mjs";
 
 const root = new URL("../tests/", import.meta.url);
@@ -18,6 +18,8 @@ function probeCases() {
   })));
   // Each operation still needs failed dispatch in the real envelope validator.
   cases.push(...operations.map((operation) => ({ operation, name: "negative", input: "{", ok: false })));
+  cases.push(...Object.entries(requiredRejections).flatMap(([rejectionHit, count]) => Array.from({ length: count }, (_, i) => ({
+    operation: "workspace.ownershipPlan.v1", name: `${rejectionHit}-${i}`, input: "{", ok: false, rejectionHit }))));
   return cases;
 }
 
@@ -27,7 +29,8 @@ function probeState(argument, mismatch) {
     generated: ["generated", "childPause", "childFinish", "barrierRebase", "barrier", "rejection"],
     deferred: ["desktopDeferred", "appleExplicit"], batch: ["cursorRotation", "batchDrain"],
     terminal: ["terminalBarrier", "terminalRejection", "terminalPromotion", "terminalComposition", "terminalNormalization"],
-    display: ["pwaLifecycle", "pwaRebase", "pwaParity"],
+    display: ["pwaLifecycle", "pwaRebase", "pwaParity"], admission: ["pwaAdmission"],
+    ownership: ["pwaLeaseBoundary", "pwaOwnerOrigin"],
   };
   const dynamic = new Set(Object.values(groups).flat());
   const staticCases = all.filter((item) => !dynamic.has(item.hit));
@@ -72,6 +75,8 @@ function replacements(state) {
     "aggregate_artifact/batch_scenarios.mjs": { batchScenarios: (call) => structuredClone(state.phases.batch).forEach(call) },
     "aggregate_artifact/terminal_scenarios.mjs": { terminalScenarios: (call) => structuredClone(state.phases.terminal).forEach(call) },
     "aggregate_artifact/pwa_display_scenarios.mjs": { displayScenarios: (call) => structuredClone(state.phases.display).forEach(call) },
+    "aggregate_artifact/pwa_display_admission.mjs": { admissionScenarios: (call) => structuredClone(state.phases.admission).forEach(call) },
+    "aggregate_artifact/pwa_ownership_cases.mjs": { ownershipScenarios: (call) => structuredClone(state.phases.ownership).forEach(call) },
   };
 }
 

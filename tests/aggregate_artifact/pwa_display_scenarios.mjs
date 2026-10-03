@@ -160,7 +160,12 @@ function durationContext(call) {
   claimed.workspace.neverSent.durationOperations = [];
   claimed.durability.outgoingDurationOperationIds = [first.operations.durationOperations[0].id];
   call(branch("workspace.intent.v1", "pwa-duration-context-claimed", claimed, "pwaParity", {
-    equals: { retiredDurationOperationIds: [], "groupOutcomes.durationOperations.0.outcome": "queued", "projection.durationsMs.focus": 1800000 },
+    equals: { retiredDurationOperationIds: [], "groupOutcomes.durationOperations.0.outcome": "applied", "projection.durationsMs.focus": 2700000 },
+    lengths: { "workspace.displayContext.projectionPending.durationOperations": 2 },
+    prefixes: { "workspace.local.durationOperations": "workspace.local.durationOperations" } }));
+  claimed.workspace.displayContext.projectionPending.durationOperations = [];
+  call(branch("workspace.intent.v1", "pwa-duration-hidden-claimed", claimed, "pwaAdmission", {
+    equals: { retiredDurationOperationIds: [], "groupOutcomes.durationOperations.0.outcome": "queued", "projection.durationsMs.focus": request.workspace.base.durationsMs.focus },
     same: { "workspace.displayContext.projectionPending": "workspace.displayContext.projectionPending" },
     prefixes: { "workspace.local.durationOperations": "workspace.local.durationOperations" } }));
 }

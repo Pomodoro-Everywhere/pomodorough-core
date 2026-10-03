@@ -1,0 +1,38 @@
+{
+  "request": {
+    "profile": "pwaStorage",
+    "action": { "kind": "renew", "timerId": "ownership-timer" },
+    "localDeviceId": "device-local",
+    "localTabId": "tab-local",
+    "ownership": null,
+    "clock": { "nowMs": 1784548801000, "leaseDurationMs": 30000 },
+    "workspace": {
+      "base": {
+        "canonicalTimer": null, "history": [], "tasks": [],
+        "durationsMs": { "focus": 1500000, "short_break": 300000, "long_break": 900000 },
+        "autoStartBreaks": false, "selectedTaskId": null
+      },
+      "local": {
+        "commands": [{
+          "id": "retained-start", "deviceId": "device-foreign", "deviceSequence": 1,
+          "timerId": "ownership-timer", "type": "start", "phase": "focus",
+          "plannedDurationMs": 1500000, "occurredAt": "2026-07-20T12:00:00Z",
+          "hlcWallMs": 1784548800000, "hlcCounter": 0, "observedElapsedMs": 0,
+          "extension": { "retained": true }
+        }],
+        "taskOperations": [], "durationOperations": [], "autoStartOperations": [], "selectedTaskOperations": []
+      },
+      "canonicalHead": null, "neverSent": {}, "timerDependencies": [],
+      "displayContext": { "profile": "pwaStorage", "projectionPending": null }
+    }
+  },
+  "owner": {
+    "timerId": "ownership-timer", "deviceId": "device-local", "tabId": "tab-local",
+    "leaseExpiresAtMs": 1784548831000
+  },
+  "leaseBoundary": [
+    { "nowMs": 1784548830999, "renewed": false, "reason": "notOwner" },
+    { "nowMs": 1784548831000, "renewed": true, "reason": "" },
+    { "nowMs": 1784548831001, "renewed": true, "reason": "" }
+  ]
+}

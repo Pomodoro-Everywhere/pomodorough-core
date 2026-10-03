@@ -2,6 +2,7 @@
 mod generated_break;
 mod lifecycle;
 
+use crate::timer_ownership::{self, Ownership};
 use chrono::SecondsFormat;
 use serde::Deserialize;
 use serde_json::{Value, json};
@@ -17,17 +18,6 @@ use super::{CoreError, admission, allocation, invalid, monotonic, policy, projec
 enum Stage {
     FinishCommit,
     AutomaticFinishCommit,
-}
-
-#[derive(Deserialize)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
-struct Ownership {
-    timer_id: String,
-    device_id: String,
-    #[serde(default)]
-    tab_id: Option<String>,
-    #[serde(default)]
-    lease_expires_at_ms: Option<i64>,
 }
 
 #[derive(Deserialize)]
@@ -432,7 +422,10 @@ fn automatic_owner(request: &Request, timer: &Value) -> Result<(bool, Option<i64
         return Ok((local_owner(request, timer, local), None));
     }
     let Some(owner) = &request.ownership else {
-        return Ok((can_claim_missing_owner(request, timer, local), None));
+        return Ok((
+            timer_ownership::can_claim_missing(&request.workspace, timer, local),
+            None,
+        ));
     };
     if owner.timer_id != timer["id"] || owner.device_id != local {
         return Ok((false, None));
@@ -440,15 +433,13 @@ fn automatic_owner(request: &Request, timer: &Value) -> Result<(bool, Option<i64
     let lease_now = request
         .lease_now_ms
         .ok_or_else(|| invalid("missing lease clock"))?;
-    if owner.tab_id.as_deref() == request.local_tab_id.as_deref()
-        || owner
-            .lease_expires_at_ms
-            .is_none_or(|expiry| expiry <= lease_now)
-    {
-        Ok((true, None))
-    } else {
-        Ok((false, owner.lease_expires_at_ms))
-    }
+    Ok(timer_ownership::owns_lease(
+        owner,
+        &timer["id"],
+        local,
+        request.local_tab_id.as_deref(),
+        lease_now,
+    ))
 }
 
 fn local_owner(request: &Request, timer: &Value, local: &str) -> bool {
@@ -478,18 +469,6 @@ fn local_owner(request: &Request, timer: &Value, local: &str) -> bool {
             .is_some_and(|owner| owner.device_id == local),
         Compatibility::PwaStorage => false,
     }
-}
-
-fn can_claim_missing_owner(request: &Request, timer: &Value, local: &str) -> bool {
-    let canonical = &request.workspace["base"]["canonicalTimer"];
-    if canonical["id"] == timer["id"] && canonical.get("startedByDeviceId").is_some() {
-        return canonical["startedByDeviceId"] == local;
-    }
-    request.workspace["local"]["commands"]
-        .as_array()
-        .unwrap()
-        .iter()
-        .any(|command| command["type"] == "start" && command["timerId"] == timer["id"])
 }
 
 fn completion_request(

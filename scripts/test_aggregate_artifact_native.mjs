@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { nativeCorpus, runCorpus } from "../tests/aggregate_artifact/corpus.mjs";
-import { assertCoverage, assertSemantics, requiredHits } from "../tests/aggregate_artifact/semantics.mjs";
+import { assertCoverage, assertSemantics, requiredHits, requiredRejections } from "../tests/aggregate_artifact/semantics.mjs";
 import { changed } from "../tests/aggregate_artifact/cases.mjs";
 
 const corpus = nativeCorpus();
@@ -44,6 +44,23 @@ const mutations = [
   ["pwa-display-foreign-owner", "outcome", "planned"],
   ["pwa-display-normalized-context", "displayContext.projectionPending.commands.0.phase", "long_break"],
   ["pwa-duration-context-retired", "workspace.displayContext.projectionPending.durationOperations", []],
+  ["pwa-duration-context-claimed", "groupOutcomes.durationOperations.0.outcome", "queued"],
+  ["pwa-duration-hidden-claimed", "groupOutcomes.durationOperations.0.outcome", "applied"],
+  ["pwa-admit-duration-short_break", "projection.durationsMs.short_break", 300000],
+  ["pwa-admit-finish-long_break", "commands.1.plannedDurationMs", 900000],
+  ["pwa-admit-peer-no-start", "commands.0.type", "start"],
+  ["pwa-admit-task-delete", "projection.canonicalTimer.taskId", "stale-task"],
+  ["pwa-admit-new-barrier-durationOperations-claim", "displayContext.projectionPending.durationOperations", []],
+  ["pwa-owner-missing-retained", "ownershipWrites", []],
+  ["pwa-owner-foreign-expired", "renewed", true],
+  ["pwa-owner-install-valid", "ownership", null],
+  ["pwa-owner-removed", "ownershipWrites", []],
+  ["pwa-owner-boundary--1", "renewed", true],
+  ["pwa-owner-boundary--1", "retryAtMs", null],
+  ["pwa-owner-boundary-0", "renewed", false],
+  ["pwa-owner-boundary-1", "ownership.tabId", "tab-local"],
+  ["pwa-owner-origin-device-foreign", "ownershipWrites", [{ kind: "recordTimerOwner" }]],
+  ["pwa-owner-terminal-finish", "ownership", { timerId: "ownership-timer" }],
 ];
 
 test("native authority reaches every required semantic branch", () => {
@@ -55,6 +72,14 @@ test("dropping any required branch vector fails coverage even with correct envel
   for (const hit of Object.keys(requiredHits)) {
     const index = corpus.cases.findIndex((item) => item.hit === hit);
     assert.throws(() => assertCoverage(corpus.cases.filter((_, i) => i !== index)), /semantic branch hit counts/);
+  }
+});
+
+test("dropping any required raw rejection vector fails strict coverage", () => {
+  for (const hit of Object.keys(requiredRejections)) {
+    const index = corpus.cases.findIndex((item) => item.rejectionHit === hit);
+    assert.ok(index >= 0);
+    assert.throws(() => assertCoverage(corpus.cases.filter((_, i) => i !== index)), /required raw rejection hit counts/);
   }
 });
 

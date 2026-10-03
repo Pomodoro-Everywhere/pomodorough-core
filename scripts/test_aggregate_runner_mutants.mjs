@@ -43,3 +43,19 @@ test("static checker kills entire artifact runner bypass mutant", async () => {
     "exerciseArtifact(instance.exports, cases, expected, corpus);", "void instance;") };
   await assert.rejects(() => probeRunner(mutations), /skipped required dispatches/);
 });
+
+test("static checker kills skipped PWA display admission scenarios", async () => {
+  await assert.rejects(() => verifyRunner({ "aggregate_artifact/corpus.mjs": (source) =>
+    source.replace("  admissionScenarios(call);", "") }), /semantic branch hit counts/);
+});
+
+test("static checker kills skipped actual owner lease boundary scenarios", async () => {
+  await assert.rejects(() => verifyRunner({ "aggregate_artifact/corpus.mjs": (source) =>
+    source.replace("  ownershipScenarios(call);", "") }), /semantic branch hit counts/);
+});
+
+test("static checker kills skipped raw shape rejection dispatches", async () => {
+  await assert.rejects(() => verifyRunner({ "aggregate_artifact/corpus.mjs": (source) =>
+    source.replace("  const staticCases = aggregateCases();", "  const staticCases = aggregateCases().filter((item) => !item.rejectionHit);") }),
+  /required raw rejection hit counts/);
+});

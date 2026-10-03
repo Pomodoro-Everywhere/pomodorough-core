@@ -10,7 +10,12 @@ export const requiredHits = {
   terminalMissingHistory: 6, workspaceMissingHistory: 6,
   pwaDisplay: 4, pwaLifecycle: 16, pwaRebase: 4,
   pwaMatrix: 18, pwaParity: 8,
+  pwaAdmission: 55,
+  pwaOwnership: 16, pwaLeaseBoundary: 3, pwaOwnerOrigin: 3,
+  pwaOwnershipLegacy: 4,
 };
+
+export const requiredRejections = { pwaOwnershipShape: 222 };
 
 export function branch(operation, name, input, hit, checks) {
   return { ...vector(operation, name, input), hit, checks };
@@ -60,5 +65,17 @@ export function assertCoverage(cases) {
     hits[item.hit] += 1;
   }
   assert.deepEqual(hits, requiredHits, "required semantic branch hit counts");
+  rejectionCoverage(cases);
+  return hits;
+}
+
+export function rejectionCoverage(cases) {
+  const hits = Object.fromEntries(Object.keys(requiredRejections).map((key) => [key, 0]));
+  for (const item of cases.filter((item) => item.rejectionHit)) {
+    assert.ok(Object.hasOwn(hits, item.rejectionHit), `unknown rejection hit ${item.rejectionHit}`);
+    assert.equal(item.ok, false, `rejection fixture became a success ${item.name}`);
+    hits[item.rejectionHit] += 1;
+  }
+  assert.deepEqual(hits, requiredRejections, "required raw rejection hit counts");
   return hits;
 }

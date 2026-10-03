@@ -63,7 +63,8 @@ function ledgerNegatives() {
   cases.push(branch("reconcile.rebase.v3", "pwa-actual-http-ack-trim", rebase, "pwaMatrix", {
     equals: { "displayContext.projectionPending": emptyQueues(), pending: [] }, same: { canonicalResponse: "response", baseTimer: "response.canonicalTimer" } }));
   for (const [name, displayContext] of [["unknown", context({ ...rebase.local, extra: true })],
-    ["rewritten", context(changed(rebase.local, "commands.0.observedElapsedMs", 0))], ["null-wrapper", null]]) {
+    ["rewritten", context(changed(rebase.local, "commands.0.observedElapsedMs", 0))], ["null-wrapper", null],
+    ["false-wrapper", false], ["false-records", context(false)]]) {
     cases.push(vector("reconcile.rebase.v3", `pwa-v3-invalid-${name}`, { ...rebase, displayContext }, false));
   }
   const removed = terminalRequest();

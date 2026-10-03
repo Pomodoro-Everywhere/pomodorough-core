@@ -6,6 +6,7 @@ mod bootstrap;
 mod clock;
 mod completion_plan;
 mod fixture_projection;
+mod ownership_plan;
 mod projection;
 mod read_model;
 mod reconciliation;
@@ -13,6 +14,7 @@ mod strict_json;
 mod sync_projection;
 mod task;
 mod timer;
+mod timer_ownership;
 mod trusted_clock;
 mod workspace_intent;
 
@@ -184,6 +186,7 @@ pub fn dispatch_json(operation: &str, input: &str) -> Result<String, CoreError> 
         "reconcile.rebase.v2" => reconciliation::rebase_v2_json(input),
         "reconcile.rebase.v3" => reconciliation::terminal::rebase_json(input),
         "workspace.project.v1" => reconciliation::workspace::project_json(input),
+        "workspace.ownershipPlan.v1" => ownership_plan::plan_json(input),
         "workspace.readModel.v1" => read_model::read_json(input),
         "workspace.intent.v1" => workspace_intent::plan_json(input),
         "workspace.completionMutation.v1" => {

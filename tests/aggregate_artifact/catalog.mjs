@@ -11,8 +11,11 @@ import { terminalCases } from "./terminal_cases.mjs";
 import { retainedIntentCases } from "./terminal_provenance_cases.mjs";
 import { displayCases } from "./pwa_display_cases.mjs";
 import { displayMatrix } from "./pwa_display_matrix.mjs";
+import { admissionCases } from "./pwa_display_admission.mjs";
+import { ownershipCases } from "./pwa_ownership_cases.mjs";
 
 const overflowPaths = {
+  "workspace.ownershipPlan.v1": "clock.nowMs",
   "workspace.project.v1": "canonicalHead.counter",
   "workspace.readModel.v1": "source.value.base.durationsMs.focus",
   "workspace.intent.v1": "allocation.deviceSequence",
@@ -29,7 +32,7 @@ export function aggregateCases() {
     ...completionMutationCases(), ...bootstrapCases(), ...batchCases(),
     ...completionStateCases(), ...sentCases(), ...clockCases(), ...queuedCases(),
     ...fractionalReadCases(), missingReadingCase(), ...taskTotalCases(), ...savedCases(), ...terminalCases(),
-    ...retainedIntentCases(), ...retainedIntentCases("workspace.project.v1"), ...displayCases(), ...displayMatrix()];
+    ...retainedIntentCases(), ...retainedIntentCases("workspace.project.v1"), ...displayCases(), ...displayMatrix(), ...admissionCases(), ...ownershipCases()];
   for (const [operation, path] of Object.entries(overflowPaths)) {
     cases.push(...invalidCases(cases.find((item) => item.operation === operation && item.ok), path));
   }

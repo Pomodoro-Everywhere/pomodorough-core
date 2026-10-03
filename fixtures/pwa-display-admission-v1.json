@@ -1,0 +1,49 @@
+{
+  "provenance": {
+    "capture": "pwa044-short_break-duration-request.json",
+    "source": "pwa044-independent.cjs",
+    "officialVersion": "0.44.0",
+    "officialSha256": "895621370566284e08f03385146bdfe07b41c78212273dd8124302d05dfeaed4"
+  },
+  "request": {
+    "compatibility": "pwaStorage",
+    "replicationMode": "centralized",
+    "workspace": {
+      "base": {
+        "canonicalTimer": null, "history": [], "tasks": [],
+        "durationsMs": {"focus": 1500000, "short_break": 300000, "long_break": 900000},
+        "autoStartBreaks": false, "selectedTaskId": null
+      },
+      "local": {
+        "commands": [], "taskOperations": [], "durationOperations": [],
+        "autoStartOperations": [{"deviceId": "p222-device", "enabled": true, "hlcCounter": 3,
+          "hlcWallMs": 1788177600000, "id": "01a057b0-ce00-7000-8000-000000000015",
+          "occurredAt": "2026-08-31T12:00:00.000Z"}],
+        "selectedTaskOperations": []
+      },
+      "canonicalHead": null,
+      "neverSent": {"commands": [], "taskOperations": [], "durationOperations": [],
+        "autoStartOperations": ["01a057b0-ce00-7000-8000-000000000015"], "selectedTaskOperations": []},
+      "timerDependencies": [],
+      "displayContext": {"profile": "pwaStorage", "projectionPending": {
+        "autoStartOperations": [{"deviceId": "p222-device", "enabled": true, "hlcCounter": 3,
+          "hlcWallMs": 1788177600000, "id": "01a057b0-ce00-7000-8000-000000000015",
+          "occurredAt": "2026-08-31T12:00:00.000Z"}],
+        "commands": [], "durationOperations": [], "selectedTaskOperations": [], "taskOperations": []}}
+    },
+    "selection": {"phase": "focus", "generation": "0", "explicit": false},
+    "allocation": {"deviceId": "p222-device", "deviceSequence": 7,
+      "hlc": {"counter": 3, "wallMs": 1788177600000}, "lastUuid": "01a057b0-ce00-7000-8000-000000000015"},
+    "observation": {"canonicalAnchorAt": null, "commandTimes": {}},
+    "clock": {"occurredAt": "2026-08-31T12:00:00.000Z", "physicalNow": "2026-08-31T12:00:00.000Z",
+      "observedAt": "2026-08-31T12:00:00.000Z", "continuityId": "b7f771ce-d1ce-4fd9-9828-96071b43b416"},
+    "identities": {"commandUuids": ["01a057b0-ce00-7000-8000-000000000016",
+      "01a057b0-ce00-7000-8000-000000000017", "01a057b0-ce00-7000-8000-000000000018"],
+      "timerUuid": "0b705f5f-e465-4a60-8101-7ec5a80dd26a"},
+    "calendarIntervals": [{"start": "2026-08-30T19:00:00.000Z", "end": "2026-08-31T19:00:00.000Z"}],
+    "ownership": {"expectedOwnerId": "account:v1:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "ownerId": "account:v1:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"},
+    "durability": {"outgoingDurationOperationIds": [], "localTabId": "p222-tab-0"},
+    "intent": {"kind": "setDuration", "phase": "short_break", "minutes": 10}
+  }
+}

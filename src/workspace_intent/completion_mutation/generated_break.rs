@@ -86,13 +86,11 @@ pub(super) fn owner_write(request: &Request, start: &Value) -> Result<Value, Cor
     let duration = request
         .lease_duration_ms
         .ok_or_else(|| invalid("missing lease duration"))?;
-    let expiry = now
-        .checked_add(duration)
-        .filter(|value| *value <= 9_007_199_254_740_991)
-        .ok_or_else(|| invalid("lease expiry overflow"))?;
-    Ok(
-        json!({"kind": "recordTimerOwner", "timerId": start["timerId"],
-        "deviceId": request.allocation.device_id, "tabId": request.local_tab_id,
-        "leaseExpiresAtMs": expiry}),
+    crate::timer_ownership::record_write(
+        &start["timerId"],
+        &request.allocation.device_id,
+        request.local_tab_id.as_deref(),
+        now,
+        duration,
     )
 }

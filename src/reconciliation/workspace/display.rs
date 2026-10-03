@@ -55,30 +55,46 @@ pub(crate) fn queues(workspace: &Value, stored: Option<&Value>) -> Result<Value,
     };
     validate_stored(retained, stored)?;
     let mut display = stored.clone();
-    let identities: BTreeSet<_> = stored["commands"]
+    // Bootstrap's legacy raw context shares membership and command selection,
+    // but only the workspace opt-in extends preference display admission.
+    for name in QUEUES
+        .into_iter()
+        .filter(|name| *name == "commands" || workspace.get("displayContext").is_some())
+    {
+        let additions = fresh_records(workspace, stored, name)?;
+        display[name].as_array_mut().unwrap().extend(additions);
+    }
+    Ok(display)
+}
+
+fn fresh_records(workspace: &Value, stored: &Value, name: &str) -> Result<Vec<Value>, CoreError> {
+    let identities: BTreeSet<_> = stored[name]
         .as_array()
         .unwrap()
         .iter()
-        .map(|command| command["id"].as_str().unwrap())
+        .map(|operation| operation["id"].as_str().unwrap())
         .collect();
-    let proof = &workspace["neverSent"]["commands"];
-    for command in retained["commands"].as_array().unwrap() {
-        // Bootstrap consults this selector before its complete timer replay.
-        let parsed: crate::timer::WireCommand = serde_json::from_value(command.clone())?;
-        let proven = proof
+    let mut additions = Vec::new();
+    for operation in workspace["local"][name].as_array().unwrap() {
+        if name == "commands" {
+            // Bootstrap consults this selector before its complete timer replay.
+            serde_json::from_value::<crate::timer::WireCommand>(operation.clone())?;
+        }
+        if identities.contains(operation["id"].as_str().unwrap()) {
+            continue;
+        }
+        let proven = workspace["neverSent"][name]
             .as_array()
-            .is_some_and(|proof| proof.contains(&command["id"]));
-        if !identities.contains(parsed.id.as_str())
-            && proven
-            && newer_than_head(&parsed, &workspace["canonicalHead"])
-        {
-            display["commands"]
-                .as_array_mut()
-                .unwrap()
-                .push(command.clone());
+            .is_some_and(|proof| proof.contains(&operation["id"]));
+        if proven && newer_than_head(operation, &workspace["canonicalHead"]) {
+            additions.push(operation.clone());
+        } else if name != "commands" {
+            // Stored rows already have display membership, not delivery proof.
+            // Every other row must pass: hiding a domain barrier invents a winner.
+            return Ok(Vec::new());
         }
     }
-    Ok(display)
+    Ok(additions)
 }
 
 fn validate_stored(retained: &Value, stored: &Value) -> Result<(), CoreError> {
@@ -110,14 +126,18 @@ fn validate_stored(retained: &Value, stored: &Value) -> Result<(), CoreError> {
     Ok(())
 }
 
-fn newer_than_head(command: &crate::timer::WireCommand, head: &Value) -> bool {
+fn newer_than_head(operation: &Value, head: &Value) -> bool {
     if head.is_null() {
         return true;
     }
+    let clock = operation["hlcWallMs"]
+        .as_i64()
+        .zip(operation["hlcCounter"].as_i64());
     head["wallMs"]
         .as_i64()
         .zip(head["counter"].as_i64())
-        .is_some_and(|head| (command.hlc_wall_ms, command.hlc_counter) > head)
+        .zip(clock)
+        .is_some_and(|(head, clock)| clock > head)
 }
 
 // Only Core may call this after validating the original complete ledger.
@@ -162,30 +182,4 @@ pub(crate) fn persist_result(raw: String) -> Result<String, CoreError> {
     let selected = queues(&result["workspace"], stored.as_ref())?;
     result["workspace"]["displayContext"] = context(selected);
     Ok(result.to_string())
-}
-
-pub(crate) fn admit_mutation_domains(
-    workspace: &mut Value,
-    operations: &Value,
-    now: &str,
-) -> Result<(), CoreError> {
-    let Some(stored) = stored(workspace)? else {
-        return Ok(());
-    };
-    let mut request = workspace.clone();
-    request["now"] = json!(now);
-    let projected: Value = serde_json::from_str(&super::project_json(&request.to_string())?)?;
-    let mut selected = queues(workspace, Some(&stored))?;
-    for name in QUEUES.into_iter().filter(|name| *name != "commands") {
-        if !operations[name].as_array().unwrap().is_empty()
-            && !projected["projectionPending"][name]
-                .as_array()
-                .unwrap()
-                .is_empty()
-        {
-            selected[name] = projected["projectionPending"][name].clone();
-        }
-    }
-    workspace["displayContext"] = context(selected);
-    Ok(())
 }

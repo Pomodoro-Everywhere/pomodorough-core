@@ -7,6 +7,8 @@ import { deferredScenarios } from "./deferred_scenarios.mjs";
 import { batchScenarios } from "./batch_scenarios.mjs";
 import { terminalScenarios } from "./terminal_scenarios.mjs";
 import { displayScenarios } from "./pwa_display_scenarios.mjs";
+import { admissionScenarios } from "./pwa_display_admission.mjs";
+import { ownershipScenarios } from "./pwa_ownership_cases.mjs";
 
 export function runCorpus(staticCases, dispatch) {
   const cases = [];
@@ -26,6 +28,8 @@ export function runCorpus(staticCases, dispatch) {
   batchScenarios(call);
   terminalScenarios(call);
   displayScenarios(call);
+  admissionScenarios(call);
+  ownershipScenarios(call);
   validateEnvelopes(cases, expected.join("\n"));
   const hits = assertCoverage(cases);
   return { staticCases, cases, expected, hits };

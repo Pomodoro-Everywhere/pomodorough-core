@@ -52,6 +52,10 @@ The [PWA persisted display context](PWA_DISPLAY_CONTEXT.md) defines the opt-in
 CORE-PWA04 schema, shared bootstrap validation, display and delivery separation,
 and V3 context trimming.
 
+The [PWA raw ownership plan](OWNERSHIP_PLAN.md) defines
+`workspace.ownershipPlan.v1`, missing-owner installation, lease renewal, and
+owner removal at the guarded storage transaction boundary.
+
 ```sh
 cargo fmt --all -- --check
 cargo test --all-targets

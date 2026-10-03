@@ -416,11 +416,6 @@ impl Plan<'_> {
 
     fn output(mut self, before: &Value) -> Result<String, CoreError> {
         let changed = self.index != 0;
-        crate::reconciliation::workspace::display::admit_mutation_domains(
-            &mut self.workspace,
-            &self.operations,
-            &self.input.clock.occurred_at,
-        )?;
         let after = self.display_after(before)?;
         admission::group(
             self.input,
