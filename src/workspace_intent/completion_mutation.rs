@@ -128,6 +128,10 @@ impl Request {
 }
 
 pub(crate) fn plan_json(raw: &str) -> Result<String, CoreError> {
+    crate::reconciliation::workspace::display::persist_result(plan_raw(raw)?)
+}
+
+fn plan_raw(raw: &str) -> Result<String, CoreError> {
     let value = crate::strict_json::parse(raw)?;
     if matches!(
         value["stage"].as_str(),
@@ -238,6 +242,10 @@ fn validate(request: &Request, input: &Input) -> Result<(), CoreError> {
 }
 
 fn validate_supported_context(request: &Request) -> Result<(), CoreError> {
+    crate::reconciliation::workspace::display::validate_profile(
+        &request.workspace,
+        request.compatibility == Compatibility::PwaStorage,
+    )?;
     if !matches!(request.identities.command_uuids.len(), 1 | 2)
         || (request.replication_mode == ReplicationMode::Iroh
             && (request.compatibility != Compatibility::AppleWorkspace

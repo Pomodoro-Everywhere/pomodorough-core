@@ -48,9 +48,13 @@ pub(super) fn entrypoint(
         // Android's coordinator receives all Room queues. Desktop and PWA
         // legacy readers replay local queues when no canonical head is installed.
         Compatibility::AndroidCoordinator => true,
-        Compatibility::DesktopStorage
-        | Compatibility::DesktopTerminal
-        | Compatibility::PwaStorage => input.workspace["canonicalHead"].is_null(),
+        Compatibility::DesktopStorage | Compatibility::DesktopTerminal => {
+            input.workspace["canonicalHead"].is_null()
+        }
+        Compatibility::PwaStorage => {
+            input.workspace["canonicalHead"].is_null()
+                && input.workspace.get("displayContext").is_none()
+        }
         Compatibility::AppleWorkspace => false,
     };
     if !retained {

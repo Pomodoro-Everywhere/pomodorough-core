@@ -182,6 +182,7 @@ pub fn dispatch_json(operation: &str, input: &str) -> Result<String, CoreError> 
         "selectedTask.classify" => classify_selected_task_field_json(input),
         "reconcile.rebase.v1" => reconciliation::rebase_v1_json(input),
         "reconcile.rebase.v2" => reconciliation::rebase_v2_json(input),
+        "reconcile.rebase.v3" => reconciliation::terminal::rebase_json(input),
         "workspace.project.v1" => reconciliation::workspace::project_json(input),
         "workspace.readModel.v1" => read_model::read_json(input),
         "workspace.intent.v1" => workspace_intent::plan_json(input),

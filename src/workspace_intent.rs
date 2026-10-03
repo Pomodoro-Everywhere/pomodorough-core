@@ -18,6 +18,10 @@ fn invalid(message: &str) -> CoreError {
 }
 
 pub(crate) fn plan_json(raw: &str) -> Result<String, CoreError> {
+    crate::reconciliation::workspace::display::persist_result(plan_raw(raw)?)
+}
+
+fn plan_raw(raw: &str) -> Result<String, CoreError> {
     let value = crate::strict_json::parse(raw)?;
     let input: Input = serde_json::from_value(value.clone())?;
     known_tasks::validate(&input, &value)?;
@@ -112,6 +116,10 @@ fn prepare_commands(
 }
 
 fn validate(input: &Input) -> Result<(), CoreError> {
+    crate::reconciliation::workspace::display::validate_profile(
+        &input.workspace,
+        input.compatibility == Compatibility::PwaStorage,
+    )?;
     let workspace = input
         .workspace
         .as_object()

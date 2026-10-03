@@ -393,6 +393,8 @@ impl Plan<'_> {
             .as_array_mut()
             .unwrap()
             .retain(|proof| proof != id);
+        crate::reconciliation::workspace::display::trim_workspace(&mut self.workspace)
+            .expect("display context validated before mutation");
     }
 
     fn auto_start(&mut self, enabled: bool, before: &Value) -> Result<(), CoreError> {
@@ -414,26 +416,12 @@ impl Plan<'_> {
 
     fn output(mut self, before: &Value) -> Result<String, CoreError> {
         let changed = self.index != 0;
-        let after = if changed {
-            let commands = self.operations["commands"].as_array().unwrap();
-            let now = if commands.is_empty() && self.input.compatibility == C::PwaStorage {
-                self.input.clock.occurred_at.clone()
-            } else if commands.is_empty() {
-                self.input.clock.physical_now.clone()
-            } else {
-                projection::after_time(self.input, commands)
-            };
-            projection::observed(
-                &self.workspace,
-                &self.observation,
-                self.input.compatibility,
-                projection::ReplayDomains::Safe,
-                &now,
-            )?["workspace"]
-                .clone()
-        } else {
-            before.clone()
-        };
+        crate::reconciliation::workspace::display::admit_mutation_domains(
+            &mut self.workspace,
+            &self.operations,
+            &self.input.clock.occurred_at,
+        )?;
+        let after = self.display_after(before)?;
         admission::group(
             self.input,
             &self.workspace,
@@ -457,6 +445,28 @@ impl Plan<'_> {
             "groupOutcomes": outcomes, "ownershipWrites": [],
             "projection": after, "timerObservation": monotonic::timer_observation(self.input, &after, &self.observation)?,
             "effectsAfterCommit": effects}).to_string())
+    }
+
+    fn display_after(&self, before: &Value) -> Result<Value, CoreError> {
+        if self.index == 0 {
+            return Ok(before.clone());
+        }
+        let commands = self.operations["commands"].as_array().unwrap();
+        let now = if commands.is_empty() && self.input.compatibility == C::PwaStorage {
+            self.input.clock.occurred_at.clone()
+        } else if commands.is_empty() {
+            self.input.clock.physical_now.clone()
+        } else {
+            projection::after_time(self.input, commands)
+        };
+        Ok(projection::observed(
+            &self.workspace,
+            &self.observation,
+            self.input.compatibility,
+            projection::ReplayDomains::Safe,
+            &now,
+        )?["workspace"]
+            .clone())
     }
 
     fn effects_after_commit(&self) -> Vec<Value> {

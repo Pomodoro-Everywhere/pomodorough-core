@@ -5,6 +5,8 @@ import { assertCoverage, assertSemantics } from "./semantics.mjs";
 import { generatedScenarios } from "./generated_scenarios.mjs";
 import { deferredScenarios } from "./deferred_scenarios.mjs";
 import { batchScenarios } from "./batch_scenarios.mjs";
+import { terminalScenarios } from "./terminal_scenarios.mjs";
+import { displayScenarios } from "./pwa_display_scenarios.mjs";
 
 export function runCorpus(staticCases, dispatch) {
   const cases = [];
@@ -22,6 +24,8 @@ export function runCorpus(staticCases, dispatch) {
   generatedScenarios(call);
   deferredScenarios(call);
   batchScenarios(call);
+  terminalScenarios(call);
+  displayScenarios(call);
   validateEnvelopes(cases, expected.join("\n"));
   const hits = assertCoverage(cases);
   return { staticCases, cases, expected, hits };

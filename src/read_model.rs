@@ -114,6 +114,10 @@ fn day_bounds(
 fn workspace(input: &Input) -> Result<Value, CoreError> {
     match &input.source {
         Source::Workspace(value) => {
+            crate::reconciliation::workspace::display::validate_profile(
+                value,
+                input.profile == Profile::PwaStorage,
+            )?;
             let workspace = crate::strict_json::object(value, "read model workspace")?;
             if workspace.contains_key("now") {
                 return Err(invalid("read model workspace must not supply now"));

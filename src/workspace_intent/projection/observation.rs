@@ -15,9 +15,16 @@ pub(in crate::workspace_intent) fn observed(
     domains: ReplayDomains,
     now: &str,
 ) -> Result<Value, CoreError> {
+    crate::reconciliation::workspace::display::validate_profile(
+        workspace,
+        profile == Compatibility::PwaStorage,
+    )?;
     let wire = project(workspace, now)?;
     let pending = match domains {
-        ReplayDomains::Safe => &wire["projectionPending"],
+        ReplayDomains::Safe => wire.get("displayContext").map_or(
+            &wire["projectionPending"],
+            |context| &context["projectionPending"],
+        ),
         ReplayDomains::Retained => &workspace["local"],
     };
     let input = json!({"base": workspace["base"], "pending": pending, "now": now});

@@ -1,0 +1,60 @@
+{
+  "provenance": {
+    "checker": "pwa-checker.cjs:60-91",
+    "receipt": "pwa-checker-evidence.json",
+    "baselineSource": "server 50c86a2 web/app-state.js projectionQueuesForDisplay",
+    "officialVersion": "0.43.0",
+    "officialSha256": "936e28f6c0ce1fbac210359ef742b55c07ba56407b2d87a0fe7127a7f4db3779"
+  },
+  "observations": [
+    {
+      "case": "covering-head-product-blocker",
+      "persisted": {
+        "meta": [
+          {"key":"batchNextDomain","value":"taskOperations"},
+          {"key":"canonicalHead","value":{"wallMs":1788177600000,"counter":3}},
+          {"key":"completionRecords","value":{}},
+          {"key":"deliveryProof","value":{"commands":[],"taskOperations":[],"durationOperations":[],"autoStartOperations":[],"selectedTaskOperations":[]}},
+          {"key":"deviceId","value":"p222-device"},
+          {"key":"deviceSequence","value":8},
+          {"key":"displayHistory","value":[]},
+          {"key":"hlc","value":{"counter":3,"wallMs":1788177600000}},
+          {"key":"outgoingSync","value":{"sent":{"commands":[{"id":"01a057b0-ce00-7000-8000-000000000015","deviceSequence":8,"timerId":"d68d2324-d368-4ce8-9700-d6c7218faeb5","type":"start","phase":"focus","plannedDurationMs":1500000,"occurredAt":"2026-08-31T12:00:00.000Z","hlcWallMs":1788177600000,"hlcCounter":3,"observedElapsedMs":0}],"taskOperations":[],"durationOperations":[],"autoStartOperations":[],"selectedTaskOperations":[]},"ownerId":"account:v1:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc","retiredAt":"2026-08-31T12:00:00.000Z","body":"{\"deviceId\":\"p222-device\",\"lastRevision\":3,\"commands\":[{\"id\":\"01a057b0-ce00-7000-8000-000000000015\",\"deviceSequence\":8,\"timerId\":\"d68d2324-d368-4ce8-9700-d6c7218faeb5\",\"type\":\"start\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"occurredAt\":\"2026-08-31T12:00:00.000Z\",\"hlcWallMs\":1788177600000,\"hlcCounter\":3,\"observedElapsedMs\":0}],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]}"}},
+          {"key":"projectionPending","value":{"autoStartOperations":[],"commands":[{"deviceId":"p222-device","deviceSequence":8,"hlcCounter":3,"hlcWallMs":1788177600000,"id":"01a057b0-ce00-7000-8000-000000000015","observedElapsedMs":0,"occurredAt":"2026-08-31T12:00:00.000Z","phase":"focus","plannedDurationMs":1500000,"timerId":"d68d2324-d368-4ce8-9700-d6c7218faeb5","type":"start"}],"durationOperations":[],"selectedTaskOperations":[],"taskOperations":[]}},
+          {"key":"settings","value":{"selectedPhase":"focus","durationSyncBootstrapped":true,"autoStartSyncBootstrapped":true,"selectedTaskSyncBootstrapped":true}},
+          {"key":"snapshot","value":{"user":{"id":"p222-account","accountIncarnation":"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"},"revision":3,"serverTime":"2026-08-31T12:00:00.000Z","canonicalTimer":null,"history":[],"tasks":[],"selectedTaskId":null,"autoStartBreaks":false,"durationsMs":{"focus":1500000,"short_break":300000,"long_break":900000}}},
+          {"key":"timerDependencies","value":[]},
+          {"key":"timerOwner","value":{"timerId":"d68d2324-d368-4ce8-9700-d6c7218faeb5","deviceId":"p222-device","tabId":"p222-tab-0","leaseExpiresAtMs":1788177660000}},
+          {"key":"uuidV7","value":"01a057b0-ce00-7000-8000-000000000015"},
+          {"key":"workspaceGroups","value":[{"atomicCommandIds":["01a057b0-ce00-7000-8000-000000000015"],"atomicOperationIds":null,"commandOutcomes":[{"id":"01a057b0-ce00-7000-8000-000000000015","outcome":"applied"}],"groupOutcomes":null}]},
+          {"key":"workspaceObservation","value":{"canonicalAnchorAt":null,"commandTimes":{"01a057b0-ce00-7000-8000-000000000015":"2026-08-31T12:00:00.000Z"}}}
+        ],
+        "pending":[{"deviceId":"p222-device","deviceSequence":8,"hlcCounter":3,"hlcWallMs":1788177600000,"id":"01a057b0-ce00-7000-8000-000000000015","observedElapsedMs":0,"occurredAt":"2026-08-31T12:00:00.000Z","phase":"focus","plannedDurationMs":1500000,"timerId":"d68d2324-d368-4ce8-9700-d6c7218faeb5","type":"start"}],
+        "pendingTasks":[],"pendingDurations":[],"pendingAutoStarts":[],"pendingSelectedTasks":[]
+      }
+    },
+    {
+      "case": "null-head-product-blocker",
+      "persisted": {
+        "meta": [
+          {"key":"completionRecords","value":{}},
+          {"key":"deliveryProof","value":{"autoStartOperations":[],"commands":["01a057b0-ce00-7000-8000-000000000015"],"durationOperations":[],"selectedTaskOperations":[],"taskOperations":[]}},
+          {"key":"deviceId","value":"p222-device"},
+          {"key":"deviceSequence","value":8},
+          {"key":"displayHistory","value":[]},
+          {"key":"hlc","value":{"counter":3,"wallMs":1788177600000}},
+          {"key":"projectionPending","value":{"autoStartOperations":[],"commands":[],"durationOperations":[],"selectedTaskOperations":[],"taskOperations":[]}},
+          {"key":"settings","value":{"selectedPhase":"focus","durationSyncBootstrapped":true,"autoStartSyncBootstrapped":true,"selectedTaskSyncBootstrapped":true}},
+          {"key":"snapshot","value":{"user":{"id":"p222-account","accountIncarnation":"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"},"revision":3,"serverTime":"2026-08-31T12:00:00.000Z","canonicalTimer":null,"history":[],"tasks":[],"selectedTaskId":null,"autoStartBreaks":false,"durationsMs":{"focus":1500000,"short_break":300000,"long_break":900000}}},
+          {"key":"timerDependencies","value":[]},
+          {"key":"timerOwner","value":{"timerId":"c0c420b1-65da-4daf-a2ff-bc3cab429798","deviceId":"p222-device","tabId":"p222-tab-0","leaseExpiresAtMs":1788177660000}},
+          {"key":"uuidV7","value":"01a057b0-ce00-7000-8000-000000000015"},
+          {"key":"workspaceGroups","value":[{"atomicCommandIds":["01a057b0-ce00-7000-8000-000000000015"],"atomicOperationIds":null,"commandOutcomes":[{"id":"01a057b0-ce00-7000-8000-000000000015","outcome":"queued"}],"groupOutcomes":null}]},
+          {"key":"workspaceObservation","value":{"canonicalAnchorAt":null,"commandTimes":{"01a057b0-ce00-7000-8000-000000000015":"2026-08-31T12:00:00.000Z"}}}
+        ],
+        "pending":[{"deviceId":"p222-device","deviceSequence":8,"hlcCounter":3,"hlcWallMs":1788177600000,"id":"01a057b0-ce00-7000-8000-000000000015","observedElapsedMs":0,"occurredAt":"2026-08-31T12:00:00.000Z","phase":"focus","plannedDurationMs":1500000,"timerId":"c0c420b1-65da-4daf-a2ff-bc3cab429798","type":"start"}],
+        "pendingTasks":[],"pendingDurations":[],"pendingAutoStarts":[],"pendingSelectedTasks":[]
+      }
+    }
+  ]
+}

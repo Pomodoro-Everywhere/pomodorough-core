@@ -7,6 +7,10 @@ import { sentCases } from "./sent_cases.mjs";
 import { queuedCases } from "./queued_cases.mjs";
 import { fractionalReadCases, missingReadingCase, taskTotalCases } from "./read_cases.mjs";
 import { savedCases } from "./batch_scenarios.mjs";
+import { terminalCases } from "./terminal_cases.mjs";
+import { retainedIntentCases } from "./terminal_provenance_cases.mjs";
+import { displayCases } from "./pwa_display_cases.mjs";
+import { displayMatrix } from "./pwa_display_matrix.mjs";
 
 const overflowPaths = {
   "workspace.project.v1": "canonicalHead.counter",
@@ -17,13 +21,15 @@ const overflowPaths = {
   "sync.batchPlan.v1": "queues.commands.0.hlcCounter",
   "timer.completionState.v1": "afterHistory.0.plannedDurationMs",
   "clock.observe.v1": "reading.wallSeconds",
+  "reconcile.rebase.v3": "response.serverHlcCounter",
 };
 
 export function aggregateCases() {
   const cases = [...projectionCases(), ...readModelCases(), ...intentCases(),
     ...completionMutationCases(), ...bootstrapCases(), ...batchCases(),
     ...completionStateCases(), ...sentCases(), ...clockCases(), ...queuedCases(),
-    ...fractionalReadCases(), missingReadingCase(), ...taskTotalCases(), ...savedCases()];
+    ...fractionalReadCases(), missingReadingCase(), ...taskTotalCases(), ...savedCases(), ...terminalCases(),
+    ...retainedIntentCases(), ...retainedIntentCases("workspace.project.v1"), ...displayCases(), ...displayMatrix()];
   for (const [operation, path] of Object.entries(overflowPaths)) {
     cases.push(...invalidCases(cases.find((item) => item.operation === operation && item.ok), path));
   }

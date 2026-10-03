@@ -4,9 +4,10 @@ use crate::sync_projection::{
     Task, replay_auto_start, replay_durations, replay_selected_task, replay_tasks,
 };
 use crate::timer::{CanonicalTimer, HistoryItem};
-use crate::{CoreError, SelectedTaskField, timer};
+use crate::{CoreError, SelectedTaskField};
 
 use super::acknowledgements::PendingQueues;
+use super::timer_boundary::Boundary;
 use super::timer_dependencies::TimerDependencyResolution;
 use super::{CanonicalResponse, RebaseOutput};
 
@@ -35,9 +36,10 @@ pub(super) fn assemble(
     pending: PendingQueues,
     timer_resolution: TimerDependencyResolution,
     projected: Option<PendingQueues>,
+    boundary: Boundary,
 ) -> Result<RebaseOutput, CoreError> {
     let base = canonical_base(response)?;
-    let projection = project_pending(&base, projected.as_ref().unwrap_or(&pending))?;
+    let projection = project_pending(&base, projected.as_ref().unwrap_or(&pending), boundary)?;
     let mut output = rebase_output(base, pending, timer_resolution, projection);
     output.projection_pending = projected;
     Ok(output)
@@ -66,8 +68,9 @@ fn canonical_base(response: CanonicalResponse) -> Result<CanonicalBase, CoreErro
 fn project_pending(
     base: &CanonicalBase,
     pending: &PendingQueues,
+    boundary: Boundary,
 ) -> Result<PendingProjection, CoreError> {
-    let timer = timer::replay(
+    let timer = boundary.replay(
         base.timer.clone(),
         base.history.clone(),
         pending.commands.clone(),

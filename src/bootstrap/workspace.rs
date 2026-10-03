@@ -67,6 +67,11 @@ pub(crate) fn plan_json(raw: &str) -> Result<String, CoreError> {
 fn project_timer(input: &Input) -> Result<Value, CoreError> {
     use crate::reconciliation::workspace::bootstrap::{Projection, timer};
     let mut workspace = input.local.workspace.clone();
+    if workspace.get("displayContext").is_some() {
+        return Err(CoreError::InvalidInput(
+            "bootstrap display context belongs to local.projectionPending".into(),
+        ));
+    }
     crate::reconciliation::workspace::validate_shape(&workspace)?;
     let observed = workspace["now"]
         .as_str()

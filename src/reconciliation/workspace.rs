@@ -8,6 +8,7 @@ use super::{
 use crate::CoreError;
 
 pub(crate) mod bootstrap;
+pub(crate) mod display;
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -19,6 +20,8 @@ struct Input {
     never_sent: Value,
     timer_dependencies: Vec<TimerDependency>,
     now: String,
+    #[serde(default, rename = "displayContext")]
+    _display_context: Option<Value>,
 }
 
 #[derive(Deserialize)]
@@ -50,20 +53,34 @@ pub(crate) fn project_json(input: &str) -> Result<String, CoreError> {
     let pending = pending_queues(input.local);
     let projected = policy.project_queues(&pending, head)?;
     let safe = raw_projection_queues(&raw["local"], &projected)?;
-    let mut projection = json!({"base": input.base, "pending": raw["local"], "now": input.now});
+    project_display(&raw, &input.base, &input.now, safe)
+}
+
+fn project_display(raw: &Value, base: &Value, now: &str, safe: Value) -> Result<String, CoreError> {
+    let mut projection = json!({"base": base, "pending": raw["local"], "now": now});
     // Validate every retained payload through the existing production reducers,
     // including domains excluded from display. Filtering must not hide corruption.
     let complete = crate::projection::apply_workspace_json(&projection.to_string())?;
-    let workspace = if safe == raw["local"] {
+    let stored = display::stored(raw)?;
+    let selected = if stored.is_some() {
+        display::queues(raw, stored.as_ref())?
+    } else {
+        safe.clone()
+    };
+    let workspace = if selected == raw["local"] {
         complete
     } else {
-        projection["pending"] = safe.clone();
+        projection["pending"] = selected.clone();
         crate::projection::apply_workspace_json(&projection.to_string())?
     };
-    Ok(serde_json::to_string(&json!({
+    let mut result = json!({
         "projectionPending": safe,
         "workspace": serde_json::from_str::<Value>(&workspace)?
-    }))?)
+    });
+    if stored.is_some() {
+        result["displayContext"] = display::context(selected);
+    }
+    Ok(result.to_string())
 }
 
 fn pending_queues(local: LocalQueues) -> PendingQueues {

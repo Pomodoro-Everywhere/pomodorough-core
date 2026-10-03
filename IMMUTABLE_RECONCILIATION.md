@@ -40,6 +40,10 @@ V1 remains unchanged for shipped clients. V1's C19 rebasing behavior is not the 
 
 ## Client migration
 
+[`reconcile.rebase.v3`](TERMINAL_RECONCILIATION.md) shares this delivery and
+dependency policy while accepting validated workspace terminal pairs. V2 keeps
+its original strict timer/history overlap contract.
+
 1. Persist never-sent proof with new operations in the same allocation transaction. Treat existing records without proof as possibly delivered.
 2. Before HTTP submission, bootstrap publication, or Iroh record publication, atomically retire that proof and persist the exact outgoing payload. An interrupted send remains possibly delivered.
 3. Retain exact operation payloads and identities across retries, restart, account reconciliation, and peer replication. Derive `neverSent` from durable proof, never from absence in the current `sent` batch.

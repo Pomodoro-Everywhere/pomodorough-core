@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 3,
+  "http": {
+    "status": 200,
+    "source": "pwa-checker-http.json, TestIndependentPWACompletionResponse, 2026-10-02",
+    "requestRaw": "{\"deviceId\":\"device-0001\",\"lastRevision\":1,\"commands\":[{\"id\":\"01a0fc7f-016d-7b1e-99b1-cfb471edbf8b\",\"deviceSequence\":2,\"timerId\":\"timer-000001\",\"type\":\"finish\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"occurredAt\":\"2026-10-02T12:02:57.005Z\",\"hlcWallMs\":1790942577005,\"hlcCounter\":1,\"observedElapsedMs\":1}],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]}",
+    "responseRaw": "{\"acknowledgements\":[{\"commandId\":\"01a0fc7f-016d-7b1e-99b1-cfb471edbf8b\",\"outcome\":\"applied\",\"reason\":\"\"}],\"taskAcknowledgements\":[],\"durationAcknowledgements\":[],\"autoStartAcknowledgements\":[],\"selectedTaskAcknowledgements\":[],\"revision\":2,\"canonicalTimer\":{\"id\":\"timer-000001\",\"phase\":\"focus\",\"status\":\"completed\",\"plannedDurationMs\":1500000,\"elapsedAtAnchorMs\":1500000,\"anchorAt\":\"2026-10-02T12:02:57.005Z\",\"startedByDeviceId\":\"device-0001\",\"lastIntent\":{\"type\":\"finish\",\"commandId\":\"01a0fc7f-016d-7b1e-99b1-cfb471edbf8b\",\"occurredAt\":\"2026-10-02T12:02:57.005Z\"}},\"history\":[{\"id\":\"timer-000001\",\"timerId\":\"timer-000001\",\"commandId\":\"01a0fc7f-016d-7b1e-99b1-cfb471edbf8b\",\"phase\":\"focus\",\"status\":\"completed\",\"plannedDurationMs\":1500000,\"completedAt\":\"2026-10-02T12:02:57.005Z\",\"endedAt\":\"2026-10-02T12:02:57.005Z\"}],\"tasks\":[],\"durationsMs\":{\"focus\":1500000,\"short_break\":300000,\"long_break\":900000},\"autoStartBreaks\":false,\"selectedTaskId\":null,\"serverTime\":\"2026-10-02T12:02:57.199096Z\",\"serverHlcWallMs\":1790942577199,\"serverHlcCounter\":0,\"accountIncarnation\":\"4b79faf0cd14813088c2963a17d91511cd14575fd121005f65e98527588ea5a1\"}\n"
+  },
+  "local": {
+    "commands": [{"deviceId":"device-0001","deviceSequence":2,"hlcCounter":1,"hlcWallMs":1790942577005,"id":"01a0fc7f-016d-7b1e-99b1-cfb471edbf8b","observedElapsedMs":1,"occurredAt":"2026-10-02T12:02:57.005Z","phase":"focus","plannedDurationMs":1500000,"timerId":"timer-000001","type":"finish"}],
+    "taskOperations": [], "durationOperations": [], "autoStartOperations": [], "selectedTaskOperations": []
+  },
+  "neverSent": {},
+  "timerDependencies": [],
+  "retainedIntentRejections": [
+    {"name":"missing-history-ack-time","acknowledged":true,"commandOverrides":{"occurredAt":"2026-10-02T12:02:57.006Z"}},
+    {"name":"missing-history-ack-type","acknowledged":true,"commandOverrides":{"type":"cancel"}},
+    {"name":"missing-history-ack-timer","acknowledged":true,"commandOverrides":{"timerId":"different-timer"}},
+    {"name":"missing-history-frozen-time","acknowledged":false,"commandOverrides":{"occurredAt":"2026-10-02T12:02:57.006Z"}},
+    {"name":"missing-history-frozen-type","acknowledged":false,"commandOverrides":{"type":"cancel"}},
+    {"name":"missing-history-frozen-timer","acknowledged":false,"commandOverrides":{"timerId":"different-timer"}}
+  ],
+  "retainedIntentControls": [
+    {"name":"missing-history-ack-exact","acknowledged":true},
+    {"name":"missing-history-frozen-exact","acknowledged":false},
+    {"name":"missing-history-ack-extensions","acknowledged":true,"extensions":true},
+    {"name":"missing-history-frozen-extensions","acknowledged":false,"extensions":true},
+    {"name":"missing-history-ack-ignored-finish-fields","acknowledged":true,"commandOverrides":{"taskId":"other-task","phase":"long_break","plannedDurationMs":60000,"observedElapsedMs":-100}},
+    {"name":"missing-history-frozen-ignored-finish-fields","acknowledged":false,"commandOverrides":{"taskId":"other-task","phase":"long_break","plannedDurationMs":60000,"observedElapsedMs":900000}}
+  ]
+}

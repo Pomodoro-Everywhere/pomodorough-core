@@ -35,8 +35,9 @@ fn prepare(
     check_command_counts(commands.len(), history.len())?;
     check_unique_command_ids(commands.iter().map(|command| command.id.as_str()))?;
     let matching = validate_pair(timer.as_ref(), &history)?;
-    if let (Some(timer), Some(row)) = (&timer, matching) {
-        validate_retained_provenance(timer, row, &commands)?;
+    // Canonical intent remains evidence when its history row is not installed.
+    if let Some(timer) = &timer {
+        validate_retained_provenance(timer, matching, &commands)?;
     }
     let mut devices: BTreeMap<String, String> = commands
         .iter()
@@ -103,7 +104,7 @@ fn conflict() -> CoreError {
     CoreError::InvalidInput("conflicting workspace terminal timer/history".into())
 }
 
-fn validate_pair<'a>(
+pub(crate) fn validate_pair<'a>(
     timer: Option<&CanonicalTimer>,
     history: &'a [HistoryItem],
 ) -> Result<Option<&'a HistoryItem>, CoreError> {
@@ -215,12 +216,12 @@ fn validate_terminal_intent(
 
 fn validate_retained_provenance(
     timer: &CanonicalTimer,
-    row: &HistoryItem,
+    row: Option<&HistoryItem>,
     commands: &[WireCommand],
 ) -> Result<(), CoreError> {
     for command in commands {
         validate_prior_command(timer, command)?;
-        if row.command_id.as_deref() == Some(command.id.as_str()) {
+        if row.is_some_and(|row| row.command_id.as_deref() == Some(command.id.as_str())) {
             validate_terminal_command(timer, command)?;
         }
     }

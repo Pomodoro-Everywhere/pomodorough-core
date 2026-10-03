@@ -4,6 +4,7 @@ export const operations = [
   "workspace.project.v1", "workspace.readModel.v1", "workspace.intent.v1",
   "workspace.completionMutation.v1", "bootstrap.workspacePlan.v1",
   "sync.batchPlan.v1", "timer.completionState.v1", "clock.observe.v1",
+  "reconcile.rebase.v3",
 ];
 
 export function fixture(name) {

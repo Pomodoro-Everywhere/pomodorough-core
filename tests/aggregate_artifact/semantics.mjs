@@ -5,6 +5,11 @@ export const requiredHits = {
   queued: 12, generated: 6, childPause: 3, childFinish: 3, barrierRebase: 3, barrier: 3, rejection: 6,
   desktopDeferred: 4, appleExplicit: 4, fractionalRead: 3, missingReading: 1,
   taskTotals: 3, savedOrder: 1, oversizedSaved: 1, cursorRotation: 10, batchDrain: 4,
+  terminalRebase: 19, terminalPartial: 1, terminalBarrier: 1, terminalRejection: 1,
+  terminalPromotion: 1, terminalComposition: 2, terminalNormalization: 1,
+  terminalMissingHistory: 6, workspaceMissingHistory: 6,
+  pwaDisplay: 4, pwaLifecycle: 16, pwaRebase: 4,
+  pwaMatrix: 18, pwaParity: 8,
 };
 
 export function branch(operation, name, input, hit, checks) {

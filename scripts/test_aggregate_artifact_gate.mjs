@@ -41,6 +41,22 @@ test("raw inputs preserve duplicate keys and fractional integer tokens", () => {
   assert.ok(overflow.every((item) => item.input.includes("18446744073709551616")));
 });
 
+test("missing-history provenance has six exact negatives and six controls in both contracts", () => {
+  for (const operation of ["reconcile.rebase.v3", "workspace.project.v1"]) {
+    const selected = cases.filter((item) => item.operation === operation && item.name.startsWith("missing-history-"));
+    assert.equal(selected.length, 12);
+    assert.equal(selected.filter((item) => item.ok).length, 6);
+    const negatives = selected.filter((item) => !item.ok);
+    assert.equal(negatives.length, 6);
+    assert.ok(negatives.every((item) => item.error === "conflicting workspace terminal timer/history"));
+    for (const mode of ["ack", "frozen"]) {
+      for (const field of ["time", "type", "timer"]) {
+        assert.ok(negatives.some((item) => item.name === `missing-history-${mode}-${field}`));
+      }
+    }
+  }
+});
+
 test("native responses require complete envelopes and both outcomes per operation", () => {
   assert.deepEqual(validateEnvelopes(synthetic, envelopes.join("\n") + "\n"), envelopes);
   assert.throws(() => validateEnvelopes(synthetic, envelopes.slice(1).join("\n")), /response count/);

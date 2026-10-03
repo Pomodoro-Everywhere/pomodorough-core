@@ -13,6 +13,8 @@ mod acknowledgements;
 mod canonical_projection;
 mod clocks;
 mod delivery;
+pub(crate) mod terminal;
+mod timer_boundary;
 mod timer_dependencies;
 mod validation;
 pub(crate) mod workspace;
@@ -150,7 +152,11 @@ pub(crate) fn rebase_v1_json(input: &str) -> Result<String, CoreError> {
     let value = crate::strict_json::parse(input)?;
     validation::request_structure(&value)?;
     let input: RebaseInput = serde_json::from_value(value)?;
-    Ok(serde_json::to_string(&rebase(input, None)?)?)
+    Ok(serde_json::to_string(&rebase(
+        input,
+        None,
+        timer_boundary::Boundary::Strict,
+    )?)?)
 }
 
 pub(crate) fn rebase_v2_json(input: &str) -> Result<String, CoreError> {
@@ -158,17 +164,22 @@ pub(crate) fn rebase_v2_json(input: &str) -> Result<String, CoreError> {
     validation::request_structure(&value)?;
     let policy = delivery::Policy::from_request(&value)?;
     let input: RebaseInput = serde_json::from_value(value)?;
-    policy.serialize(rebase(input, Some(&policy))?)
+    policy.serialize(rebase(
+        input,
+        Some(&policy),
+        timer_boundary::Boundary::Strict,
+    )?)
 }
 
 fn rebase(
     mut input: RebaseInput,
     policy: Option<&delivery::Policy>,
+    boundary: timer_boundary::Boundary,
 ) -> Result<RebaseOutput, CoreError> {
-    validation::canonical_response(&input.response)?;
+    validation::canonical_response(&input.response, boundary)?;
     validation::local_queue_ids(&input.local)?;
     clocks::validate_local(&input.local)?;
-    validation::local_queue_values(&input.local, &input.response)?;
+    validation::local_queue_values(&input.local, &input.response, boundary)?;
     let acknowledged = acknowledgements::validate(&input.sent, &input.response)?;
     let timer_resolution = timer_dependencies::resolve(
         &mut input.local.commands,
@@ -188,5 +199,11 @@ fn rebase(
         clocks::rebase(&mut pending, &input.response)?;
         None
     };
-    canonical_projection::assemble(input.response, pending, timer_resolution, projected)
+    canonical_projection::assemble(
+        input.response,
+        pending,
+        timer_resolution,
+        projected,
+        boundary,
+    )
 }

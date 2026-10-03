@@ -31,6 +31,10 @@ pub(super) fn plan_json(value: Value) -> Result<String, CoreError> {
 }
 
 pub(super) fn project(input: &Input, workspace: &Value, now: &str) -> Result<Value, CoreError> {
+    crate::reconciliation::workspace::display::validate_profile(
+        workspace,
+        input.compatibility == crate::workspace_intent::model::Compatibility::PwaStorage,
+    )?;
     let safe = projection::project(workspace, now)?;
     // Iroh owns a local domain aggregate, not a canonical server-head barrier.
     // Validate proofs and dependencies above, then replay every retained domain.

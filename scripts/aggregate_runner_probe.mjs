@@ -26,6 +26,8 @@ function probeState(argument, mismatch) {
   const groups = {
     generated: ["generated", "childPause", "childFinish", "barrierRebase", "barrier", "rejection"],
     deferred: ["desktopDeferred", "appleExplicit"], batch: ["cursorRotation", "batchDrain"],
+    terminal: ["terminalBarrier", "terminalRejection", "terminalPromotion", "terminalComposition", "terminalNormalization"],
+    display: ["pwaLifecycle", "pwaRebase", "pwaParity"],
   };
   const dynamic = new Set(Object.values(groups).flat());
   const staticCases = all.filter((item) => !dynamic.has(item.hit));
@@ -68,6 +70,8 @@ function replacements(state) {
     "aggregate_artifact/generated_scenarios.mjs": { generatedScenarios: (call) => structuredClone(state.phases.generated).forEach(call) },
     "aggregate_artifact/deferred_scenarios.mjs": { deferredScenarios: (call) => structuredClone(state.phases.deferred).forEach(call) },
     "aggregate_artifact/batch_scenarios.mjs": { batchScenarios: (call) => structuredClone(state.phases.batch).forEach(call) },
+    "aggregate_artifact/terminal_scenarios.mjs": { terminalScenarios: (call) => structuredClone(state.phases.terminal).forEach(call) },
+    "aggregate_artifact/pwa_display_scenarios.mjs": { displayScenarios: (call) => structuredClone(state.phases.display).forEach(call) },
   };
 }
 

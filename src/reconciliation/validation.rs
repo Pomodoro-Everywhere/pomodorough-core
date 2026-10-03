@@ -9,8 +9,9 @@ use crate::sync_projection::{
     validate_operation_clock, validate_operation_timestamp, validate_selected_task_fields,
     validate_task_operation_fields,
 };
-use crate::{CoreError, SelectedTaskField, timer};
+use crate::{CoreError, SelectedTaskField};
 
+use super::timer_boundary::Boundary;
 use super::{CanonicalResponse, LocalQueues, MAX_CLOCK_SKEW_MS, MAX_SAFE_INTEGER};
 
 const REQUIRED_RESPONSE_FIELDS: [(&str, &str); 15] = [
@@ -118,7 +119,10 @@ fn response_shape(response: &Map<String, Value>) -> Result<(), CoreError> {
     Ok(())
 }
 
-pub(super) fn canonical_response(response: &CanonicalResponse) -> Result<(), CoreError> {
+pub(super) fn canonical_response(
+    response: &CanonicalResponse,
+    boundary: Boundary,
+) -> Result<(), CoreError> {
     if !(0..=MAX_SAFE_INTEGER).contains(&response.revision) {
         return invalid_response("revision");
     }
@@ -134,7 +138,7 @@ pub(super) fn canonical_response(response: &CanonicalResponse) -> Result<(), Cor
     {
         return invalid_response("server HLC");
     }
-    timer::validate_replay_state(&response.canonical_timer.0, &response.history)?;
+    boundary.validate(&response.canonical_timer.0, &response.history)?;
     validate_tasks(&response.tasks)?;
     validate_durations(&response.durations_ms)?;
     let task_ids = response
@@ -193,8 +197,9 @@ pub(super) fn local_queue_ids(local: &LocalQueues) -> Result<(), CoreError> {
 pub(super) fn local_queue_values(
     local: &LocalQueues,
     response: &CanonicalResponse,
+    boundary: Boundary,
 ) -> Result<(), CoreError> {
-    timer::replay(
+    boundary.replay(
         response.canonical_timer.0.clone(),
         response.history.clone(),
         local.commands.clone(),
