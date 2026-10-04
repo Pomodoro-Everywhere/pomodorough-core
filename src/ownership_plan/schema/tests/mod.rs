@@ -42,6 +42,40 @@ fn required_negative_fixture_manifest_matches_every_concrete_schema_field() {
     );
 }
 
+#[test]
+fn release_schema_keeps_every_raw_field_and_has_only_local_wall_clock() {
+    let mut original = BTreeMap::new();
+    let mut original_closed = Vec::new();
+    manifest(
+        &super::REQUEST,
+        "",
+        true,
+        &mut original,
+        &mut original_closed,
+    );
+    original.remove("clock.leaseDurationMs");
+    let mut release = BTreeMap::new();
+    let mut release_closed = Vec::new();
+    manifest(
+        &super::RELEASE_REQUEST,
+        "",
+        true,
+        &mut release,
+        &mut release_closed,
+    );
+    assert_eq!(release, original);
+    assert_eq!(release_closed, original_closed);
+    let Shape::TaggedObject { variants, .. } = super::request(Shape::Object)[1].shape else {
+        panic!("ownership action must be tagged");
+    };
+    let empty: Vec<_> = variants
+        .iter()
+        .filter(|variant| variant.fields.is_empty())
+        .map(|variant| variant.name)
+        .collect();
+    assert_eq!(empty, ["install", "release"]);
+}
+
 fn manifest(
     shape: &Shape,
     path: &str,
@@ -58,7 +92,7 @@ fn manifest(
         shape => shape,
     };
     match concrete {
-        Shape::Record(records) => {
+        Shape::Record(records) | Shape::Fields(records) => {
             closed.push(path.into());
             for field in *records {
                 manifest(
@@ -94,7 +128,10 @@ fn manifest(
 
 fn name(shape: &Shape) -> String {
     match shape {
-        Shape::Object | Shape::Record(_) | Shape::TaggedObject { .. } => "object".into(),
+        Shape::Object | Shape::Record(_) | Shape::Fields(_) | Shape::TaggedObject { .. } => {
+            "object".into()
+        }
+        Shape::Scalar => "scalar".into(),
         Shape::String => "string".into(),
         Shape::Integer => "integer".into(),
         Shape::Boolean => "boolean".into(),

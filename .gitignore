@@ -1,4 +1,5 @@
 /target/
+/.claude/
 dist/
 /graphify-out/
 .DS_Store

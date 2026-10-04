@@ -13,9 +13,24 @@ export const requiredHits = {
   pwaAdmission: 55,
   pwaOwnership: 16, pwaLeaseBoundary: 3, pwaOwnerOrigin: 3,
   pwaOwnershipLegacy: 4,
+  legacyPreferences: 14, legacyRestart: 2,
+  legacyNumeric: 10,
+  pwaNatural: 21, pwaNaturalFlow: 11,
+  pwaChecker: 2, pwaProvenance: 72,
+  legacyDependencies: 20, legacyDependencyRestart: 8,
+  legacyDependencyAcknowledgement: 3,
+  legacyDependencyChecker: 6,
+  legacyDependencyResidual: 6,
+  legacyDependencyResidualFlow: 12,
+  pwaRelease: 21, pwaReleaseBoundary: 6, pwaReleaseTakeover: 3, pwaReleaseTerminal: 5,
+  pwaChoice: 26, pwaChoiceFlow: 93,
+  pwaCycleRepair: 33, pwaDischargeRepair: 21,
+  pwaCycleSource: 32,
 };
 
-export const requiredRejections = { pwaOwnershipShape: 222 };
+export const requiredRejections = { pwaOwnershipShape: 222, legacyPreferences: 21, legacyNumeric: 9, pwaNatural: 24,
+  pwaChecker: 10, pwaStructure: 426, legacyDependencies: 88, legacyDependencyChecker: 3,
+  pwaRelease: 31, pwaReleaseShape: 207, pwaChoiceShape: 82, pwaDischargeShape: 204 };
 
 export function branch(operation, name, input, hit, checks) {
   return { ...vector(operation, name, input), hit, checks };

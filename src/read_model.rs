@@ -45,14 +45,54 @@ struct Input {
     calendar_intervals: Vec<Interval>,
     #[serde(default)]
     monotonic: Option<clock::Monotonic>,
+    #[serde(skip)]
+    lifecycle: crate::workspace_intent::completion_mutation::CompletionLifecycle,
+    #[serde(skip)]
+    selection: Option<ReadSelection>,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct ReadSelection {
+    phase: String,
+    generation: String,
+    explicit: bool,
 }
 
 fn invalid(reason: &str) -> CoreError {
     CoreError::InvalidInput(reason.into())
 }
 
+fn parse_input(raw: &str) -> Result<Input, CoreError> {
+    // Decode extensions separately to retain the shipped schema's exact error text.
+    let mut value = crate::strict_json::parse(raw)?;
+    crate::strict_json::shape::validate(&value, &crate::completion_schema::READ, "")?;
+    let lifecycle = value
+        .as_object_mut()
+        .and_then(|object| object.remove("lifecycle"));
+    let selection = value
+        .as_object_mut()
+        .and_then(|object| object.remove("selection"));
+    let mut input: Input = serde_json::from_value(value)?;
+    if input.profile != Profile::PwaStorage && (lifecycle.is_some() || selection.is_some()) {
+        return Err(invalid(
+            "completion presentation context requires PWA profile",
+        ));
+    }
+    input.lifecycle = lifecycle
+        .as_ref()
+        .map(crate::workspace_intent::completion_mutation::parse_lifecycle)
+        .transpose()?
+        .unwrap_or_default();
+    if let Some(selection) = &selection {
+        crate::strict_json::object(selection, "read model selection")?;
+    }
+    input.selection = selection.map(serde_json::from_value).transpose()?;
+    Ok(input)
+}
+
 pub(crate) fn read_json(raw: &str) -> Result<String, CoreError> {
-    let input: Input = serde_json::from_value(crate::strict_json::parse(raw)?)?;
+    let input = parse_input(raw)?;
     let observed = crate::timer::parse_time(&input.observed_at)?;
     let day = day_bounds(&input.calendar_intervals, observed)?;
     if !matches!(
@@ -62,7 +102,10 @@ pub(crate) fn read_json(raw: &str) -> Result<String, CoreError> {
         return Err(invalid("invalid read model selected phase"));
     }
     clock::validate(input.monotonic.as_ref(), input.profile)?;
+    validate_selection(&input)?;
     let workspace = workspace(&input)?;
+    let Source::Workspace(raw) = &input.source;
+    crate::workspace_intent::completion_mutation::lifecycle_evidence(&input.lifecycle, raw)?;
     let timer: Option<CanonicalTimer> =
         serde_json::from_value(workspace["canonicalTimer"].clone())?;
     let history: Vec<crate::timer::HistoryItem> =
@@ -81,6 +124,21 @@ pub(crate) fn read_json(raw: &str) -> Result<String, CoreError> {
     let canonical = clock::timer_view(timer.as_ref(), observed, input.monotonic.as_ref())?;
     let output = presentation::render(&input, &workspace, &history, &canonical, cadence)?;
     Ok(serde_json::to_string(&output)?)
+}
+
+fn validate_selection(input: &Input) -> Result<(), CoreError> {
+    crate::workspace_intent::completion_mutation::validate_lifecycle(&input.lifecycle)?;
+    if let Some(selection) = &input.selection {
+        let generation = selection.generation.parse::<i64>();
+        if input.profile != Profile::PwaStorage
+            || selection.phase != input.selected_phase
+            || !generation
+                .is_ok_and(|value| value >= 0 && value.to_string() == selection.generation)
+        {
+            return Err(invalid("invalid read model selection"));
+        }
+    }
+    Ok(())
 }
 
 fn day_bounds(
@@ -145,4 +203,18 @@ fn projection_time(value: &Value, input: &Input) -> Result<Option<String>, CoreE
         return Ok(None);
     }
     clock::replay_time(&serde_json::from_value(timer.clone())?, monotonic)
+}
+
+#[cfg(test)]
+mod shape_guards {
+    use crate::completion_schema::{self as schema, tests::assert_fields};
+
+    #[test]
+    fn read_decoder_fields_require_shared_shape_guards() {
+        assert_fields::<super::Input>(&schema::READ, &["selection", "lifecycle"]);
+        assert_fields::<super::ReadSelection>(&schema::SELECTION, &[]);
+        assert_fields::<super::Interval>(&schema::INTERVAL, &[]);
+        assert_fields::<super::clock::Monotonic>(&schema::MONOTONIC, &[]);
+        assert_fields::<super::clock::Anchor>(&schema::ANCHOR, &[]);
+    }
 }

@@ -3,9 +3,11 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { createContext, SourceTextModule, SyntheticModule } from "node:vm";
 import * as nodeUrl from "node:url";
+import * as nodeCrypto from "node:crypto";
 import { operations } from "../tests/aggregate_artifact/cases.mjs";
 import { requiredHits, requiredRejections } from "../tests/aggregate_artifact/semantics.mjs";
 import { fakeHost } from "./aggregate_artifact_fake_host.mjs";
+import { preservationMetadata } from "../tests/aggregate_artifact/pwa_selection_preservation.mjs";
 
 const root = new URL("../tests/", import.meta.url);
 const success = '{"ok":true,"value":{"marker":1,"preserved":"native"}}';
@@ -19,7 +21,7 @@ function probeCases() {
   // Each operation still needs failed dispatch in the real envelope validator.
   cases.push(...operations.map((operation) => ({ operation, name: "negative", input: "{", ok: false })));
   cases.push(...Object.entries(requiredRejections).flatMap(([rejectionHit, count]) => Array.from({ length: count }, (_, i) => ({
-    operation: "workspace.ownershipPlan.v1", name: `${rejectionHit}-${i}`, input: "{", ok: false, rejectionHit }))));
+    operation: "workspace.ownershipPlan.v1", name: `${rejectionHit}-rejection-${i}`, input: "{", ok: false, rejectionHit }))));
   return cases;
 }
 
@@ -31,6 +33,12 @@ function probeState(argument, mismatch) {
     terminal: ["terminalBarrier", "terminalRejection", "terminalPromotion", "terminalComposition", "terminalNormalization"],
     display: ["pwaLifecycle", "pwaRebase", "pwaParity"], admission: ["pwaAdmission"],
     ownership: ["pwaLeaseBoundary", "pwaOwnerOrigin"],
+    legacy: ["legacyRestart"],
+    natural: ["pwaNaturalFlow"],
+    dependencies: ["legacyDependencyRestart", "legacyDependencyAcknowledgement", "legacyDependencyResidualFlow"],
+    release: ["pwaReleaseBoundary", "pwaReleaseTakeover", "pwaReleaseTerminal"],
+    selection: ["pwaChoiceFlow"],
+    cycle: ["pwaCycleRepair", "pwaDischargeRepair"],
   };
   const dynamic = new Set(Object.values(groups).flat());
   const staticCases = all.filter((item) => !dynamic.has(item.hit));
@@ -39,9 +47,10 @@ function probeState(argument, mismatch) {
   const cases = [...staticCases, ...Object.values(phases).flat()];
   const envelopes = cases.map((item) => item.ok ? success : failure);
   const returned = [...envelopes];
-  if (mismatch) returned[0] = success.replace('"native"', '"changed"');
+  // New cases still require the native comparison independently of the old-envelope digest.
+  if (mismatch) returned[cases.findIndex((item) => item.hit === "pwaChoice")] = success.replace('"native"', '"changed"');
   const host = fakeHost(returned);
-  const receipt = { native: 0, reads: 0, dispatches: 0, cases: cases.length,
+  const receipt = { native: 0, reads: 0, dispatches: 0, preserved: 0, cases: cases.length,
     nativeCalls: 1 + cases.length - staticCases.length };
   const dispatch = host.exports.pomodorough_dispatch;
   host.exports.pomodorough_dispatch = (...args) => { receipt.dispatches += 1; return dispatch(...args); };
@@ -55,7 +64,7 @@ function replacements(state) {
   const { cases, envelopes, receipt } = state;
   const responses = new Map(cases.map((item, i) => [JSON.stringify({ operation: item.operation, input: item.input }), envelopes[i]]));
   return {
-    "node:assert/strict": { default: assert }, "node:url": nodeUrl,
+    "node:assert/strict": { default: assert }, "node:url": nodeUrl, "node:crypto": nodeCrypto,
     "node:fs/promises": { readFile: async (path) => { assert.equal(path, "official.wasm"); receipt.reads += 1; return new Uint8Array(); } },
     "node:child_process": { spawnSync: (command, args, options) => {
       assert.equal(command, "rustup");
@@ -67,7 +76,10 @@ function replacements(state) {
       });
       return { error: null, status: 0, stdout: output.join("\n"), stderr: "" };
     } },
-    "aggregate_artifact/cases.mjs": { operations, vector: (operation, name, input, ok = true) =>
+    "aggregate_artifact/cases.mjs": { operations, fixture: (name) => {
+      assert.equal(name, "pwa-selection-preservation-v1"); receipt.preserved += 1;
+      return preservationMetadata(cases, envelopes);
+    }, vector: (operation, name, input, ok = true) =>
       ({ operation, name, input: JSON.stringify(input), ok }) },
     "aggregate_artifact/catalog.mjs": { aggregateCases: () => structuredClone(state.staticCases) },
     "aggregate_artifact/generated_scenarios.mjs": { generatedScenarios: (call) => structuredClone(state.phases.generated).forEach(call) },
@@ -77,6 +89,12 @@ function replacements(state) {
     "aggregate_artifact/pwa_display_scenarios.mjs": { displayScenarios: (call) => structuredClone(state.phases.display).forEach(call) },
     "aggregate_artifact/pwa_display_admission.mjs": { admissionScenarios: (call) => structuredClone(state.phases.admission).forEach(call) },
     "aggregate_artifact/pwa_ownership_cases.mjs": { ownershipScenarios: (call) => structuredClone(state.phases.ownership).forEach(call) },
+    "aggregate_artifact/legacy_preferences_cases.mjs": { legacyScenarios: (call) => structuredClone(state.phases.legacy).forEach(call) },
+    "aggregate_artifact/pwa_natural_cases.mjs": { naturalScenarios: (call) => structuredClone(state.phases.natural).forEach(call) },
+    "aggregate_artifact/legacy_dependencies_cases.mjs": { dependencyScenarios: (call) => structuredClone(state.phases.dependencies).forEach(call) },
+    "aggregate_artifact/pwa_release_cases.mjs": { releaseScenarios: (call) => structuredClone(state.phases.release).forEach(call) },
+    "aggregate_artifact/pwa_selection_cases.mjs": { selectionScenarios: (call) => structuredClone(state.phases.selection).forEach(call) },
+    "aggregate_artifact/pwa_cycle_cases.mjs": { cycleScenarios: (call) => structuredClone(state.phases.cycle).forEach(call) },
   };
 }
 
@@ -111,6 +129,7 @@ export async function probeRunner(mutations = {}, { argument = "official.wasm", 
   assert.equal(state.receipt.dispatches, argument === "--native-only" ? 0 : state.receipt.cases * 5,
     "actual runner skipped required dispatches");
   assert.equal(state.receipt.reads, argument === "--native-only" ? 0 : 1, "actual runner skipped exact artifact");
+  assert.equal(state.receipt.preserved, argument === "--native-only" ? 1 : 6, "actual runner skipped preserved old envelopes");
   return state.receipt;
 }
 

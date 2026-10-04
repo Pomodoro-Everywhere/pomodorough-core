@@ -1,0 +1,9 @@
+{
+  "collection": "array",
+  "record": "object",
+  "fields": {
+    "command": {"required": true, "nullable": false, "schemaPath": "workspace.completionMutation.v1/workspace/local/commands/0"},
+    "sourceTimer": {"required": true, "nullable": false, "schemaPath": "workspace.completionMutation.v1/requestedTimer"},
+    "sourceHistory": {"required": true, "nullable": false, "schemaPath": "workspace.completionMutation.v1/workspace/base/history/0"}
+  }
+}

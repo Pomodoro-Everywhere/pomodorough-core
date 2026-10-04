@@ -109,14 +109,7 @@ pub(super) fn install(
     context: &Context,
     bounds: &[Bounds],
 ) -> Result<Output, CoreError> {
-    let mut output = Output {
-        selection: input.selection.clone(),
-        source: None,
-        reason: "noAcknowledgedFinish",
-        advances: vec![],
-        retired_advance_ids: vec![],
-        rolled_back_advance_ids: vec![],
-    };
+    let mut output = empty(input);
     if selection_changed(context, &input.selection) {
         output.reason = "selectionChangedSinceSend";
         return Ok(output);
@@ -140,18 +133,44 @@ pub(super) fn install(
             )?,
             Context::Pwa {
                 rollback_history, ..
-            } => pwa_phase(
-                rollback_history,
-                finish,
-                ack.outcome,
-                &output.selection.phase,
-                bounds,
-            )?,
+            } => {
+                match super::pwa::natural_finish(input, &finish.timer_id, &finish.phase, bounds)? {
+                    Some(phase) => phase,
+                    None => pwa_phase(
+                        rollback_history,
+                        finish,
+                        ack.outcome,
+                        &output.selection.phase,
+                        bounds,
+                    )?,
+                }
+            }
         };
         output.selection.phase = phase;
         output.reason = "sentFinishesReconciled";
     }
+    if let Context::Pwa { commands, .. } = context {
+        super::pwa::install(input, commands, bounds, &mut output)?;
+    }
     Ok(output)
+}
+
+fn empty(input: &Install) -> Output {
+    Output {
+        selection: input.selection.clone(),
+        source: None,
+        reason: "noAcknowledgedFinish",
+        advances: vec![],
+        retired_advance_ids: vec![],
+        rolled_back_advance_ids: vec![],
+        lifecycle: input.lifecycle.clone(),
+    }
+}
+
+pub(super) fn has_finish(commands: &[SentCommand], timer_id: &str) -> bool {
+    commands
+        .iter()
+        .any(|command| command.kind == "finish" && command.timer_id == timer_id)
 }
 
 fn selection_changed(context: &Context, selection: &Selection) -> bool {

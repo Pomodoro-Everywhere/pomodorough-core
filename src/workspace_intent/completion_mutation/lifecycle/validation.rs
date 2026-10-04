@@ -54,6 +54,9 @@ pub(super) fn request(request: &Request, input: &Input) -> Result<(), CoreError>
 }
 
 fn supported(request: &Request) -> Result<(), CoreError> {
+    if request.lifecycle.has_finish_evidence() {
+        return Err(invalid("original Finish evidence requires PWA completion"));
+    }
     if request.compatibility == Compatibility::PwaStorage
         || request.clock.monotonic_now_ms.is_some()
         || request.clock.continuity_id.is_some()
@@ -138,9 +141,7 @@ fn ownership(request: &Request) -> Result<(), CoreError> {
     Ok(())
 }
 
-pub(in crate::workspace_intent::completion_mutation) fn state(
-    state: &State,
-) -> Result<(), CoreError> {
+pub(crate) fn state(state: &State) -> Result<(), CoreError> {
     let mut completions = BTreeSet::new();
     for item in &state.consumed_completions {
         if item.timer_id.is_empty()
@@ -166,7 +167,18 @@ pub(in crate::workspace_intent::completion_mutation) fn state(
             return Err(invalid("invalid pending break trigger"));
         }
     }
-    Ok(())
+    super::evidence::validate(state)
+}
+
+pub(crate) fn parse_state(value: &serde_json::Value) -> Result<State, CoreError> {
+    crate::strict_json::shape::validate(
+        value,
+        &crate::completion_schema::LIFECYCLE,
+        "completion lifecycle",
+    )?;
+    let result = serde_json::from_value(value.clone())?;
+    state(&result)?;
+    Ok(result)
 }
 
 fn event(event: &Event) -> Result<(), CoreError> {

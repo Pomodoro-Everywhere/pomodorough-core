@@ -1,0 +1,622 @@
+{
+  "cases": [
+    {
+      "name": "body-no-device-head-null",
+      "operation": "workspace.legacyDependencyPlan.v1",
+      "inputRaw": "{\"profile\":\"pwaStorage\",\"deviceId\":\"p222-device\",\"ownership\":{\"ownerId\":\"account:v1:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"expectedOwnerId\":\"account:v1:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"timerOwner\":{\"timerId\":\"22222222-2222-4222-8222-222222222222\",\"deviceId\":\"p222-device\",\"tabId\":\"p222-tab-0\",\"leaseExpiresAtMs\":1788177630000}},\"workspace\":{\"base\":{\"canonicalTimer\":null,\"history\":[{\"commandId\":\"legacy-finish\",\"completedAt\":\"2026-08-31T12:00:00Z\",\"endedAt\":\"2026-08-31T12:00:00Z\",\"id\":\"legacy-focus\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"status\":\"completed\",\"timerId\":\"legacy-focus\"}],\"tasks\":[],\"durationsMs\":{\"focus\":1500000,\"short_break\":300000,\"long_break\":900000},\"autoStartBreaks\":true,\"selectedTaskId\":null},\"local\":{\"commands\":[{\"id\":\"legacy-break-start\",\"deviceId\":\"p222-device\",\"deviceSequence\":9,\"timerId\":\"22222222-2222-4222-8222-222222222222\",\"type\":\"start\",\"phase\":\"short_break\",\"plannedDurationMs\":300000,\"occurredAt\":\"2026-08-31T12:00:00.000Z\",\"hlcWallMs\":1788177600000,\"hlcCounter\":4,\"observedElapsedMs\":0,\"dependsOnCommandId\":\"legacy-finish\",\"generatedBreak\":true}],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]},\"canonicalHead\":null,\"neverSent\":{\"commands\":[\"legacy-break-start\"],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]},\"timerDependencies\":null,\"displayContext\":{\"profile\":\"pwaStorage\",\"projectionPending\":null},\"now\":\"2026-08-31T12:00:00.000Z\"},\"outgoing\":{\"ownerId\":\"account:v1:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"requestId\":\"exact-saved-source\",\"sent\":{\"commands\":[{\"id\":\"legacy-finish\",\"deviceSequence\":8,\"timerId\":\"legacy-focus\",\"type\":\"finish\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"occurredAt\":\"2026-08-31T12:00:00.000Z\",\"hlcWallMs\":1788177600000,\"hlcCounter\":3,\"observedElapsedMs\":0}],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]},\"body\":\"{\\\"requestId\\\":\\\"exact-saved-source\\\",\\\"commands\\\":[{\\\"id\\\":\\\"legacy-finish\\\",\\\"deviceSequence\\\":8,\\\"timerId\\\":\\\"legacy-focus\\\",\\\"type\\\":\\\"finish\\\",\\\"phase\\\":\\\"focus\\\",\\\"plannedDurationMs\\\":1500000,\\\"occurredAt\\\":\\\"2026-08-31T12:00:00.000Z\\\",\\\"hlcWallMs\\\":1788177600000,\\\"hlcCounter\\\":3,\\\"observedElapsedMs\\\":0}],\\\"taskOperations\\\":[],\\\"durationOperations\\\":[],\\\"autoStartOperations\\\":[],\\\"selectedTaskOperations\\\":[]}\",\"metadata\":{\"number\":90.49999999999999}},\"calendarIntervals\":[{\"start\":\"2026-08-30T19:00:00.000Z\",\"end\":\"2026-08-31T19:00:00.000Z\"}],\"sourceAcknowledgements\":[{\"commandId\":\"legacy-finish\",\"outcome\":\"applied\",\"reason\":\"\"}]}",
+      "originalEnvelope": "{\"ok\":true,\"value\":{\"classifications\":[{\"dependency\":null,\"kind\":\"acknowledgedCanonicalSource\",\"operationId\":\"legacy-break-start\",\"originalDependency\":{\"dependsOnOperationId\":\"legacy-finish\",\"generatedBreak\":true,\"operationId\":\"legacy-break-start\"},\"wireAction\":\"preserve\"}],\"effectsAfterCommit\":[],\"metadataWrites\":[{\"kind\":\"recordTimerDependencies\",\"value\":[]}],\"outcome\":\"planned\",\"outgoing\":{\"body\":\"{\\\"requestId\\\":\\\"exact-saved-source\\\",\\\"commands\\\":[{\\\"id\\\":\\\"legacy-finish\\\",\\\"deviceSequence\\\":8,\\\"timerId\\\":\\\"legacy-focus\\\",\\\"type\\\":\\\"finish\\\",\\\"phase\\\":\\\"focus\\\",\\\"plannedDurationMs\\\":1500000,\\\"occurredAt\\\":\\\"2026-08-31T12:00:00.000Z\\\",\\\"hlcWallMs\\\":1788177600000,\\\"hlcCounter\\\":3,\\\"observedElapsedMs\\\":0}],\\\"taskOperations\\\":[],\\\"durationOperations\\\":[],\\\"autoStartOperations\\\":[],\\\"selectedTaskOperations\\\":[]}\",\"metadata\":{\"number\":90.49999999999999},\"ownerId\":\"account:v1:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"requestId\":\"exact-saved-source\",\"sent\":{\"autoStartOperations\":[],\"commands\":[{\"deviceSequence\":8,\"hlcCounter\":3,\"hlcWallMs\":1788177600000,\"id\":\"legacy-finish\",\"observedElapsedMs\":0,\"occurredAt\":\"2026-08-31T12:00:00.000Z\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"timerId\":\"legacy-focus\",\"type\":\"finish\"}],\"durationOperations\":[],\"selectedTaskOperations\":[],\"taskOperations\":[]}},\"outgoingAction\":\"preserve\",\"ownership\":{\"expectedOwnerId\":\"account:v1:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"ownerId\":\"account:v1:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"timerOwner\":{\"deviceId\":\"p222-device\",\"leaseExpiresAtMs\":1788177630000,\"tabId\":\"p222-tab-0\",\"timerId\":\"22222222-2222-4222-8222-222222222222\"}},\"recovery\":{\"automaticRepair\":false,\"blocksMutations\":false,\"blocksSync\":false,\"status\":\"ready\",\"unresolved\":[]},\"schemaVersion\":1,\"timerDependencies\":[],\"validatedDependencies\":[],\"wireAction\":\"preserve\",\"workspace\":{\"base\":{\"autoStartBreaks\":true,\"canonicalTimer\":null,\"durationsMs\":{\"focus\":1500000,\"long_break\":900000,\"short_break\":300000},\"history\":[{\"commandId\":\"legacy-finish\",\"completedAt\":\"2026-08-31T12:00:00Z\",\"endedAt\":\"2026-08-31T12:00:00Z\",\"id\":\"legacy-focus\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"status\":\"completed\",\"timerId\":\"legacy-focus\"}],\"selectedTaskId\":null,\"tasks\":[]},\"canonicalHead\":null,\"displayContext\":{\"profile\":\"pwaStorage\",\"projectionPending\":null},\"local\":{\"autoStartOperations\":[],\"commands\":[{\"dependsOnCommandId\":\"legacy-finish\",\"deviceId\":\"p222-device\",\"deviceSequence\":9,\"generatedBreak\":true,\"hlcCounter\":4,\"hlcWallMs\":1788177600000,\"id\":\"legacy-break-start\",\"observedElapsedMs\":0,\"occurredAt\":\"2026-08-31T12:00:00.000Z\",\"phase\":\"short_break\",\"plannedDurationMs\":300000,\"timerId\":\"22222222-2222-4222-8222-222222222222\",\"type\":\"start\"}],\"durationOperations\":[],\"selectedTaskOperations\":[],\"taskOperations\":[]},\"neverSent\":{\"autoStartOperations\":[],\"commands\":[\"legacy-break-start\"],\"durationOperations\":[],\"selectedTaskOperations\":[],\"taskOperations\":[]},\"now\":\"2026-08-31T12:00:00.000Z\",\"timerDependencies\":[]}}}",
+      "rebaseInput": null,
+      "originalRebaseEnvelope": null
+    },
+    {
+      "name": "body-no-device-head-{\"wallMs\":1788177600000,\"counter\":4}",
+      "operation": "workspace.legacyDependencyPlan.v1",
+      "inputRaw": "{\"profile\":\"pwaStorage\",\"deviceId\":\"p222-device\",\"ownership\":{\"ownerId\":\"account:v1:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"expectedOwnerId\":\"account:v1:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"timerOwner\":{\"timerId\":\"22222222-2222-4222-8222-222222222222\",\"deviceId\":\"p222-device\",\"tabId\":\"p222-tab-0\",\"leaseExpiresAtMs\":1788177630000}},\"workspace\":{\"base\":{\"canonicalTimer\":null,\"history\":[{\"commandId\":\"legacy-finish\",\"completedAt\":\"2026-08-31T12:00:00Z\",\"endedAt\":\"2026-08-31T12:00:00Z\",\"id\":\"legacy-focus\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"status\":\"completed\",\"timerId\":\"legacy-focus\"}],\"tasks\":[],\"durationsMs\":{\"focus\":1500000,\"short_break\":300000,\"long_break\":900000},\"autoStartBreaks\":true,\"selectedTaskId\":null},\"local\":{\"commands\":[{\"id\":\"legacy-break-start\",\"deviceId\":\"p222-device\",\"deviceSequence\":9,\"timerId\":\"22222222-2222-4222-8222-222222222222\",\"type\":\"start\",\"phase\":\"short_break\",\"plannedDurationMs\":300000,\"occurredAt\":\"2026-08-31T12:00:00.000Z\",\"hlcWallMs\":1788177600000,\"hlcCounter\":4,\"observedElapsedMs\":0,\"dependsOnCommandId\":\"legacy-finish\",\"generatedBreak\":true}],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]},\"canonicalHead\":{\"wallMs\":1788177600000,\"counter\":4},\"neverSent\":{\"commands\":[\"legacy-break-start\"],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]},\"timerDependencies\":null,\"displayContext\":{\"profile\":\"pwaStorage\",\"projectionPending\":null},\"now\":\"2026-08-31T12:00:00.000Z\"},\"outgoing\":{\"ownerId\":\"account:v1:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"requestId\":\"exact-saved-source\",\"sent\":{\"commands\":[{\"id\":\"legacy-finish\",\"deviceSequence\":8,\"timerId\":\"legacy-focus\",\"type\":\"finish\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"occurredAt\":\"2026-08-31T12:00:00.000Z\",\"hlcWallMs\":1788177600000,\"hlcCounter\":3,\"observedElapsedMs\":0}],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]},\"body\":\"{\\\"requestId\\\":\\\"exact-saved-source\\\",\\\"commands\\\":[{\\\"id\\\":\\\"legacy-finish\\\",\\\"deviceSequence\\\":8,\\\"timerId\\\":\\\"legacy-focus\\\",\\\"type\\\":\\\"finish\\\",\\\"phase\\\":\\\"focus\\\",\\\"plannedDurationMs\\\":1500000,\\\"occurredAt\\\":\\\"2026-08-31T12:00:00.000Z\\\",\\\"hlcWallMs\\\":1788177600000,\\\"hlcCounter\\\":3,\\\"observedElapsedMs\\\":0}],\\\"taskOperations\\\":[],\\\"durationOperations\\\":[],\\\"autoStartOperations\\\":[],\\\"selectedTaskOperations\\\":[]}\",\"metadata\":{\"number\":90.49999999999999}},\"calendarIntervals\":[{\"start\":\"2026-08-30T19:00:00.000Z\",\"end\":\"2026-08-31T19:00:00.000Z\"}],\"sourceAcknowledgements\":[{\"commandId\":\"legacy-finish\",\"outcome\":\"applied\",\"reason\":\"\"}]}",
+      "originalEnvelope": "{\"ok\":true,\"value\":{\"classifications\":[{\"dependency\":null,\"kind\":\"acknowledgedCanonicalSource\",\"operationId\":\"legacy-break-start\",\"originalDependency\":{\"dependsOnOperationId\":\"legacy-finish\",\"generatedBreak\":true,\"operationId\":\"legacy-break-start\"},\"wireAction\":\"preserve\"}],\"effectsAfterCommit\":[],\"metadataWrites\":[{\"kind\":\"recordTimerDependencies\",\"value\":[]}],\"outcome\":\"planned\",\"outgoing\":{\"body\":\"{\\\"requestId\\\":\\\"exact-saved-source\\\",\\\"commands\\\":[{\\\"id\\\":\\\"legacy-finish\\\",\\\"deviceSequence\\\":8,\\\"timerId\\\":\\\"legacy-focus\\\",\\\"type\\\":\\\"finish\\\",\\\"phase\\\":\\\"focus\\\",\\\"plannedDurationMs\\\":1500000,\\\"occurredAt\\\":\\\"2026-08-31T12:00:00.000Z\\\",\\\"hlcWallMs\\\":1788177600000,\\\"hlcCounter\\\":3,\\\"observedElapsedMs\\\":0}],\\\"taskOperations\\\":[],\\\"durationOperations\\\":[],\\\"autoStartOperations\\\":[],\\\"selectedTaskOperations\\\":[]}\",\"metadata\":{\"number\":90.49999999999999},\"ownerId\":\"account:v1:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"requestId\":\"exact-saved-source\",\"sent\":{\"autoStartOperations\":[],\"commands\":[{\"deviceSequence\":8,\"hlcCounter\":3,\"hlcWallMs\":1788177600000,\"id\":\"legacy-finish\",\"observedElapsedMs\":0,\"occurredAt\":\"2026-08-31T12:00:00.000Z\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"timerId\":\"legacy-focus\",\"type\":\"finish\"}],\"durationOperations\":[],\"selectedTaskOperations\":[],\"taskOperations\":[]}},\"outgoingAction\":\"preserve\",\"ownership\":{\"expectedOwnerId\":\"account:v1:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"ownerId\":\"account:v1:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"timerOwner\":{\"deviceId\":\"p222-device\",\"leaseExpiresAtMs\":1788177630000,\"tabId\":\"p222-tab-0\",\"timerId\":\"22222222-2222-4222-8222-222222222222\"}},\"recovery\":{\"automaticRepair\":false,\"blocksMutations\":false,\"blocksSync\":false,\"status\":\"ready\",\"unresolved\":[]},\"schemaVersion\":1,\"timerDependencies\":[],\"validatedDependencies\":[],\"wireAction\":\"preserve\",\"workspace\":{\"base\":{\"autoStartBreaks\":true,\"canonicalTimer\":null,\"durationsMs\":{\"focus\":1500000,\"long_break\":900000,\"short_break\":300000},\"history\":[{\"commandId\":\"legacy-finish\",\"completedAt\":\"2026-08-31T12:00:00Z\",\"endedAt\":\"2026-08-31T12:00:00Z\",\"id\":\"legacy-focus\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"status\":\"completed\",\"timerId\":\"legacy-focus\"}],\"selectedTaskId\":null,\"tasks\":[]},\"canonicalHead\":{\"counter\":4,\"wallMs\":1788177600000},\"displayContext\":{\"profile\":\"pwaStorage\",\"projectionPending\":null},\"local\":{\"autoStartOperations\":[],\"commands\":[{\"dependsOnCommandId\":\"legacy-finish\",\"deviceId\":\"p222-device\",\"deviceSequence\":9,\"generatedBreak\":true,\"hlcCounter\":4,\"hlcWallMs\":1788177600000,\"id\":\"legacy-break-start\",\"observedElapsedMs\":0,\"occurredAt\":\"2026-08-31T12:00:00.000Z\",\"phase\":\"short_break\",\"plannedDurationMs\":300000,\"timerId\":\"22222222-2222-4222-8222-222222222222\",\"type\":\"start\"}],\"durationOperations\":[],\"selectedTaskOperations\":[],\"taskOperations\":[]},\"neverSent\":{\"autoStartOperations\":[],\"commands\":[\"legacy-break-start\"],\"durationOperations\":[],\"selectedTaskOperations\":[],\"taskOperations\":[]},\"now\":\"2026-08-31T12:00:00.000Z\",\"timerDependencies\":[]}}}",
+      "rebaseInput": null,
+      "originalRebaseEnvelope": null
+    },
+    {
+      "name": "body-no-device-head-{\"wallMs\":1788177600001,\"counter\":0}",
+      "operation": "workspace.legacyDependencyPlan.v1",
+      "inputRaw": "{\"profile\":\"pwaStorage\",\"deviceId\":\"p222-device\",\"ownership\":{\"ownerId\":\"account:v1:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"expectedOwnerId\":\"account:v1:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"timerOwner\":{\"timerId\":\"22222222-2222-4222-8222-222222222222\",\"deviceId\":\"p222-device\",\"tabId\":\"p222-tab-0\",\"leaseExpiresAtMs\":1788177630000}},\"workspace\":{\"base\":{\"canonicalTimer\":null,\"history\":[{\"commandId\":\"legacy-finish\",\"completedAt\":\"2026-08-31T12:00:00Z\",\"endedAt\":\"2026-08-31T12:00:00Z\",\"id\":\"legacy-focus\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"status\":\"completed\",\"timerId\":\"legacy-focus\"}],\"tasks\":[],\"durationsMs\":{\"focus\":1500000,\"short_break\":300000,\"long_break\":900000},\"autoStartBreaks\":true,\"selectedTaskId\":null},\"local\":{\"commands\":[{\"id\":\"legacy-break-start\",\"deviceId\":\"p222-device\",\"deviceSequence\":9,\"timerId\":\"22222222-2222-4222-8222-222222222222\",\"type\":\"start\",\"phase\":\"short_break\",\"plannedDurationMs\":300000,\"occurredAt\":\"2026-08-31T12:00:00.000Z\",\"hlcWallMs\":1788177600000,\"hlcCounter\":4,\"observedElapsedMs\":0,\"dependsOnCommandId\":\"legacy-finish\",\"generatedBreak\":true}],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]},\"canonicalHead\":{\"wallMs\":1788177600001,\"counter\":0},\"neverSent\":{\"commands\":[\"legacy-break-start\"],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]},\"timerDependencies\":null,\"displayContext\":{\"profile\":\"pwaStorage\",\"projectionPending\":null},\"now\":\"2026-08-31T12:00:00.000Z\"},\"outgoing\":{\"ownerId\":\"account:v1:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"requestId\":\"exact-saved-source\",\"sent\":{\"commands\":[{\"id\":\"legacy-finish\",\"deviceSequence\":8,\"timerId\":\"legacy-focus\",\"type\":\"finish\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"occurredAt\":\"2026-08-31T12:00:00.000Z\",\"hlcWallMs\":1788177600000,\"hlcCounter\":3,\"observedElapsedMs\":0}],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]},\"body\":\"{\\\"requestId\\\":\\\"exact-saved-source\\\",\\\"commands\\\":[{\\\"id\\\":\\\"legacy-finish\\\",\\\"deviceSequence\\\":8,\\\"timerId\\\":\\\"legacy-focus\\\",\\\"type\\\":\\\"finish\\\",\\\"phase\\\":\\\"focus\\\",\\\"plannedDurationMs\\\":1500000,\\\"occurredAt\\\":\\\"2026-08-31T12:00:00.000Z\\\",\\\"hlcWallMs\\\":1788177600000,\\\"hlcCounter\\\":3,\\\"observedElapsedMs\\\":0}],\\\"taskOperations\\\":[],\\\"durationOperations\\\":[],\\\"autoStartOperations\\\":[],\\\"selectedTaskOperations\\\":[]}\",\"metadata\":{\"number\":90.49999999999999}},\"calendarIntervals\":[{\"start\":\"2026-08-30T19:00:00.000Z\",\"end\":\"2026-08-31T19:00:00.000Z\"}],\"sourceAcknowledgements\":[{\"commandId\":\"legacy-finish\",\"outcome\":\"applied\",\"reason\":\"\"}]}",
+      "originalEnvelope": "{\"ok\":true,\"value\":{\"classifications\":[{\"dependency\":null,\"kind\":\"acknowledgedCanonicalSource\",\"operationId\":\"legacy-break-start\",\"originalDependency\":{\"dependsOnOperationId\":\"legacy-finish\",\"generatedBreak\":true,\"operationId\":\"legacy-break-start\"},\"wireAction\":\"preserve\"}],\"effectsAfterCommit\":[],\"metadataWrites\":[{\"kind\":\"recordTimerDependencies\",\"value\":[]}],\"outcome\":\"planned\",\"outgoing\":{\"body\":\"{\\\"requestId\\\":\\\"exact-saved-source\\\",\\\"commands\\\":[{\\\"id\\\":\\\"legacy-finish\\\",\\\"deviceSequence\\\":8,\\\"timerId\\\":\\\"legacy-focus\\\",\\\"type\\\":\\\"finish\\\",\\\"phase\\\":\\\"focus\\\",\\\"plannedDurationMs\\\":1500000,\\\"occurredAt\\\":\\\"2026-08-31T12:00:00.000Z\\\",\\\"hlcWallMs\\\":1788177600000,\\\"hlcCounter\\\":3,\\\"observedElapsedMs\\\":0}],\\\"taskOperations\\\":[],\\\"durationOperations\\\":[],\\\"autoStartOperations\\\":[],\\\"selectedTaskOperations\\\":[]}\",\"metadata\":{\"number\":90.49999999999999},\"ownerId\":\"account:v1:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"requestId\":\"exact-saved-source\",\"sent\":{\"autoStartOperations\":[],\"commands\":[{\"deviceSequence\":8,\"hlcCounter\":3,\"hlcWallMs\":1788177600000,\"id\":\"legacy-finish\",\"observedElapsedMs\":0,\"occurredAt\":\"2026-08-31T12:00:00.000Z\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"timerId\":\"legacy-focus\",\"type\":\"finish\"}],\"durationOperations\":[],\"selectedTaskOperations\":[],\"taskOperations\":[]}},\"outgoingAction\":\"preserve\",\"ownership\":{\"expectedOwnerId\":\"account:v1:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"ownerId\":\"account:v1:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"timerOwner\":{\"deviceId\":\"p222-device\",\"leaseExpiresAtMs\":1788177630000,\"tabId\":\"p222-tab-0\",\"timerId\":\"22222222-2222-4222-8222-222222222222\"}},\"recovery\":{\"automaticRepair\":false,\"blocksMutations\":false,\"blocksSync\":false,\"status\":\"ready\",\"unresolved\":[]},\"schemaVersion\":1,\"timerDependencies\":[],\"validatedDependencies\":[],\"wireAction\":\"preserve\",\"workspace\":{\"base\":{\"autoStartBreaks\":true,\"canonicalTimer\":null,\"durationsMs\":{\"focus\":1500000,\"long_break\":900000,\"short_break\":300000},\"history\":[{\"commandId\":\"legacy-finish\",\"completedAt\":\"2026-08-31T12:00:00Z\",\"endedAt\":\"2026-08-31T12:00:00Z\",\"id\":\"legacy-focus\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"status\":\"completed\",\"timerId\":\"legacy-focus\"}],\"selectedTaskId\":null,\"tasks\":[]},\"canonicalHead\":{\"counter\":0,\"wallMs\":1788177600001},\"displayContext\":{\"profile\":\"pwaStorage\",\"projectionPending\":null},\"local\":{\"autoStartOperations\":[],\"commands\":[{\"dependsOnCommandId\":\"legacy-finish\",\"deviceId\":\"p222-device\",\"deviceSequence\":9,\"generatedBreak\":true,\"hlcCounter\":4,\"hlcWallMs\":1788177600000,\"id\":\"legacy-break-start\",\"observedElapsedMs\":0,\"occurredAt\":\"2026-08-31T12:00:00.000Z\",\"phase\":\"short_break\",\"plannedDurationMs\":300000,\"timerId\":\"22222222-2222-4222-8222-222222222222\",\"type\":\"start\"}],\"durationOperations\":[],\"selectedTaskOperations\":[],\"taskOperations\":[]},\"neverSent\":{\"autoStartOperations\":[],\"commands\":[\"legacy-break-start\"],\"durationOperations\":[],\"selectedTaskOperations\":[],\"taskOperations\":[]},\"now\":\"2026-08-31T12:00:00.000Z\",\"timerDependencies\":[]}}}",
+      "rebaseInput": null,
+      "originalRebaseEnvelope": null
+    },
+    {
+      "name": "descendant-phase-finished-true-proof-false",
+      "operation": "workspace.legacyDependencyPlan.v1",
+      "inputRaw": "{\"profile\":\"pwaStorage\",\"deviceId\":\"p222-device\",\"ownership\":{\"ownerId\":\"account:v1:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"expectedOwnerId\":\"account:v1:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"timerOwner\":{\"timerId\":\"22222222-2222-4222-8222-222222222222\",\"deviceId\":\"p222-device\",\"tabId\":\"p222-tab-0\",\"leaseExpiresAtMs\":1788177630000}},\"workspace\":{\"base\":{\"canonicalTimer\":{\"id\":\"legacy-focus\",\"phase\":\"focus\",\"status\":\"running\",\"plannedDurationMs\":1500000,\"elapsedAtAnchorMs\":0,\"anchorAt\":\"2026-08-30T12:00:00.000Z\",\"startedByDeviceId\":\"p222-device\"},\"history\":[],\"tasks\":[],\"durationsMs\":{\"focus\":1500000,\"short_break\":300000,\"long_break\":900000},\"autoStartBreaks\":true,\"selectedTaskId\":null},\"local\":{\"commands\":[{\"id\":\"legacy-break-pause\",\"deviceId\":\"p222-device\",\"deviceSequence\":10,\"timerId\":\"22222222-2222-4222-8222-222222222222\",\"type\":\"pause\",\"phase\":\"long_break\",\"plannedDurationMs\":300000,\"occurredAt\":\"2026-08-31T12:00:00.000Z\",\"hlcWallMs\":1788177600000,\"hlcCounter\":5,\"observedElapsedMs\":1234,\"dependsOnCommandId\":\"legacy-break-start\",\"generatedBreak\":false,\"extension\":{\"number\":90.49999999999999,\"flags\":[null,false]}},{\"id\":\"legacy-break-start\",\"deviceId\":\"p222-device\",\"deviceSequence\":9,\"timerId\":\"22222222-2222-4222-8222-222222222222\",\"type\":\"start\",\"phase\":\"short_break\",\"plannedDurationMs\":300000,\"occurredAt\":\"2026-08-31T12:00:00.000Z\",\"hlcWallMs\":1788177600000,\"hlcCounter\":4,\"observedElapsedMs\":0,\"dependsOnCommandId\":\"legacy-finish\",\"generatedBreak\":true},{\"id\":\"legacy-finish\",\"deviceId\":\"p222-device\",\"deviceSequence\":8,\"timerId\":\"legacy-focus\",\"type\":\"finish\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"occurredAt\":\"2026-08-31T12:00:00.000Z\",\"hlcWallMs\":1788177600000,\"hlcCounter\":3,\"observedElapsedMs\":0},{\"id\":\"legacy-break-finish\",\"deviceId\":\"p222-device\",\"deviceSequence\":11,\"timerId\":\"22222222-2222-4222-8222-222222222222\",\"type\":\"finish\",\"phase\":\"short_break\",\"plannedDurationMs\":300000,\"occurredAt\":\"2026-08-31T12:00:00.000Z\",\"hlcWallMs\":1788177600000,\"hlcCounter\":6,\"observedElapsedMs\":0,\"dependsOnCommandId\":\"legacy-break-pause\",\"generatedBreak\":false}],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]},\"canonicalHead\":null,\"neverSent\":{\"commands\":[\"legacy-finish\",\"legacy-break-start\",\"legacy-break-finish\"],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]},\"timerDependencies\":null,\"displayContext\":{\"profile\":\"pwaStorage\",\"projectionPending\":null},\"now\":\"2026-08-31T12:00:00.000Z\"},\"outgoing\":null,\"calendarIntervals\":[{\"start\":\"2026-08-30T19:00:00.000Z\",\"end\":\"2026-08-31T19:00:00.000Z\"}],\"sourceAcknowledgements\":[]}",
+      "originalEnvelope": "{\"ok\":true,\"value\":{\"classifications\":[{\"dependency\":{\"dependsOnOperationId\":\"legacy-break-start\",\"operationId\":\"legacy-break-pause\"},\"kind\":\"retainedDirectDependency\",\"operationId\":\"legacy-break-pause\",\"originalDependency\":{\"dependsOnOperationId\":\"legacy-break-start\",\"operationId\":\"legacy-break-pause\"},\"wireAction\":\"preserve\"},{\"dependency\":{\"dependsOnOperationId\":\"legacy-finish\",\"generatedBreak\":true,\"operationId\":\"legacy-break-start\",\"sourceDayEnd\":\"2026-08-31T19:00:00.000Z\",\"sourceDayStart\":\"2026-08-30T19:00:00.000Z\"},\"kind\":\"pendingGeneratedBreak\",\"operationId\":\"legacy-break-start\",\"originalDependency\":{\"dependsOnOperationId\":\"legacy-finish\",\"generatedBreak\":true,\"operationId\":\"legacy-break-start\"},\"sourceCompletedAt\":\"2026-08-31T12:00:00Z\",\"sourcePhaseAfter\":\"short_break\",\"wireAction\":\"preserve\"},{\"dependency\":{\"dependsOnOperationId\":\"legacy-break-pause\",\"operationId\":\"legacy-break-finish\"},\"kind\":\"retainedDirectDependency\",\"operationId\":\"legacy-break-finish\",\"originalDependency\":{\"dependsOnOperationId\":\"legacy-break-pause\",\"operationId\":\"legacy-break-finish\"},\"wireAction\":\"preserve\"}],\"effectsAfterCommit\":[],\"metadataWrites\":[{\"kind\":\"recordTimerDependencies\",\"value\":[{\"dependsOnOperationId\":\"legacy-break-start\",\"operationId\":\"legacy-break-pause\"},{\"dependsOnOperationId\":\"legacy-finish\",\"generatedBreak\":true,\"operationId\":\"legacy-break-start\",\"sourceDayEnd\":\"2026-08-31T19:00:00.000Z\",\"sourceDayStart\":\"2026-08-30T19:00:00.000Z\"},{\"dependsOnOperationId\":\"legacy-break-pause\",\"operationId\":\"legacy-break-finish\"}]}],\"outcome\":\"planned\",\"outgoing\":null,\"outgoingAction\":\"preserve\",\"ownership\":{\"expectedOwnerId\":\"account:v1:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"ownerId\":\"account:v1:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"timerOwner\":{\"deviceId\":\"p222-device\",\"leaseExpiresAtMs\":1788177630000,\"tabId\":\"p222-tab-0\",\"timerId\":\"22222222-2222-4222-8222-222222222222\"}},\"recovery\":{\"automaticRepair\":false,\"blocksMutations\":false,\"blocksSync\":false,\"status\":\"ready\",\"unresolved\":[]},\"schemaVersion\":1,\"timerDependencies\":[{\"dependsOnOperationId\":\"legacy-break-start\",\"operationId\":\"legacy-break-pause\"},{\"dependsOnOperationId\":\"legacy-finish\",\"generatedBreak\":true,\"operationId\":\"legacy-break-start\",\"sourceDayEnd\":\"2026-08-31T19:00:00.000Z\",\"sourceDayStart\":\"2026-08-30T19:00:00.000Z\"},{\"dependsOnOperationId\":\"legacy-break-pause\",\"operationId\":\"legacy-break-finish\"}],\"validatedDependencies\":[{\"dependsOnOperationId\":\"legacy-break-start\",\"operationId\":\"legacy-break-pause\"},{\"dependsOnOperationId\":\"legacy-finish\",\"generatedBreak\":true,\"operationId\":\"legacy-break-start\",\"sourceDayEnd\":\"2026-08-31T19:00:00.000Z\",\"sourceDayStart\":\"2026-08-30T19:00:00.000Z\"},{\"dependsOnOperationId\":\"legacy-break-pause\",\"operationId\":\"legacy-break-finish\"}],\"wireAction\":\"preserve\",\"workspace\":{\"base\":{\"autoStartBreaks\":true,\"canonicalTimer\":{\"anchorAt\":\"2026-08-30T12:00:00.000Z\",\"elapsedAtAnchorMs\":0,\"id\":\"legacy-focus\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"startedByDeviceId\":\"p222-device\",\"status\":\"running\"},\"durationsMs\":{\"focus\":1500000,\"long_break\":900000,\"short_break\":300000},\"history\":[],\"selectedTaskId\":null,\"tasks\":[]},\"canonicalHead\":null,\"displayContext\":{\"profile\":\"pwaStorage\",\"projectionPending\":null},\"local\":{\"autoStartOperations\":[],\"commands\":[{\"dependsOnCommandId\":\"legacy-break-start\",\"deviceId\":\"p222-device\",\"deviceSequence\":10,\"extension\":{\"flags\":[null,false],\"number\":90.49999999999999},\"generatedBreak\":false,\"hlcCounter\":5,\"hlcWallMs\":1788177600000,\"id\":\"legacy-break-pause\",\"observedElapsedMs\":1234,\"occurredAt\":\"2026-08-31T12:00:00.000Z\",\"phase\":\"long_break\",\"plannedDurationMs\":300000,\"timerId\":\"22222222-2222-4222-8222-222222222222\",\"type\":\"pause\"},{\"dependsOnCommandId\":\"legacy-finish\",\"deviceId\":\"p222-device\",\"deviceSequence\":9,\"generatedBreak\":true,\"hlcCounter\":4,\"hlcWallMs\":1788177600000,\"id\":\"legacy-break-start\",\"observedElapsedMs\":0,\"occurredAt\":\"2026-08-31T12:00:00.000Z\",\"phase\":\"short_break\",\"plannedDurationMs\":300000,\"timerId\":\"22222222-2222-4222-8222-222222222222\",\"type\":\"start\"},{\"deviceId\":\"p222-device\",\"deviceSequence\":8,\"hlcCounter\":3,\"hlcWallMs\":1788177600000,\"id\":\"legacy-finish\",\"observedElapsedMs\":0,\"occurredAt\":\"2026-08-31T12:00:00.000Z\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"timerId\":\"legacy-focus\",\"type\":\"finish\"},{\"dependsOnCommandId\":\"legacy-break-pause\",\"deviceId\":\"p222-device\",\"deviceSequence\":11,\"generatedBreak\":false,\"hlcCounter\":6,\"hlcWallMs\":1788177600000,\"id\":\"legacy-break-finish\",\"observedElapsedMs\":0,\"occurredAt\":\"2026-08-31T12:00:00.000Z\",\"phase\":\"short_break\",\"plannedDurationMs\":300000,\"timerId\":\"22222222-2222-4222-8222-222222222222\",\"type\":\"finish\"}],\"durationOperations\":[],\"selectedTaskOperations\":[],\"taskOperations\":[]},\"neverSent\":{\"autoStartOperations\":[],\"commands\":[\"legacy-finish\",\"legacy-break-start\",\"legacy-break-finish\"],\"durationOperations\":[],\"selectedTaskOperations\":[],\"taskOperations\":[]},\"now\":\"2026-08-31T12:00:00.000Z\",\"timerDependencies\":[{\"dependsOnOperationId\":\"legacy-break-start\",\"operationId\":\"legacy-break-pause\"},{\"dependsOnOperationId\":\"legacy-finish\",\"generatedBreak\":true,\"operationId\":\"legacy-break-start\",\"sourceDayEnd\":\"2026-08-31T19:00:00.000Z\",\"sourceDayStart\":\"2026-08-30T19:00:00.000Z\"},{\"dependsOnOperationId\":\"legacy-break-pause\",\"operationId\":\"legacy-break-finish\"}]}}}",
+      "rebaseInput": {
+        "local": {
+          "commands": [
+            {
+              "id": "legacy-break-pause",
+              "deviceId": "p222-device",
+              "deviceSequence": 10,
+              "timerId": "22222222-2222-4222-8222-222222222222",
+              "type": "pause",
+              "phase": "long_break",
+              "plannedDurationMs": 300000,
+              "occurredAt": "2026-08-31T12:00:00.000Z",
+              "hlcWallMs": 1788177600000,
+              "hlcCounter": 5,
+              "observedElapsedMs": 1234,
+              "dependsOnCommandId": "legacy-break-start",
+              "generatedBreak": false,
+              "extension": {
+                "number": 90.49999999999999,
+                "flags": [
+                  null,
+                  false
+                ]
+              }
+            },
+            {
+              "id": "legacy-break-start",
+              "deviceId": "p222-device",
+              "deviceSequence": 9,
+              "timerId": "22222222-2222-4222-8222-222222222222",
+              "type": "start",
+              "phase": "short_break",
+              "plannedDurationMs": 300000,
+              "occurredAt": "2026-08-31T12:00:00.000Z",
+              "hlcWallMs": 1788177600000,
+              "hlcCounter": 4,
+              "observedElapsedMs": 0,
+              "dependsOnCommandId": "legacy-finish",
+              "generatedBreak": true
+            },
+            {
+              "id": "legacy-finish",
+              "deviceId": "p222-device",
+              "deviceSequence": 8,
+              "timerId": "legacy-focus",
+              "type": "finish",
+              "phase": "focus",
+              "plannedDurationMs": 1500000,
+              "occurredAt": "2026-08-31T12:00:00.000Z",
+              "hlcWallMs": 1788177600000,
+              "hlcCounter": 3,
+              "observedElapsedMs": 0
+            },
+            {
+              "id": "legacy-break-finish",
+              "deviceId": "p222-device",
+              "deviceSequence": 11,
+              "timerId": "22222222-2222-4222-8222-222222222222",
+              "type": "finish",
+              "phase": "short_break",
+              "plannedDurationMs": 300000,
+              "occurredAt": "2026-08-31T12:00:00.000Z",
+              "hlcWallMs": 1788177600000,
+              "hlcCounter": 6,
+              "observedElapsedMs": 0,
+              "dependsOnCommandId": "legacy-break-pause",
+              "generatedBreak": false
+            }
+          ],
+          "taskOperations": [],
+          "durationOperations": [],
+          "autoStartOperations": [],
+          "selectedTaskOperations": []
+        },
+        "sent": {
+          "commands": [
+            {
+              "id": "legacy-finish",
+              "deviceId": "p222-device",
+              "deviceSequence": 8,
+              "timerId": "legacy-focus",
+              "type": "finish",
+              "phase": "focus",
+              "plannedDurationMs": 1500000,
+              "occurredAt": "2026-08-31T12:00:00.000Z",
+              "hlcWallMs": 1788177600000,
+              "hlcCounter": 3,
+              "observedElapsedMs": 0
+            }
+          ],
+          "taskOperations": [],
+          "durationOperations": [],
+          "autoStartOperations": [],
+          "selectedTaskOperations": []
+        },
+        "response": {
+          "acknowledgements": [
+            {
+              "commandId": "legacy-finish",
+              "outcome": "applied",
+              "reason": ""
+            }
+          ],
+          "taskAcknowledgements": [],
+          "durationAcknowledgements": [],
+          "autoStartAcknowledgements": [],
+          "selectedTaskAcknowledgements": [],
+          "revision": 2,
+          "canonicalTimer": {
+            "anchorAt": "2026-08-31T12:00:00Z",
+            "elapsedAtAnchorMs": 1500000,
+            "id": "legacy-focus",
+            "lastIntent": {
+              "commandId": "legacy-finish",
+              "deviceId": "p222-device",
+              "occurredAt": "2026-08-31T12:00:00Z",
+              "type": "finish"
+            },
+            "phase": "focus",
+            "plannedDurationMs": 1500000,
+            "startedByDeviceId": "p222-device",
+            "status": "completed"
+          },
+          "history": [
+            {
+              "commandId": "legacy-finish",
+              "completedAt": "2026-08-31T12:00:00Z",
+              "endedAt": "2026-08-31T12:00:00Z",
+              "id": "legacy-focus",
+              "phase": "focus",
+              "plannedDurationMs": 1500000,
+              "status": "completed",
+              "timerId": "legacy-focus"
+            }
+          ],
+          "tasks": [],
+          "durationsMs": {
+            "focus": 1500000,
+            "long_break": 900000,
+            "short_break": 300000
+          },
+          "autoStartBreaks": true,
+          "selectedTaskId": null,
+          "serverTime": "2026-08-31T12:00:00.000Z",
+          "serverHlcWallMs": 1788177600000,
+          "serverHlcCounter": 3,
+          "accountIncarnation": "4b79faf0cd14813088c2963a17d91511cd14575fd121005f65e98527588ea5a1",
+          "timerOutcomes": {
+            "legacy-finish": {
+              "outcome": "applied",
+              "reason": ""
+            }
+          },
+          "winningOperationIds": {
+            "autoStart": null,
+            "durations": {},
+            "selectedTask": null,
+            "tasks": {}
+          }
+        },
+        "timerDependencies": [
+          {
+            "dependsOnOperationId": "legacy-break-start",
+            "operationId": "legacy-break-pause"
+          },
+          {
+            "dependsOnOperationId": "legacy-finish",
+            "generatedBreak": true,
+            "operationId": "legacy-break-start",
+            "sourceDayEnd": "2026-08-31T19:00:00.000Z",
+            "sourceDayStart": "2026-08-30T19:00:00.000Z"
+          },
+          {
+            "dependsOnOperationId": "legacy-break-pause",
+            "operationId": "legacy-break-finish"
+          }
+        ],
+        "neverSent": {
+          "commands": [
+            "legacy-break-start",
+            "legacy-break-finish"
+          ],
+          "taskOperations": [],
+          "durationOperations": [],
+          "autoStartOperations": [],
+          "selectedTaskOperations": []
+        }
+      },
+      "originalRebaseEnvelope": {
+        "error": "invalid shared-core input: reconciliation would rewrite a possibly delivered operation",
+        "ok": false
+      }
+    },
+    {
+      "name": "descendant-plannedDurationMs-finished-true-proof-false",
+      "operation": "workspace.legacyDependencyPlan.v1",
+      "inputRaw": "{\"profile\":\"pwaStorage\",\"deviceId\":\"p222-device\",\"ownership\":{\"ownerId\":\"account:v1:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"expectedOwnerId\":\"account:v1:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"timerOwner\":{\"timerId\":\"22222222-2222-4222-8222-222222222222\",\"deviceId\":\"p222-device\",\"tabId\":\"p222-tab-0\",\"leaseExpiresAtMs\":1788177630000}},\"workspace\":{\"base\":{\"canonicalTimer\":{\"id\":\"legacy-focus\",\"phase\":\"focus\",\"status\":\"running\",\"plannedDurationMs\":1500000,\"elapsedAtAnchorMs\":0,\"anchorAt\":\"2026-08-30T12:00:00.000Z\",\"startedByDeviceId\":\"p222-device\"},\"history\":[],\"tasks\":[],\"durationsMs\":{\"focus\":1500000,\"short_break\":300000,\"long_break\":900000},\"autoStartBreaks\":true,\"selectedTaskId\":null},\"local\":{\"commands\":[{\"id\":\"legacy-break-pause\",\"deviceId\":\"p222-device\",\"deviceSequence\":10,\"timerId\":\"22222222-2222-4222-8222-222222222222\",\"type\":\"pause\",\"phase\":\"short_break\",\"plannedDurationMs\":60000,\"occurredAt\":\"2026-08-31T12:00:00.000Z\",\"hlcWallMs\":1788177600000,\"hlcCounter\":5,\"observedElapsedMs\":1234,\"dependsOnCommandId\":\"legacy-break-start\",\"generatedBreak\":false,\"extension\":{\"number\":90.49999999999999,\"flags\":[null,false]}},{\"id\":\"legacy-break-start\",\"deviceId\":\"p222-device\",\"deviceSequence\":9,\"timerId\":\"22222222-2222-4222-8222-222222222222\",\"type\":\"start\",\"phase\":\"short_break\",\"plannedDurationMs\":300000,\"occurredAt\":\"2026-08-31T12:00:00.000Z\",\"hlcWallMs\":1788177600000,\"hlcCounter\":4,\"observedElapsedMs\":0,\"dependsOnCommandId\":\"legacy-finish\",\"generatedBreak\":true},{\"id\":\"legacy-finish\",\"deviceId\":\"p222-device\",\"deviceSequence\":8,\"timerId\":\"legacy-focus\",\"type\":\"finish\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"occurredAt\":\"2026-08-31T12:00:00.000Z\",\"hlcWallMs\":1788177600000,\"hlcCounter\":3,\"observedElapsedMs\":0},{\"id\":\"legacy-break-finish\",\"deviceId\":\"p222-device\",\"deviceSequence\":11,\"timerId\":\"22222222-2222-4222-8222-222222222222\",\"type\":\"finish\",\"phase\":\"short_break\",\"plannedDurationMs\":300000,\"occurredAt\":\"2026-08-31T12:00:00.000Z\",\"hlcWallMs\":1788177600000,\"hlcCounter\":6,\"observedElapsedMs\":0,\"dependsOnCommandId\":\"legacy-break-pause\",\"generatedBreak\":false}],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]},\"canonicalHead\":null,\"neverSent\":{\"commands\":[\"legacy-finish\",\"legacy-break-start\",\"legacy-break-finish\"],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]},\"timerDependencies\":null,\"displayContext\":{\"profile\":\"pwaStorage\",\"projectionPending\":null},\"now\":\"2026-08-31T12:00:00.000Z\"},\"outgoing\":null,\"calendarIntervals\":[{\"start\":\"2026-08-30T19:00:00.000Z\",\"end\":\"2026-08-31T19:00:00.000Z\"}],\"sourceAcknowledgements\":[]}",
+      "originalEnvelope": "{\"ok\":true,\"value\":{\"classifications\":[{\"dependency\":{\"dependsOnOperationId\":\"legacy-break-start\",\"operationId\":\"legacy-break-pause\"},\"kind\":\"retainedDirectDependency\",\"operationId\":\"legacy-break-pause\",\"originalDependency\":{\"dependsOnOperationId\":\"legacy-break-start\",\"operationId\":\"legacy-break-pause\"},\"wireAction\":\"preserve\"},{\"dependency\":{\"dependsOnOperationId\":\"legacy-finish\",\"generatedBreak\":true,\"operationId\":\"legacy-break-start\",\"sourceDayEnd\":\"2026-08-31T19:00:00.000Z\",\"sourceDayStart\":\"2026-08-30T19:00:00.000Z\"},\"kind\":\"pendingGeneratedBreak\",\"operationId\":\"legacy-break-start\",\"originalDependency\":{\"dependsOnOperationId\":\"legacy-finish\",\"generatedBreak\":true,\"operationId\":\"legacy-break-start\"},\"sourceCompletedAt\":\"2026-08-31T12:00:00Z\",\"sourcePhaseAfter\":\"short_break\",\"wireAction\":\"preserve\"},{\"dependency\":{\"dependsOnOperationId\":\"legacy-break-pause\",\"operationId\":\"legacy-break-finish\"},\"kind\":\"retainedDirectDependency\",\"operationId\":\"legacy-break-finish\",\"originalDependency\":{\"dependsOnOperationId\":\"legacy-break-pause\",\"operationId\":\"legacy-break-finish\"},\"wireAction\":\"preserve\"}],\"effectsAfterCommit\":[],\"metadataWrites\":[{\"kind\":\"recordTimerDependencies\",\"value\":[{\"dependsOnOperationId\":\"legacy-break-start\",\"operationId\":\"legacy-break-pause\"},{\"dependsOnOperationId\":\"legacy-finish\",\"generatedBreak\":true,\"operationId\":\"legacy-break-start\",\"sourceDayEnd\":\"2026-08-31T19:00:00.000Z\",\"sourceDayStart\":\"2026-08-30T19:00:00.000Z\"},{\"dependsOnOperationId\":\"legacy-break-pause\",\"operationId\":\"legacy-break-finish\"}]}],\"outcome\":\"planned\",\"outgoing\":null,\"outgoingAction\":\"preserve\",\"ownership\":{\"expectedOwnerId\":\"account:v1:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"ownerId\":\"account:v1:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"timerOwner\":{\"deviceId\":\"p222-device\",\"leaseExpiresAtMs\":1788177630000,\"tabId\":\"p222-tab-0\",\"timerId\":\"22222222-2222-4222-8222-222222222222\"}},\"recovery\":{\"automaticRepair\":false,\"blocksMutations\":false,\"blocksSync\":false,\"status\":\"ready\",\"unresolved\":[]},\"schemaVersion\":1,\"timerDependencies\":[{\"dependsOnOperationId\":\"legacy-break-start\",\"operationId\":\"legacy-break-pause\"},{\"dependsOnOperationId\":\"legacy-finish\",\"generatedBreak\":true,\"operationId\":\"legacy-break-start\",\"sourceDayEnd\":\"2026-08-31T19:00:00.000Z\",\"sourceDayStart\":\"2026-08-30T19:00:00.000Z\"},{\"dependsOnOperationId\":\"legacy-break-pause\",\"operationId\":\"legacy-break-finish\"}],\"validatedDependencies\":[{\"dependsOnOperationId\":\"legacy-break-start\",\"operationId\":\"legacy-break-pause\"},{\"dependsOnOperationId\":\"legacy-finish\",\"generatedBreak\":true,\"operationId\":\"legacy-break-start\",\"sourceDayEnd\":\"2026-08-31T19:00:00.000Z\",\"sourceDayStart\":\"2026-08-30T19:00:00.000Z\"},{\"dependsOnOperationId\":\"legacy-break-pause\",\"operationId\":\"legacy-break-finish\"}],\"wireAction\":\"preserve\",\"workspace\":{\"base\":{\"autoStartBreaks\":true,\"canonicalTimer\":{\"anchorAt\":\"2026-08-30T12:00:00.000Z\",\"elapsedAtAnchorMs\":0,\"id\":\"legacy-focus\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"startedByDeviceId\":\"p222-device\",\"status\":\"running\"},\"durationsMs\":{\"focus\":1500000,\"long_break\":900000,\"short_break\":300000},\"history\":[],\"selectedTaskId\":null,\"tasks\":[]},\"canonicalHead\":null,\"displayContext\":{\"profile\":\"pwaStorage\",\"projectionPending\":null},\"local\":{\"autoStartOperations\":[],\"commands\":[{\"dependsOnCommandId\":\"legacy-break-start\",\"deviceId\":\"p222-device\",\"deviceSequence\":10,\"extension\":{\"flags\":[null,false],\"number\":90.49999999999999},\"generatedBreak\":false,\"hlcCounter\":5,\"hlcWallMs\":1788177600000,\"id\":\"legacy-break-pause\",\"observedElapsedMs\":1234,\"occurredAt\":\"2026-08-31T12:00:00.000Z\",\"phase\":\"short_break\",\"plannedDurationMs\":60000,\"timerId\":\"22222222-2222-4222-8222-222222222222\",\"type\":\"pause\"},{\"dependsOnCommandId\":\"legacy-finish\",\"deviceId\":\"p222-device\",\"deviceSequence\":9,\"generatedBreak\":true,\"hlcCounter\":4,\"hlcWallMs\":1788177600000,\"id\":\"legacy-break-start\",\"observedElapsedMs\":0,\"occurredAt\":\"2026-08-31T12:00:00.000Z\",\"phase\":\"short_break\",\"plannedDurationMs\":300000,\"timerId\":\"22222222-2222-4222-8222-222222222222\",\"type\":\"start\"},{\"deviceId\":\"p222-device\",\"deviceSequence\":8,\"hlcCounter\":3,\"hlcWallMs\":1788177600000,\"id\":\"legacy-finish\",\"observedElapsedMs\":0,\"occurredAt\":\"2026-08-31T12:00:00.000Z\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"timerId\":\"legacy-focus\",\"type\":\"finish\"},{\"dependsOnCommandId\":\"legacy-break-pause\",\"deviceId\":\"p222-device\",\"deviceSequence\":11,\"generatedBreak\":false,\"hlcCounter\":6,\"hlcWallMs\":1788177600000,\"id\":\"legacy-break-finish\",\"observedElapsedMs\":0,\"occurredAt\":\"2026-08-31T12:00:00.000Z\",\"phase\":\"short_break\",\"plannedDurationMs\":300000,\"timerId\":\"22222222-2222-4222-8222-222222222222\",\"type\":\"finish\"}],\"durationOperations\":[],\"selectedTaskOperations\":[],\"taskOperations\":[]},\"neverSent\":{\"autoStartOperations\":[],\"commands\":[\"legacy-finish\",\"legacy-break-start\",\"legacy-break-finish\"],\"durationOperations\":[],\"selectedTaskOperations\":[],\"taskOperations\":[]},\"now\":\"2026-08-31T12:00:00.000Z\",\"timerDependencies\":[{\"dependsOnOperationId\":\"legacy-break-start\",\"operationId\":\"legacy-break-pause\"},{\"dependsOnOperationId\":\"legacy-finish\",\"generatedBreak\":true,\"operationId\":\"legacy-break-start\",\"sourceDayEnd\":\"2026-08-31T19:00:00.000Z\",\"sourceDayStart\":\"2026-08-30T19:00:00.000Z\"},{\"dependsOnOperationId\":\"legacy-break-pause\",\"operationId\":\"legacy-break-finish\"}]}}}",
+      "rebaseInput": {
+        "local": {
+          "commands": [
+            {
+              "id": "legacy-break-pause",
+              "deviceId": "p222-device",
+              "deviceSequence": 10,
+              "timerId": "22222222-2222-4222-8222-222222222222",
+              "type": "pause",
+              "phase": "short_break",
+              "plannedDurationMs": 60000,
+              "occurredAt": "2026-08-31T12:00:00.000Z",
+              "hlcWallMs": 1788177600000,
+              "hlcCounter": 5,
+              "observedElapsedMs": 1234,
+              "dependsOnCommandId": "legacy-break-start",
+              "generatedBreak": false,
+              "extension": {
+                "number": 90.49999999999999,
+                "flags": [
+                  null,
+                  false
+                ]
+              }
+            },
+            {
+              "id": "legacy-break-start",
+              "deviceId": "p222-device",
+              "deviceSequence": 9,
+              "timerId": "22222222-2222-4222-8222-222222222222",
+              "type": "start",
+              "phase": "short_break",
+              "plannedDurationMs": 300000,
+              "occurredAt": "2026-08-31T12:00:00.000Z",
+              "hlcWallMs": 1788177600000,
+              "hlcCounter": 4,
+              "observedElapsedMs": 0,
+              "dependsOnCommandId": "legacy-finish",
+              "generatedBreak": true
+            },
+            {
+              "id": "legacy-finish",
+              "deviceId": "p222-device",
+              "deviceSequence": 8,
+              "timerId": "legacy-focus",
+              "type": "finish",
+              "phase": "focus",
+              "plannedDurationMs": 1500000,
+              "occurredAt": "2026-08-31T12:00:00.000Z",
+              "hlcWallMs": 1788177600000,
+              "hlcCounter": 3,
+              "observedElapsedMs": 0
+            },
+            {
+              "id": "legacy-break-finish",
+              "deviceId": "p222-device",
+              "deviceSequence": 11,
+              "timerId": "22222222-2222-4222-8222-222222222222",
+              "type": "finish",
+              "phase": "short_break",
+              "plannedDurationMs": 300000,
+              "occurredAt": "2026-08-31T12:00:00.000Z",
+              "hlcWallMs": 1788177600000,
+              "hlcCounter": 6,
+              "observedElapsedMs": 0,
+              "dependsOnCommandId": "legacy-break-pause",
+              "generatedBreak": false
+            }
+          ],
+          "taskOperations": [],
+          "durationOperations": [],
+          "autoStartOperations": [],
+          "selectedTaskOperations": []
+        },
+        "sent": {
+          "commands": [
+            {
+              "id": "legacy-finish",
+              "deviceId": "p222-device",
+              "deviceSequence": 8,
+              "timerId": "legacy-focus",
+              "type": "finish",
+              "phase": "focus",
+              "plannedDurationMs": 1500000,
+              "occurredAt": "2026-08-31T12:00:00.000Z",
+              "hlcWallMs": 1788177600000,
+              "hlcCounter": 3,
+              "observedElapsedMs": 0
+            }
+          ],
+          "taskOperations": [],
+          "durationOperations": [],
+          "autoStartOperations": [],
+          "selectedTaskOperations": []
+        },
+        "response": {
+          "acknowledgements": [
+            {
+              "commandId": "legacy-finish",
+              "outcome": "applied",
+              "reason": ""
+            }
+          ],
+          "taskAcknowledgements": [],
+          "durationAcknowledgements": [],
+          "autoStartAcknowledgements": [],
+          "selectedTaskAcknowledgements": [],
+          "revision": 2,
+          "canonicalTimer": {
+            "anchorAt": "2026-08-31T12:00:00Z",
+            "elapsedAtAnchorMs": 1500000,
+            "id": "legacy-focus",
+            "lastIntent": {
+              "commandId": "legacy-finish",
+              "deviceId": "p222-device",
+              "occurredAt": "2026-08-31T12:00:00Z",
+              "type": "finish"
+            },
+            "phase": "focus",
+            "plannedDurationMs": 1500000,
+            "startedByDeviceId": "p222-device",
+            "status": "completed"
+          },
+          "history": [
+            {
+              "commandId": "legacy-finish",
+              "completedAt": "2026-08-31T12:00:00Z",
+              "endedAt": "2026-08-31T12:00:00Z",
+              "id": "legacy-focus",
+              "phase": "focus",
+              "plannedDurationMs": 1500000,
+              "status": "completed",
+              "timerId": "legacy-focus"
+            }
+          ],
+          "tasks": [],
+          "durationsMs": {
+            "focus": 1500000,
+            "long_break": 900000,
+            "short_break": 300000
+          },
+          "autoStartBreaks": true,
+          "selectedTaskId": null,
+          "serverTime": "2026-08-31T12:00:00.000Z",
+          "serverHlcWallMs": 1788177600000,
+          "serverHlcCounter": 3,
+          "accountIncarnation": "4b79faf0cd14813088c2963a17d91511cd14575fd121005f65e98527588ea5a1",
+          "timerOutcomes": {
+            "legacy-finish": {
+              "outcome": "applied",
+              "reason": ""
+            }
+          },
+          "winningOperationIds": {
+            "autoStart": null,
+            "durations": {},
+            "selectedTask": null,
+            "tasks": {}
+          }
+        },
+        "timerDependencies": [
+          {
+            "dependsOnOperationId": "legacy-break-start",
+            "operationId": "legacy-break-pause"
+          },
+          {
+            "dependsOnOperationId": "legacy-finish",
+            "generatedBreak": true,
+            "operationId": "legacy-break-start",
+            "sourceDayEnd": "2026-08-31T19:00:00.000Z",
+            "sourceDayStart": "2026-08-30T19:00:00.000Z"
+          },
+          {
+            "dependsOnOperationId": "legacy-break-pause",
+            "operationId": "legacy-break-finish"
+          }
+        ],
+        "neverSent": {
+          "commands": [
+            "legacy-break-start",
+            "legacy-break-finish"
+          ],
+          "taskOperations": [],
+          "durationOperations": [],
+          "autoStartOperations": [],
+          "selectedTaskOperations": []
+        }
+      },
+      "originalRebaseEnvelope": {
+        "error": "invalid shared-core input: reconciliation would rewrite a possibly delivered operation",
+        "ok": false
+      }
+    },
+    {
+      "name": "descendant-observedElapsedMs-finished-true-proof-false",
+      "operation": "workspace.legacyDependencyPlan.v1",
+      "inputRaw": "{\"profile\":\"pwaStorage\",\"deviceId\":\"p222-device\",\"ownership\":{\"ownerId\":\"account:v1:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"expectedOwnerId\":\"account:v1:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"timerOwner\":{\"timerId\":\"22222222-2222-4222-8222-222222222222\",\"deviceId\":\"p222-device\",\"tabId\":\"p222-tab-0\",\"leaseExpiresAtMs\":1788177630000}},\"workspace\":{\"base\":{\"canonicalTimer\":{\"id\":\"legacy-focus\",\"phase\":\"focus\",\"status\":\"running\",\"plannedDurationMs\":1500000,\"elapsedAtAnchorMs\":0,\"anchorAt\":\"2026-08-30T12:00:00.000Z\",\"startedByDeviceId\":\"p222-device\"},\"history\":[],\"tasks\":[],\"durationsMs\":{\"focus\":1500000,\"short_break\":300000,\"long_break\":900000},\"autoStartBreaks\":true,\"selectedTaskId\":null},\"local\":{\"commands\":[{\"id\":\"legacy-break-pause\",\"deviceId\":\"p222-device\",\"deviceSequence\":10,\"timerId\":\"22222222-2222-4222-8222-222222222222\",\"type\":\"pause\",\"phase\":\"short_break\",\"plannedDurationMs\":300000,\"occurredAt\":\"2026-08-31T12:00:00.000Z\",\"hlcWallMs\":1788177600000,\"hlcCounter\":5,\"observedElapsedMs\":900000,\"dependsOnCommandId\":\"legacy-break-start\",\"generatedBreak\":false,\"extension\":{\"number\":90.49999999999999,\"flags\":[null,false]}},{\"id\":\"legacy-break-start\",\"deviceId\":\"p222-device\",\"deviceSequence\":9,\"timerId\":\"22222222-2222-4222-8222-222222222222\",\"type\":\"start\",\"phase\":\"short_break\",\"plannedDurationMs\":300000,\"occurredAt\":\"2026-08-31T12:00:00.000Z\",\"hlcWallMs\":1788177600000,\"hlcCounter\":4,\"observedElapsedMs\":0,\"dependsOnCommandId\":\"legacy-finish\",\"generatedBreak\":true},{\"id\":\"legacy-finish\",\"deviceId\":\"p222-device\",\"deviceSequence\":8,\"timerId\":\"legacy-focus\",\"type\":\"finish\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"occurredAt\":\"2026-08-31T12:00:00.000Z\",\"hlcWallMs\":1788177600000,\"hlcCounter\":3,\"observedElapsedMs\":0},{\"id\":\"legacy-break-finish\",\"deviceId\":\"p222-device\",\"deviceSequence\":11,\"timerId\":\"22222222-2222-4222-8222-222222222222\",\"type\":\"finish\",\"phase\":\"short_break\",\"plannedDurationMs\":300000,\"occurredAt\":\"2026-08-31T12:00:00.000Z\",\"hlcWallMs\":1788177600000,\"hlcCounter\":6,\"observedElapsedMs\":0,\"dependsOnCommandId\":\"legacy-break-pause\",\"generatedBreak\":false}],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]},\"canonicalHead\":null,\"neverSent\":{\"commands\":[\"legacy-finish\",\"legacy-break-start\",\"legacy-break-finish\"],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]},\"timerDependencies\":null,\"displayContext\":{\"profile\":\"pwaStorage\",\"projectionPending\":null},\"now\":\"2026-08-31T12:00:00.000Z\"},\"outgoing\":null,\"calendarIntervals\":[{\"start\":\"2026-08-30T19:00:00.000Z\",\"end\":\"2026-08-31T19:00:00.000Z\"}],\"sourceAcknowledgements\":[]}",
+      "originalEnvelope": "{\"ok\":true,\"value\":{\"classifications\":[{\"dependency\":{\"dependsOnOperationId\":\"legacy-break-start\",\"operationId\":\"legacy-break-pause\"},\"kind\":\"retainedDirectDependency\",\"operationId\":\"legacy-break-pause\",\"originalDependency\":{\"dependsOnOperationId\":\"legacy-break-start\",\"operationId\":\"legacy-break-pause\"},\"wireAction\":\"preserve\"},{\"dependency\":{\"dependsOnOperationId\":\"legacy-finish\",\"generatedBreak\":true,\"operationId\":\"legacy-break-start\",\"sourceDayEnd\":\"2026-08-31T19:00:00.000Z\",\"sourceDayStart\":\"2026-08-30T19:00:00.000Z\"},\"kind\":\"pendingGeneratedBreak\",\"operationId\":\"legacy-break-start\",\"originalDependency\":{\"dependsOnOperationId\":\"legacy-finish\",\"generatedBreak\":true,\"operationId\":\"legacy-break-start\"},\"sourceCompletedAt\":\"2026-08-31T12:00:00Z\",\"sourcePhaseAfter\":\"short_break\",\"wireAction\":\"preserve\"},{\"dependency\":{\"dependsOnOperationId\":\"legacy-break-pause\",\"operationId\":\"legacy-break-finish\"},\"kind\":\"retainedDirectDependency\",\"operationId\":\"legacy-break-finish\",\"originalDependency\":{\"dependsOnOperationId\":\"legacy-break-pause\",\"operationId\":\"legacy-break-finish\"},\"wireAction\":\"preserve\"}],\"effectsAfterCommit\":[],\"metadataWrites\":[{\"kind\":\"recordTimerDependencies\",\"value\":[{\"dependsOnOperationId\":\"legacy-break-start\",\"operationId\":\"legacy-break-pause\"},{\"dependsOnOperationId\":\"legacy-finish\",\"generatedBreak\":true,\"operationId\":\"legacy-break-start\",\"sourceDayEnd\":\"2026-08-31T19:00:00.000Z\",\"sourceDayStart\":\"2026-08-30T19:00:00.000Z\"},{\"dependsOnOperationId\":\"legacy-break-pause\",\"operationId\":\"legacy-break-finish\"}]}],\"outcome\":\"planned\",\"outgoing\":null,\"outgoingAction\":\"preserve\",\"ownership\":{\"expectedOwnerId\":\"account:v1:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"ownerId\":\"account:v1:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"timerOwner\":{\"deviceId\":\"p222-device\",\"leaseExpiresAtMs\":1788177630000,\"tabId\":\"p222-tab-0\",\"timerId\":\"22222222-2222-4222-8222-222222222222\"}},\"recovery\":{\"automaticRepair\":false,\"blocksMutations\":false,\"blocksSync\":false,\"status\":\"ready\",\"unresolved\":[]},\"schemaVersion\":1,\"timerDependencies\":[{\"dependsOnOperationId\":\"legacy-break-start\",\"operationId\":\"legacy-break-pause\"},{\"dependsOnOperationId\":\"legacy-finish\",\"generatedBreak\":true,\"operationId\":\"legacy-break-start\",\"sourceDayEnd\":\"2026-08-31T19:00:00.000Z\",\"sourceDayStart\":\"2026-08-30T19:00:00.000Z\"},{\"dependsOnOperationId\":\"legacy-break-pause\",\"operationId\":\"legacy-break-finish\"}],\"validatedDependencies\":[{\"dependsOnOperationId\":\"legacy-break-start\",\"operationId\":\"legacy-break-pause\"},{\"dependsOnOperationId\":\"legacy-finish\",\"generatedBreak\":true,\"operationId\":\"legacy-break-start\",\"sourceDayEnd\":\"2026-08-31T19:00:00.000Z\",\"sourceDayStart\":\"2026-08-30T19:00:00.000Z\"},{\"dependsOnOperationId\":\"legacy-break-pause\",\"operationId\":\"legacy-break-finish\"}],\"wireAction\":\"preserve\",\"workspace\":{\"base\":{\"autoStartBreaks\":true,\"canonicalTimer\":{\"anchorAt\":\"2026-08-30T12:00:00.000Z\",\"elapsedAtAnchorMs\":0,\"id\":\"legacy-focus\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"startedByDeviceId\":\"p222-device\",\"status\":\"running\"},\"durationsMs\":{\"focus\":1500000,\"long_break\":900000,\"short_break\":300000},\"history\":[],\"selectedTaskId\":null,\"tasks\":[]},\"canonicalHead\":null,\"displayContext\":{\"profile\":\"pwaStorage\",\"projectionPending\":null},\"local\":{\"autoStartOperations\":[],\"commands\":[{\"dependsOnCommandId\":\"legacy-break-start\",\"deviceId\":\"p222-device\",\"deviceSequence\":10,\"extension\":{\"flags\":[null,false],\"number\":90.49999999999999},\"generatedBreak\":false,\"hlcCounter\":5,\"hlcWallMs\":1788177600000,\"id\":\"legacy-break-pause\",\"observedElapsedMs\":900000,\"occurredAt\":\"2026-08-31T12:00:00.000Z\",\"phase\":\"short_break\",\"plannedDurationMs\":300000,\"timerId\":\"22222222-2222-4222-8222-222222222222\",\"type\":\"pause\"},{\"dependsOnCommandId\":\"legacy-finish\",\"deviceId\":\"p222-device\",\"deviceSequence\":9,\"generatedBreak\":true,\"hlcCounter\":4,\"hlcWallMs\":1788177600000,\"id\":\"legacy-break-start\",\"observedElapsedMs\":0,\"occurredAt\":\"2026-08-31T12:00:00.000Z\",\"phase\":\"short_break\",\"plannedDurationMs\":300000,\"timerId\":\"22222222-2222-4222-8222-222222222222\",\"type\":\"start\"},{\"deviceId\":\"p222-device\",\"deviceSequence\":8,\"hlcCounter\":3,\"hlcWallMs\":1788177600000,\"id\":\"legacy-finish\",\"observedElapsedMs\":0,\"occurredAt\":\"2026-08-31T12:00:00.000Z\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"timerId\":\"legacy-focus\",\"type\":\"finish\"},{\"dependsOnCommandId\":\"legacy-break-pause\",\"deviceId\":\"p222-device\",\"deviceSequence\":11,\"generatedBreak\":false,\"hlcCounter\":6,\"hlcWallMs\":1788177600000,\"id\":\"legacy-break-finish\",\"observedElapsedMs\":0,\"occurredAt\":\"2026-08-31T12:00:00.000Z\",\"phase\":\"short_break\",\"plannedDurationMs\":300000,\"timerId\":\"22222222-2222-4222-8222-222222222222\",\"type\":\"finish\"}],\"durationOperations\":[],\"selectedTaskOperations\":[],\"taskOperations\":[]},\"neverSent\":{\"autoStartOperations\":[],\"commands\":[\"legacy-finish\",\"legacy-break-start\",\"legacy-break-finish\"],\"durationOperations\":[],\"selectedTaskOperations\":[],\"taskOperations\":[]},\"now\":\"2026-08-31T12:00:00.000Z\",\"timerDependencies\":[{\"dependsOnOperationId\":\"legacy-break-start\",\"operationId\":\"legacy-break-pause\"},{\"dependsOnOperationId\":\"legacy-finish\",\"generatedBreak\":true,\"operationId\":\"legacy-break-start\",\"sourceDayEnd\":\"2026-08-31T19:00:00.000Z\",\"sourceDayStart\":\"2026-08-30T19:00:00.000Z\"},{\"dependsOnOperationId\":\"legacy-break-pause\",\"operationId\":\"legacy-break-finish\"}]}}}",
+      "rebaseInput": {
+        "local": {
+          "commands": [
+            {
+              "id": "legacy-break-pause",
+              "deviceId": "p222-device",
+              "deviceSequence": 10,
+              "timerId": "22222222-2222-4222-8222-222222222222",
+              "type": "pause",
+              "phase": "short_break",
+              "plannedDurationMs": 300000,
+              "occurredAt": "2026-08-31T12:00:00.000Z",
+              "hlcWallMs": 1788177600000,
+              "hlcCounter": 5,
+              "observedElapsedMs": 900000,
+              "dependsOnCommandId": "legacy-break-start",
+              "generatedBreak": false,
+              "extension": {
+                "number": 90.49999999999999,
+                "flags": [
+                  null,
+                  false
+                ]
+              }
+            },
+            {
+              "id": "legacy-break-start",
+              "deviceId": "p222-device",
+              "deviceSequence": 9,
+              "timerId": "22222222-2222-4222-8222-222222222222",
+              "type": "start",
+              "phase": "short_break",
+              "plannedDurationMs": 300000,
+              "occurredAt": "2026-08-31T12:00:00.000Z",
+              "hlcWallMs": 1788177600000,
+              "hlcCounter": 4,
+              "observedElapsedMs": 0,
+              "dependsOnCommandId": "legacy-finish",
+              "generatedBreak": true
+            },
+            {
+              "id": "legacy-finish",
+              "deviceId": "p222-device",
+              "deviceSequence": 8,
+              "timerId": "legacy-focus",
+              "type": "finish",
+              "phase": "focus",
+              "plannedDurationMs": 1500000,
+              "occurredAt": "2026-08-31T12:00:00.000Z",
+              "hlcWallMs": 1788177600000,
+              "hlcCounter": 3,
+              "observedElapsedMs": 0
+            },
+            {
+              "id": "legacy-break-finish",
+              "deviceId": "p222-device",
+              "deviceSequence": 11,
+              "timerId": "22222222-2222-4222-8222-222222222222",
+              "type": "finish",
+              "phase": "short_break",
+              "plannedDurationMs": 300000,
+              "occurredAt": "2026-08-31T12:00:00.000Z",
+              "hlcWallMs": 1788177600000,
+              "hlcCounter": 6,
+              "observedElapsedMs": 0,
+              "dependsOnCommandId": "legacy-break-pause",
+              "generatedBreak": false
+            }
+          ],
+          "taskOperations": [],
+          "durationOperations": [],
+          "autoStartOperations": [],
+          "selectedTaskOperations": []
+        },
+        "sent": {
+          "commands": [
+            {
+              "id": "legacy-finish",
+              "deviceId": "p222-device",
+              "deviceSequence": 8,
+              "timerId": "legacy-focus",
+              "type": "finish",
+              "phase": "focus",
+              "plannedDurationMs": 1500000,
+              "occurredAt": "2026-08-31T12:00:00.000Z",
+              "hlcWallMs": 1788177600000,
+              "hlcCounter": 3,
+              "observedElapsedMs": 0
+            }
+          ],
+          "taskOperations": [],
+          "durationOperations": [],
+          "autoStartOperations": [],
+          "selectedTaskOperations": []
+        },
+        "response": {
+          "acknowledgements": [
+            {
+              "commandId": "legacy-finish",
+              "outcome": "applied",
+              "reason": ""
+            }
+          ],
+          "taskAcknowledgements": [],
+          "durationAcknowledgements": [],
+          "autoStartAcknowledgements": [],
+          "selectedTaskAcknowledgements": [],
+          "revision": 2,
+          "canonicalTimer": {
+            "anchorAt": "2026-08-31T12:00:00Z",
+            "elapsedAtAnchorMs": 1500000,
+            "id": "legacy-focus",
+            "lastIntent": {
+              "commandId": "legacy-finish",
+              "deviceId": "p222-device",
+              "occurredAt": "2026-08-31T12:00:00Z",
+              "type": "finish"
+            },
+            "phase": "focus",
+            "plannedDurationMs": 1500000,
+            "startedByDeviceId": "p222-device",
+            "status": "completed"
+          },
+          "history": [
+            {
+              "commandId": "legacy-finish",
+              "completedAt": "2026-08-31T12:00:00Z",
+              "endedAt": "2026-08-31T12:00:00Z",
+              "id": "legacy-focus",
+              "phase": "focus",
+              "plannedDurationMs": 1500000,
+              "status": "completed",
+              "timerId": "legacy-focus"
+            }
+          ],
+          "tasks": [],
+          "durationsMs": {
+            "focus": 1500000,
+            "long_break": 900000,
+            "short_break": 300000
+          },
+          "autoStartBreaks": true,
+          "selectedTaskId": null,
+          "serverTime": "2026-08-31T12:00:00.000Z",
+          "serverHlcWallMs": 1788177600000,
+          "serverHlcCounter": 3,
+          "accountIncarnation": "4b79faf0cd14813088c2963a17d91511cd14575fd121005f65e98527588ea5a1",
+          "timerOutcomes": {
+            "legacy-finish": {
+              "outcome": "applied",
+              "reason": ""
+            }
+          },
+          "winningOperationIds": {
+            "autoStart": null,
+            "durations": {},
+            "selectedTask": null,
+            "tasks": {}
+          }
+        },
+        "timerDependencies": [
+          {
+            "dependsOnOperationId": "legacy-break-start",
+            "operationId": "legacy-break-pause"
+          },
+          {
+            "dependsOnOperationId": "legacy-finish",
+            "generatedBreak": true,
+            "operationId": "legacy-break-start",
+            "sourceDayEnd": "2026-08-31T19:00:00.000Z",
+            "sourceDayStart": "2026-08-30T19:00:00.000Z"
+          },
+          {
+            "dependsOnOperationId": "legacy-break-pause",
+            "operationId": "legacy-break-finish"
+          }
+        ],
+        "neverSent": {
+          "commands": [
+            "legacy-break-start",
+            "legacy-break-finish"
+          ],
+          "taskOperations": [],
+          "durationOperations": [],
+          "autoStartOperations": [],
+          "selectedTaskOperations": []
+        }
+      },
+      "originalRebaseEnvelope": {
+        "error": "invalid shared-core input: reconciliation would rewrite a possibly delivered operation",
+        "ok": false
+      }
+    }
+  ]
+}

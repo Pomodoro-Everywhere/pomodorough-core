@@ -98,6 +98,7 @@ pub(super) fn resolve(input: &Install) -> Output {
         advances: vec![],
         retired_advance_ids: vec![],
         rolled_back_advance_ids: vec![],
+        lifecycle: None,
     };
     let invalid = input
         .advances

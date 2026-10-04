@@ -166,6 +166,8 @@ pub(super) struct Input {
     pub durability: Option<Durability>,
     pub local_durations_ms: Option<BTreeMap<String, i64>>,
     pub known_tasks: Option<Vec<KnownTask>>,
+    #[serde(skip)]
+    pub lifecycle: Option<super::completion_mutation::CompletionLifecycle>,
 }
 
 #[derive(Deserialize)]

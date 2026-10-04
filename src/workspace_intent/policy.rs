@@ -153,6 +153,9 @@ fn restart() -> Vec<K> {
 }
 
 pub(super) fn selection(input: &Input, workspace: &Value) -> Result<Selection, CoreError> {
+    if let Some(selection) = super::pwa_selection::choice(input, workspace)? {
+        return Ok(selection);
+    }
     let phase = match input.intent {
         Intent::SelectPhase { phase } => phase,
         Intent::Skip => skip(input, workspace)?,
@@ -179,8 +182,8 @@ pub(super) fn selection(input: &Input, workspace: &Value) -> Result<Selection, C
     Ok(selection)
 }
 
-fn skip(input: &Input, workspace: &Value) -> Result<Phase, CoreError> {
-    if input.compatibility != C::AppleWorkspace {
+pub(super) fn skip(input: &Input, workspace: &Value) -> Result<Phase, CoreError> {
+    if input.compatibility != C::AppleWorkspace && input.lifecycle.is_none() {
         return Err(invalid(
             "skip is not available for this compatibility profile",
         ));
@@ -241,6 +244,7 @@ pub(super) fn after_commands(
     commands: &[Value],
     selection: &mut Selection,
 ) -> Result<(), CoreError> {
+    super::pwa_selection::begin_cycle(input, commands, selection);
     if input.compatibility != C::AndroidCoordinator
         || commands.is_empty()
         || !matches!(input.intent, Intent::CancelAndClear)

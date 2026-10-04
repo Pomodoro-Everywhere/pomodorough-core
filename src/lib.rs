@@ -5,7 +5,10 @@ mod batch_plan;
 mod bootstrap;
 mod clock;
 mod completion_plan;
+mod completion_schema;
 mod fixture_projection;
+mod legacy_dependencies;
+mod legacy_preferences;
 mod ownership_plan;
 mod projection;
 mod read_model;
@@ -146,7 +149,15 @@ pub enum CoreError {
 pub fn dispatch_envelope_json(operation: &str, input: &str) -> String {
     match dispatch_json(operation, input) {
         Ok(value) => {
-            if operation == "clock.observe.v1" {
+            if matches!(
+                operation,
+                "clock.observe.v1"
+                    | "workspace.legacyPreferences.v1"
+                    | "workspace.legacyDependencyPlan.v1"
+            ) || (operation == "workspace.ownershipPlan.v1"
+                && serde_json::from_str::<serde_json::Value>(input)
+                    .is_ok_and(|input| input["action"]["kind"] == "release"))
+            {
                 return format!("{{\"ok\":true,\"value\":{value}}}");
             }
             let value = serde_json::from_str::<serde_json::Value>(&value)
@@ -189,6 +200,8 @@ pub fn dispatch_json(operation: &str, input: &str) -> Result<String, CoreError> 
         "workspace.ownershipPlan.v1" => ownership_plan::plan_json(input),
         "workspace.readModel.v1" => read_model::read_json(input),
         "workspace.intent.v1" => workspace_intent::plan_json(input),
+        "workspace.legacyPreferences.v1" => legacy_preferences::plan_json(input),
+        "workspace.legacyDependencyPlan.v1" => legacy_dependencies::plan_json(input),
         "workspace.completionMutation.v1" => {
             workspace_intent::completion_mutation::plan_json(input)
         }

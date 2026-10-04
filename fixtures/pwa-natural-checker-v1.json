@@ -1,0 +1,1352 @@
+{
+  "checker": "CORE-PWA12 independent 2026-10-04",
+  "cases": [
+    {
+      "name": "late-ack-after-provenance-replacement-rejected-explicitfalse",
+      "operation": "timer.completionState.v1",
+      "inputRaw": "{\"kind\":\"install\",\"compatibility\":\"pwaRejectedFinish\",\"beforeHistory\":[{\"completedAt\":\"2026-08-31T12:25:00Z\",\"endedAt\":\"2026-08-31T12:25:00Z\",\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"status\":\"completed\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}],\"afterHistory\":[{\"completedAt\":\"2026-08-31T12:25:00Z\",\"endedAt\":\"2026-08-31T12:25:00Z\",\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"status\":\"completed\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"commandId\":\"remote-finish\"}],\"canonicalTimer\":{\"anchorAt\":\"2026-08-31T12:25:00Z\",\"elapsedAtAnchorMs\":1500000,\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"lastIntent\":{\"type\":\"finish\",\"commandId\":\"remote-finish\",\"occurredAt\":\"2026-08-31T12:25:00Z\"},\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"startedByDeviceId\":\"p222-device\",\"status\":\"completed\"},\"selection\":{\"phase\":\"short_break\",\"generation\":\"20\",\"explicit\":false},\"lifecycle\":{\"consumedCompletions\":[{\"commandId\":null,\"phase\":\"focus\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"},{\"commandId\":\"01a057c7-b160-78cf-b67c-59c2c6684d95\",\"phase\":\"focus\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}],\"pendingBreaks\":[]},\"pending\":{\"commandIds\":[],\"sendableCommandIds\":[],\"otherOperationIds\":[]},\"advances\":[],\"acknowledgements\":[{\"commandId\":\"01a057c7-b160-78cf-b67c-59c2c6684d95\",\"outcome\":\"rejected\"}],\"discardedCommandIds\":[],\"referenceTime\":\"2026-08-31T12:25:00.000Z\",\"calendarIntervals\":[{\"start\":\"2026-08-30T19:00:00.000Z\",\"end\":\"2026-08-31T19:00:00.000Z\"}],\"sentContext\":{\"kind\":\"pwa\",\"commands\":[{\"deviceId\":\"p222-device\",\"deviceSequence\":9,\"hlcCounter\":0,\"hlcWallMs\":1788179100000,\"id\":\"01a057c7-b160-78cf-b67c-59c2c6684d95\",\"observedElapsedMs\":1500000,\"occurredAt\":\"2026-08-31T12:25:00.000Z\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"type\":\"finish\"}],\"rollbackHistory\":[{\"completedAt\":\"2026-08-31T12:25:00Z\",\"endedAt\":\"2026-08-31T12:25:00Z\",\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"status\":\"completed\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}]}}",
+      "priorEnvelopeRaw": "{\"ok\":true,\"value\":{\"advances\":[],\"lifecycle\":{\"consumedCompletions\":[{\"commandId\":null,\"phase\":\"focus\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"},{\"commandId\":\"01a057c7-b160-78cf-b67c-59c2c6684d95\",\"phase\":\"focus\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}],\"pendingBreaks\":[]},\"reason\":\"sentFinishesReconciled\",\"retiredAdvanceIds\":[],\"rolledBackAdvanceIds\":[],\"selection\":{\"explicit\":false,\"generation\":\"20\",\"phase\":\"focus\"},\"source\":null}}",
+      "priorReturn": {
+        "ok": true,
+        "value": {
+          "advances": [],
+          "lifecycle": {
+            "consumedCompletions": [
+              {
+                "commandId": null,
+                "phase": "focus",
+                "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+              },
+              {
+                "commandId": "01a057c7-b160-78cf-b67c-59c2c6684d95",
+                "phase": "focus",
+                "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+              }
+            ],
+            "pendingBreaks": []
+          },
+          "reason": "sentFinishesReconciled",
+          "retiredAdvanceIds": [],
+          "rolledBackAdvanceIds": [],
+          "selection": {
+            "explicit": false,
+            "generation": "20",
+            "phase": "focus"
+          },
+          "source": null
+        }
+      }
+    },
+    {
+      "name": "late-ack-after-provenance-replacement-rejected-explicittrue",
+      "operation": "timer.completionState.v1",
+      "inputRaw": "{\"kind\":\"install\",\"compatibility\":\"pwaRejectedFinish\",\"beforeHistory\":[{\"completedAt\":\"2026-08-31T12:25:00Z\",\"endedAt\":\"2026-08-31T12:25:00Z\",\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"status\":\"completed\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}],\"afterHistory\":[{\"completedAt\":\"2026-08-31T12:25:00Z\",\"endedAt\":\"2026-08-31T12:25:00Z\",\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"status\":\"completed\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"commandId\":\"remote-finish\"}],\"canonicalTimer\":{\"anchorAt\":\"2026-08-31T12:25:00Z\",\"elapsedAtAnchorMs\":1500000,\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"lastIntent\":{\"type\":\"finish\",\"commandId\":\"remote-finish\",\"occurredAt\":\"2026-08-31T12:25:00Z\"},\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"startedByDeviceId\":\"p222-device\",\"status\":\"completed\"},\"selection\":{\"phase\":\"short_break\",\"generation\":\"20\",\"explicit\":true},\"lifecycle\":{\"consumedCompletions\":[{\"commandId\":null,\"phase\":\"focus\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"},{\"commandId\":\"01a057c7-b160-78cf-b67c-59c2c6684d95\",\"phase\":\"focus\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}],\"pendingBreaks\":[]},\"pending\":{\"commandIds\":[],\"sendableCommandIds\":[],\"otherOperationIds\":[]},\"advances\":[],\"acknowledgements\":[{\"commandId\":\"01a057c7-b160-78cf-b67c-59c2c6684d95\",\"outcome\":\"rejected\"}],\"discardedCommandIds\":[],\"referenceTime\":\"2026-08-31T12:25:00.000Z\",\"calendarIntervals\":[{\"start\":\"2026-08-30T19:00:00.000Z\",\"end\":\"2026-08-31T19:00:00.000Z\"}],\"sentContext\":{\"kind\":\"pwa\",\"commands\":[{\"deviceId\":\"p222-device\",\"deviceSequence\":9,\"hlcCounter\":0,\"hlcWallMs\":1788179100000,\"id\":\"01a057c7-b160-78cf-b67c-59c2c6684d95\",\"observedElapsedMs\":1500000,\"occurredAt\":\"2026-08-31T12:25:00.000Z\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"type\":\"finish\"}],\"rollbackHistory\":[{\"completedAt\":\"2026-08-31T12:25:00Z\",\"endedAt\":\"2026-08-31T12:25:00Z\",\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"status\":\"completed\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}]}}",
+      "priorEnvelopeRaw": "{\"ok\":true,\"value\":{\"advances\":[],\"lifecycle\":{\"consumedCompletions\":[{\"commandId\":null,\"phase\":\"focus\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"},{\"commandId\":\"01a057c7-b160-78cf-b67c-59c2c6684d95\",\"phase\":\"focus\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}],\"pendingBreaks\":[]},\"reason\":\"sentFinishesReconciled\",\"retiredAdvanceIds\":[],\"rolledBackAdvanceIds\":[],\"selection\":{\"explicit\":true,\"generation\":\"20\",\"phase\":\"focus\"},\"source\":null}}",
+      "priorReturn": {
+        "ok": true,
+        "value": {
+          "advances": [],
+          "lifecycle": {
+            "consumedCompletions": [
+              {
+                "commandId": null,
+                "phase": "focus",
+                "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+              },
+              {
+                "commandId": "01a057c7-b160-78cf-b67c-59c2c6684d95",
+                "phase": "focus",
+                "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+              }
+            ],
+            "pendingBreaks": []
+          },
+          "reason": "sentFinishesReconciled",
+          "retiredAdvanceIds": [],
+          "rolledBackAdvanceIds": [],
+          "selection": {
+            "explicit": true,
+            "generation": "20",
+            "phase": "focus"
+          },
+          "source": null
+        }
+      }
+    },
+    {
+      "name": "finish-raw-shape-stage",
+      "operation": "workspace.completionMutation.v1",
+      "inputRaw": "{\"compatibility\":\"pwaStorage\",\"replicationMode\":\"centralized\",\"workspace\":{\"base\":{\"canonicalTimer\":{\"anchorAt\":\"2026-08-31T12:25:00Z\",\"elapsedAtAnchorMs\":1500000,\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"lastIntent\":{\"commandId\":\"01a057b0-ce00-7000-8000-000000000015\",\"deviceId\":\"p222-device\",\"occurredAt\":\"2026-08-31T12:00:00Z\",\"type\":\"start\"},\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"startedByDeviceId\":\"p222-device\",\"status\":\"completed\"},\"history\":[{\"completedAt\":\"2026-08-31T12:25:00Z\",\"endedAt\":\"2026-08-31T12:25:00Z\",\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"status\":\"completed\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}],\"tasks\":[],\"durationsMs\":{\"focus\":1500000,\"short_break\":300000,\"long_break\":900000},\"autoStartBreaks\":false,\"selectedTaskId\":null},\"local\":{\"commands\":[],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]},\"canonicalHead\":null,\"neverSent\":{\"commands\":[],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]},\"timerDependencies\":[],\"displayContext\":{\"profile\":\"pwaStorage\",\"projectionPending\":{\"commands\":[],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]}}},\"selection\":{\"phase\":\"focus\",\"generation\":\"0\",\"explicit\":false},\"allocation\":{\"deviceId\":\"p222-device\",\"deviceSequence\":8,\"hlc\":{\"counter\":3,\"wallMs\":1788177600000},\"lastUuid\":\"01a057b0-ce00-7000-8000-000000000015\"},\"observation\":{\"canonicalAnchorAt\":\"2026-08-31T12:25:00Z\",\"commandTimes\":{}},\"clock\":{\"occurredAt\":\"2026-08-31T12:25:00.000Z\",\"physicalNow\":\"2026-08-31T12:25:00.000Z\",\"observedAt\":\"2026-08-31T12:25:00.000Z\"},\"identities\":{\"commandUuids\":[\"01a057c7-b160-78cf-b67c-59c2c6684d95\",\"01a057c7-b160-78cf-b67c-59c2c6684d96\"],\"timerUuid\":\"22222222-2222-4222-8222-222222222222\"},\"calendarIntervals\":[{\"start\":\"2026-08-30T19:00:00.000Z\",\"end\":\"2026-08-31T19:00:00.000Z\"}],\"requestedTimer\":{\"anchorAt\":\"2026-08-31T12:25:00Z\",\"elapsedAtAnchorMs\":1500000,\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"lastIntent\":{\"commandId\":\"01a057b0-ce00-7000-8000-000000000015\",\"deviceId\":\"p222-device\",\"occurredAt\":\"2026-08-31T12:00:00Z\",\"type\":\"start\"},\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"startedByDeviceId\":\"p222-device\",\"status\":\"completed\"},\"stage\":{\"finishCommit\":null},\"ownership\":{\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"deviceId\":\"p222-device\",\"tabId\":\"p222-tab-0\",\"leaseExpiresAtMs\":1788177660000},\"localTabId\":\"p222-tab-0\",\"leaseNowMs\":1788179100000,\"leaseDurationMs\":60000}",
+      "priorEnvelopeRaw": "{\"ok\":true,\"value\":{\"allocation\":{\"deviceId\":\"p222-device\",\"deviceSequence\":9,\"hlc\":{\"counter\":0,\"wallMs\":1788179100000},\"lastUuid\":\"01a057c7-b160-78cf-b67c-59c2c6684d95\"},\"atomicCommandIds\":[\"01a057c7-b160-78cf-b67c-59c2c6684d95\"],\"commandOutcomes\":[{\"id\":\"01a057c7-b160-78cf-b67c-59c2c6684d95\",\"outcome\":\"applied\"}],\"commands\":[{\"deviceId\":\"p222-device\",\"deviceSequence\":9,\"hlcCounter\":0,\"hlcWallMs\":1788179100000,\"id\":\"01a057c7-b160-78cf-b67c-59c2c6684d95\",\"observedElapsedMs\":1500000,\"occurredAt\":\"2026-08-31T12:25:00.000Z\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"type\":\"finish\"}],\"completionRecords\":{\"pendingAutoBreak\":null,\"phaseAdvance\":null,\"provisionalBreak\":null},\"durableCommands\":[{\"deviceId\":\"p222-device\",\"deviceSequence\":9,\"hlcCounter\":0,\"hlcWallMs\":1788179100000,\"id\":\"01a057c7-b160-78cf-b67c-59c2c6684d95\",\"observedElapsedMs\":1500000,\"occurredAt\":\"2026-08-31T12:25:00.000Z\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"type\":\"finish\"}],\"effectsAfterCommit\":[{\"kind\":\"launchSync\"},{\"kind\":\"cancelAlarm\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}],\"lifecycle\":{\"consumedCompletions\":[{\"commandId\":null,\"phase\":\"focus\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"},{\"commandId\":\"01a057c7-b160-78cf-b67c-59c2c6684d95\",\"phase\":\"focus\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}],\"pendingBreaks\":[]},\"observation\":{\"canonicalAnchorAt\":\"2026-08-31T12:25:00Z\",\"commandTimes\":{\"01a057c7-b160-78cf-b67c-59c2c6684d95\":\"2026-08-31T12:25:00.000Z\"}},\"outcome\":\"planned\",\"ownershipWrites\":[{\"kind\":\"removeTimerOwner\"}],\"projection\":{\"autoStartBreaks\":false,\"canonicalTimer\":{\"anchorAt\":\"2026-08-31T12:25:00Z\",\"elapsedAtAnchorMs\":1500000,\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"lastIntent\":{\"commandId\":\"01a057c7-b160-78cf-b67c-59c2c6684d95\",\"deviceId\":\"p222-device\",\"occurredAt\":\"2026-08-31T12:25:00Z\",\"type\":\"finish\"},\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"startedByDeviceId\":\"p222-device\",\"status\":\"completed\"},\"durationsMs\":{\"focus\":1500000,\"long_break\":900000,\"short_break\":300000},\"history\":[{\"commandId\":\"01a057c7-b160-78cf-b67c-59c2c6684d95\",\"completedAt\":\"2026-08-31T12:25:00Z\",\"endedAt\":\"2026-08-31T12:25:00Z\",\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"status\":\"completed\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}],\"selectedTaskId\":null,\"tasks\":[],\"timerOutcomes\":{\"01a057c7-b160-78cf-b67c-59c2c6684d95\":{\"outcome\":\"applied\",\"reason\":\"\"}},\"winningOperationIds\":{\"autoStart\":null,\"durations\":{},\"selectedTask\":null,\"tasks\":{}}},\"reason\":\"\",\"schemaVersion\":1,\"selection\":{\"explicit\":false,\"generation\":\"0\",\"phase\":\"short_break\"},\"source\":{\"completedAt\":\"2026-08-31T12:25:00Z\",\"endedAt\":\"2026-08-31T12:25:00Z\",\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"status\":\"completed\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"},\"sourceStatus\":\"naturalExpiry\",\"workspace\":{\"base\":{\"autoStartBreaks\":false,\"canonicalTimer\":{\"anchorAt\":\"2026-08-31T12:25:00Z\",\"elapsedAtAnchorMs\":1500000,\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"lastIntent\":{\"commandId\":\"01a057b0-ce00-7000-8000-000000000015\",\"deviceId\":\"p222-device\",\"occurredAt\":\"2026-08-31T12:00:00Z\",\"type\":\"start\"},\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"startedByDeviceId\":\"p222-device\",\"status\":\"completed\"},\"durationsMs\":{\"focus\":1500000,\"long_break\":900000,\"short_break\":300000},\"history\":[{\"completedAt\":\"2026-08-31T12:25:00Z\",\"endedAt\":\"2026-08-31T12:25:00Z\",\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"status\":\"completed\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}],\"selectedTaskId\":null,\"tasks\":[]},\"canonicalHead\":null,\"displayContext\":{\"profile\":\"pwaStorage\",\"projectionPending\":{\"autoStartOperations\":[],\"commands\":[{\"deviceId\":\"p222-device\",\"deviceSequence\":9,\"hlcCounter\":0,\"hlcWallMs\":1788179100000,\"id\":\"01a057c7-b160-78cf-b67c-59c2c6684d95\",\"observedElapsedMs\":1500000,\"occurredAt\":\"2026-08-31T12:25:00.000Z\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"type\":\"finish\"}],\"durationOperations\":[],\"selectedTaskOperations\":[],\"taskOperations\":[]}},\"local\":{\"autoStartOperations\":[],\"commands\":[{\"deviceId\":\"p222-device\",\"deviceSequence\":9,\"hlcCounter\":0,\"hlcWallMs\":1788179100000,\"id\":\"01a057c7-b160-78cf-b67c-59c2c6684d95\",\"observedElapsedMs\":1500000,\"occurredAt\":\"2026-08-31T12:25:00.000Z\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"type\":\"finish\"}],\"durationOperations\":[],\"selectedTaskOperations\":[],\"taskOperations\":[]},\"neverSent\":{\"autoStartOperations\":[],\"commands\":[\"01a057c7-b160-78cf-b67c-59c2c6684d95\"],\"durationOperations\":[],\"selectedTaskOperations\":[],\"taskOperations\":[]},\"timerDependencies\":[]}}}",
+      "priorReturn": {
+        "ok": true,
+        "value": {
+          "allocation": {
+            "deviceId": "p222-device",
+            "deviceSequence": 9,
+            "hlc": {
+              "counter": 0,
+              "wallMs": 1788179100000
+            },
+            "lastUuid": "01a057c7-b160-78cf-b67c-59c2c6684d95"
+          },
+          "atomicCommandIds": [
+            "01a057c7-b160-78cf-b67c-59c2c6684d95"
+          ],
+          "commandOutcomes": [
+            {
+              "id": "01a057c7-b160-78cf-b67c-59c2c6684d95",
+              "outcome": "applied"
+            }
+          ],
+          "commands": [
+            {
+              "deviceId": "p222-device",
+              "deviceSequence": 9,
+              "hlcCounter": 0,
+              "hlcWallMs": 1788179100000,
+              "id": "01a057c7-b160-78cf-b67c-59c2c6684d95",
+              "observedElapsedMs": 1500000,
+              "occurredAt": "2026-08-31T12:25:00.000Z",
+              "phase": "focus",
+              "plannedDurationMs": 1500000,
+              "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+              "type": "finish"
+            }
+          ],
+          "completionRecords": {
+            "pendingAutoBreak": null,
+            "phaseAdvance": null,
+            "provisionalBreak": null
+          },
+          "durableCommands": [
+            {
+              "deviceId": "p222-device",
+              "deviceSequence": 9,
+              "hlcCounter": 0,
+              "hlcWallMs": 1788179100000,
+              "id": "01a057c7-b160-78cf-b67c-59c2c6684d95",
+              "observedElapsedMs": 1500000,
+              "occurredAt": "2026-08-31T12:25:00.000Z",
+              "phase": "focus",
+              "plannedDurationMs": 1500000,
+              "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+              "type": "finish"
+            }
+          ],
+          "effectsAfterCommit": [
+            {
+              "kind": "launchSync"
+            },
+            {
+              "kind": "cancelAlarm",
+              "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+            }
+          ],
+          "lifecycle": {
+            "consumedCompletions": [
+              {
+                "commandId": null,
+                "phase": "focus",
+                "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+              },
+              {
+                "commandId": "01a057c7-b160-78cf-b67c-59c2c6684d95",
+                "phase": "focus",
+                "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+              }
+            ],
+            "pendingBreaks": []
+          },
+          "observation": {
+            "canonicalAnchorAt": "2026-08-31T12:25:00Z",
+            "commandTimes": {
+              "01a057c7-b160-78cf-b67c-59c2c6684d95": "2026-08-31T12:25:00.000Z"
+            }
+          },
+          "outcome": "planned",
+          "ownershipWrites": [
+            {
+              "kind": "removeTimerOwner"
+            }
+          ],
+          "projection": {
+            "autoStartBreaks": false,
+            "canonicalTimer": {
+              "anchorAt": "2026-08-31T12:25:00Z",
+              "elapsedAtAnchorMs": 1500000,
+              "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+              "lastIntent": {
+                "commandId": "01a057c7-b160-78cf-b67c-59c2c6684d95",
+                "deviceId": "p222-device",
+                "occurredAt": "2026-08-31T12:25:00Z",
+                "type": "finish"
+              },
+              "phase": "focus",
+              "plannedDurationMs": 1500000,
+              "startedByDeviceId": "p222-device",
+              "status": "completed"
+            },
+            "durationsMs": {
+              "focus": 1500000,
+              "long_break": 900000,
+              "short_break": 300000
+            },
+            "history": [
+              {
+                "commandId": "01a057c7-b160-78cf-b67c-59c2c6684d95",
+                "completedAt": "2026-08-31T12:25:00Z",
+                "endedAt": "2026-08-31T12:25:00Z",
+                "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                "phase": "focus",
+                "plannedDurationMs": 1500000,
+                "status": "completed",
+                "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+              }
+            ],
+            "selectedTaskId": null,
+            "tasks": [],
+            "timerOutcomes": {
+              "01a057c7-b160-78cf-b67c-59c2c6684d95": {
+                "outcome": "applied",
+                "reason": ""
+              }
+            },
+            "winningOperationIds": {
+              "autoStart": null,
+              "durations": {},
+              "selectedTask": null,
+              "tasks": {}
+            }
+          },
+          "reason": "",
+          "schemaVersion": 1,
+          "selection": {
+            "explicit": false,
+            "generation": "0",
+            "phase": "short_break"
+          },
+          "source": {
+            "completedAt": "2026-08-31T12:25:00Z",
+            "endedAt": "2026-08-31T12:25:00Z",
+            "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+            "phase": "focus",
+            "plannedDurationMs": 1500000,
+            "status": "completed",
+            "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+          },
+          "sourceStatus": "naturalExpiry",
+          "workspace": {
+            "base": {
+              "autoStartBreaks": false,
+              "canonicalTimer": {
+                "anchorAt": "2026-08-31T12:25:00Z",
+                "elapsedAtAnchorMs": 1500000,
+                "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                "lastIntent": {
+                  "commandId": "01a057b0-ce00-7000-8000-000000000015",
+                  "deviceId": "p222-device",
+                  "occurredAt": "2026-08-31T12:00:00Z",
+                  "type": "start"
+                },
+                "phase": "focus",
+                "plannedDurationMs": 1500000,
+                "startedByDeviceId": "p222-device",
+                "status": "completed"
+              },
+              "durationsMs": {
+                "focus": 1500000,
+                "long_break": 900000,
+                "short_break": 300000
+              },
+              "history": [
+                {
+                  "completedAt": "2026-08-31T12:25:00Z",
+                  "endedAt": "2026-08-31T12:25:00Z",
+                  "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                  "phase": "focus",
+                  "plannedDurationMs": 1500000,
+                  "status": "completed",
+                  "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+                }
+              ],
+              "selectedTaskId": null,
+              "tasks": []
+            },
+            "canonicalHead": null,
+            "displayContext": {
+              "profile": "pwaStorage",
+              "projectionPending": {
+                "autoStartOperations": [],
+                "commands": [
+                  {
+                    "deviceId": "p222-device",
+                    "deviceSequence": 9,
+                    "hlcCounter": 0,
+                    "hlcWallMs": 1788179100000,
+                    "id": "01a057c7-b160-78cf-b67c-59c2c6684d95",
+                    "observedElapsedMs": 1500000,
+                    "occurredAt": "2026-08-31T12:25:00.000Z",
+                    "phase": "focus",
+                    "plannedDurationMs": 1500000,
+                    "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                    "type": "finish"
+                  }
+                ],
+                "durationOperations": [],
+                "selectedTaskOperations": [],
+                "taskOperations": []
+              }
+            },
+            "local": {
+              "autoStartOperations": [],
+              "commands": [
+                {
+                  "deviceId": "p222-device",
+                  "deviceSequence": 9,
+                  "hlcCounter": 0,
+                  "hlcWallMs": 1788179100000,
+                  "id": "01a057c7-b160-78cf-b67c-59c2c6684d95",
+                  "observedElapsedMs": 1500000,
+                  "occurredAt": "2026-08-31T12:25:00.000Z",
+                  "phase": "focus",
+                  "plannedDurationMs": 1500000,
+                  "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                  "type": "finish"
+                }
+              ],
+              "durationOperations": [],
+              "selectedTaskOperations": [],
+              "taskOperations": []
+            },
+            "neverSent": {
+              "autoStartOperations": [],
+              "commands": [
+                "01a057c7-b160-78cf-b67c-59c2c6684d95"
+              ],
+              "durationOperations": [],
+              "selectedTaskOperations": [],
+              "taskOperations": []
+            },
+            "timerDependencies": []
+          }
+        }
+      }
+    },
+    {
+      "name": "finish-raw-shape-compatibility",
+      "operation": "workspace.completionMutation.v1",
+      "inputRaw": "{\"compatibility\":{\"pwaStorage\":null},\"replicationMode\":\"centralized\",\"workspace\":{\"base\":{\"canonicalTimer\":{\"anchorAt\":\"2026-08-31T12:25:00Z\",\"elapsedAtAnchorMs\":1500000,\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"lastIntent\":{\"commandId\":\"01a057b0-ce00-7000-8000-000000000015\",\"deviceId\":\"p222-device\",\"occurredAt\":\"2026-08-31T12:00:00Z\",\"type\":\"start\"},\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"startedByDeviceId\":\"p222-device\",\"status\":\"completed\"},\"history\":[{\"completedAt\":\"2026-08-31T12:25:00Z\",\"endedAt\":\"2026-08-31T12:25:00Z\",\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"status\":\"completed\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}],\"tasks\":[],\"durationsMs\":{\"focus\":1500000,\"short_break\":300000,\"long_break\":900000},\"autoStartBreaks\":false,\"selectedTaskId\":null},\"local\":{\"commands\":[],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]},\"canonicalHead\":null,\"neverSent\":{\"commands\":[],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]},\"timerDependencies\":[],\"displayContext\":{\"profile\":\"pwaStorage\",\"projectionPending\":{\"commands\":[],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]}}},\"selection\":{\"phase\":\"focus\",\"generation\":\"0\",\"explicit\":false},\"allocation\":{\"deviceId\":\"p222-device\",\"deviceSequence\":8,\"hlc\":{\"counter\":3,\"wallMs\":1788177600000},\"lastUuid\":\"01a057b0-ce00-7000-8000-000000000015\"},\"observation\":{\"canonicalAnchorAt\":\"2026-08-31T12:25:00Z\",\"commandTimes\":{}},\"clock\":{\"occurredAt\":\"2026-08-31T12:25:00.000Z\",\"physicalNow\":\"2026-08-31T12:25:00.000Z\",\"observedAt\":\"2026-08-31T12:25:00.000Z\"},\"identities\":{\"commandUuids\":[\"01a057c7-b160-78cf-b67c-59c2c6684d95\",\"01a057c7-b160-78cf-b67c-59c2c6684d96\"],\"timerUuid\":\"22222222-2222-4222-8222-222222222222\"},\"calendarIntervals\":[{\"start\":\"2026-08-30T19:00:00.000Z\",\"end\":\"2026-08-31T19:00:00.000Z\"}],\"requestedTimer\":{\"anchorAt\":\"2026-08-31T12:25:00Z\",\"elapsedAtAnchorMs\":1500000,\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"lastIntent\":{\"commandId\":\"01a057b0-ce00-7000-8000-000000000015\",\"deviceId\":\"p222-device\",\"occurredAt\":\"2026-08-31T12:00:00Z\",\"type\":\"start\"},\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"startedByDeviceId\":\"p222-device\",\"status\":\"completed\"},\"stage\":\"finishCommit\",\"ownership\":{\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"deviceId\":\"p222-device\",\"tabId\":\"p222-tab-0\",\"leaseExpiresAtMs\":1788177660000},\"localTabId\":\"p222-tab-0\",\"leaseNowMs\":1788179100000,\"leaseDurationMs\":60000}",
+      "priorEnvelopeRaw": "{\"ok\":true,\"value\":{\"allocation\":{\"deviceId\":\"p222-device\",\"deviceSequence\":9,\"hlc\":{\"counter\":0,\"wallMs\":1788179100000},\"lastUuid\":\"01a057c7-b160-78cf-b67c-59c2c6684d95\"},\"atomicCommandIds\":[\"01a057c7-b160-78cf-b67c-59c2c6684d95\"],\"commandOutcomes\":[{\"id\":\"01a057c7-b160-78cf-b67c-59c2c6684d95\",\"outcome\":\"applied\"}],\"commands\":[{\"deviceId\":\"p222-device\",\"deviceSequence\":9,\"hlcCounter\":0,\"hlcWallMs\":1788179100000,\"id\":\"01a057c7-b160-78cf-b67c-59c2c6684d95\",\"observedElapsedMs\":1500000,\"occurredAt\":\"2026-08-31T12:25:00.000Z\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"type\":\"finish\"}],\"completionRecords\":{\"pendingAutoBreak\":null,\"phaseAdvance\":null,\"provisionalBreak\":null},\"durableCommands\":[{\"deviceId\":\"p222-device\",\"deviceSequence\":9,\"hlcCounter\":0,\"hlcWallMs\":1788179100000,\"id\":\"01a057c7-b160-78cf-b67c-59c2c6684d95\",\"observedElapsedMs\":1500000,\"occurredAt\":\"2026-08-31T12:25:00.000Z\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"type\":\"finish\"}],\"effectsAfterCommit\":[{\"kind\":\"launchSync\"},{\"kind\":\"cancelAlarm\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}],\"lifecycle\":{\"consumedCompletions\":[{\"commandId\":null,\"phase\":\"focus\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"},{\"commandId\":\"01a057c7-b160-78cf-b67c-59c2c6684d95\",\"phase\":\"focus\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}],\"pendingBreaks\":[]},\"observation\":{\"canonicalAnchorAt\":\"2026-08-31T12:25:00Z\",\"commandTimes\":{\"01a057c7-b160-78cf-b67c-59c2c6684d95\":\"2026-08-31T12:25:00.000Z\"}},\"outcome\":\"planned\",\"ownershipWrites\":[{\"kind\":\"removeTimerOwner\"}],\"projection\":{\"autoStartBreaks\":false,\"canonicalTimer\":{\"anchorAt\":\"2026-08-31T12:25:00Z\",\"elapsedAtAnchorMs\":1500000,\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"lastIntent\":{\"commandId\":\"01a057c7-b160-78cf-b67c-59c2c6684d95\",\"deviceId\":\"p222-device\",\"occurredAt\":\"2026-08-31T12:25:00Z\",\"type\":\"finish\"},\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"startedByDeviceId\":\"p222-device\",\"status\":\"completed\"},\"durationsMs\":{\"focus\":1500000,\"long_break\":900000,\"short_break\":300000},\"history\":[{\"commandId\":\"01a057c7-b160-78cf-b67c-59c2c6684d95\",\"completedAt\":\"2026-08-31T12:25:00Z\",\"endedAt\":\"2026-08-31T12:25:00Z\",\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"status\":\"completed\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}],\"selectedTaskId\":null,\"tasks\":[],\"timerOutcomes\":{\"01a057c7-b160-78cf-b67c-59c2c6684d95\":{\"outcome\":\"applied\",\"reason\":\"\"}},\"winningOperationIds\":{\"autoStart\":null,\"durations\":{},\"selectedTask\":null,\"tasks\":{}}},\"reason\":\"\",\"schemaVersion\":1,\"selection\":{\"explicit\":false,\"generation\":\"0\",\"phase\":\"short_break\"},\"source\":{\"completedAt\":\"2026-08-31T12:25:00Z\",\"endedAt\":\"2026-08-31T12:25:00Z\",\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"status\":\"completed\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"},\"sourceStatus\":\"naturalExpiry\",\"workspace\":{\"base\":{\"autoStartBreaks\":false,\"canonicalTimer\":{\"anchorAt\":\"2026-08-31T12:25:00Z\",\"elapsedAtAnchorMs\":1500000,\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"lastIntent\":{\"commandId\":\"01a057b0-ce00-7000-8000-000000000015\",\"deviceId\":\"p222-device\",\"occurredAt\":\"2026-08-31T12:00:00Z\",\"type\":\"start\"},\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"startedByDeviceId\":\"p222-device\",\"status\":\"completed\"},\"durationsMs\":{\"focus\":1500000,\"long_break\":900000,\"short_break\":300000},\"history\":[{\"completedAt\":\"2026-08-31T12:25:00Z\",\"endedAt\":\"2026-08-31T12:25:00Z\",\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"status\":\"completed\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}],\"selectedTaskId\":null,\"tasks\":[]},\"canonicalHead\":null,\"displayContext\":{\"profile\":\"pwaStorage\",\"projectionPending\":{\"autoStartOperations\":[],\"commands\":[{\"deviceId\":\"p222-device\",\"deviceSequence\":9,\"hlcCounter\":0,\"hlcWallMs\":1788179100000,\"id\":\"01a057c7-b160-78cf-b67c-59c2c6684d95\",\"observedElapsedMs\":1500000,\"occurredAt\":\"2026-08-31T12:25:00.000Z\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"type\":\"finish\"}],\"durationOperations\":[],\"selectedTaskOperations\":[],\"taskOperations\":[]}},\"local\":{\"autoStartOperations\":[],\"commands\":[{\"deviceId\":\"p222-device\",\"deviceSequence\":9,\"hlcCounter\":0,\"hlcWallMs\":1788179100000,\"id\":\"01a057c7-b160-78cf-b67c-59c2c6684d95\",\"observedElapsedMs\":1500000,\"occurredAt\":\"2026-08-31T12:25:00.000Z\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"type\":\"finish\"}],\"durationOperations\":[],\"selectedTaskOperations\":[],\"taskOperations\":[]},\"neverSent\":{\"autoStartOperations\":[],\"commands\":[\"01a057c7-b160-78cf-b67c-59c2c6684d95\"],\"durationOperations\":[],\"selectedTaskOperations\":[],\"taskOperations\":[]},\"timerDependencies\":[]}}}",
+      "priorReturn": {
+        "ok": true,
+        "value": {
+          "allocation": {
+            "deviceId": "p222-device",
+            "deviceSequence": 9,
+            "hlc": {
+              "counter": 0,
+              "wallMs": 1788179100000
+            },
+            "lastUuid": "01a057c7-b160-78cf-b67c-59c2c6684d95"
+          },
+          "atomicCommandIds": [
+            "01a057c7-b160-78cf-b67c-59c2c6684d95"
+          ],
+          "commandOutcomes": [
+            {
+              "id": "01a057c7-b160-78cf-b67c-59c2c6684d95",
+              "outcome": "applied"
+            }
+          ],
+          "commands": [
+            {
+              "deviceId": "p222-device",
+              "deviceSequence": 9,
+              "hlcCounter": 0,
+              "hlcWallMs": 1788179100000,
+              "id": "01a057c7-b160-78cf-b67c-59c2c6684d95",
+              "observedElapsedMs": 1500000,
+              "occurredAt": "2026-08-31T12:25:00.000Z",
+              "phase": "focus",
+              "plannedDurationMs": 1500000,
+              "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+              "type": "finish"
+            }
+          ],
+          "completionRecords": {
+            "pendingAutoBreak": null,
+            "phaseAdvance": null,
+            "provisionalBreak": null
+          },
+          "durableCommands": [
+            {
+              "deviceId": "p222-device",
+              "deviceSequence": 9,
+              "hlcCounter": 0,
+              "hlcWallMs": 1788179100000,
+              "id": "01a057c7-b160-78cf-b67c-59c2c6684d95",
+              "observedElapsedMs": 1500000,
+              "occurredAt": "2026-08-31T12:25:00.000Z",
+              "phase": "focus",
+              "plannedDurationMs": 1500000,
+              "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+              "type": "finish"
+            }
+          ],
+          "effectsAfterCommit": [
+            {
+              "kind": "launchSync"
+            },
+            {
+              "kind": "cancelAlarm",
+              "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+            }
+          ],
+          "lifecycle": {
+            "consumedCompletions": [
+              {
+                "commandId": null,
+                "phase": "focus",
+                "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+              },
+              {
+                "commandId": "01a057c7-b160-78cf-b67c-59c2c6684d95",
+                "phase": "focus",
+                "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+              }
+            ],
+            "pendingBreaks": []
+          },
+          "observation": {
+            "canonicalAnchorAt": "2026-08-31T12:25:00Z",
+            "commandTimes": {
+              "01a057c7-b160-78cf-b67c-59c2c6684d95": "2026-08-31T12:25:00.000Z"
+            }
+          },
+          "outcome": "planned",
+          "ownershipWrites": [
+            {
+              "kind": "removeTimerOwner"
+            }
+          ],
+          "projection": {
+            "autoStartBreaks": false,
+            "canonicalTimer": {
+              "anchorAt": "2026-08-31T12:25:00Z",
+              "elapsedAtAnchorMs": 1500000,
+              "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+              "lastIntent": {
+                "commandId": "01a057c7-b160-78cf-b67c-59c2c6684d95",
+                "deviceId": "p222-device",
+                "occurredAt": "2026-08-31T12:25:00Z",
+                "type": "finish"
+              },
+              "phase": "focus",
+              "plannedDurationMs": 1500000,
+              "startedByDeviceId": "p222-device",
+              "status": "completed"
+            },
+            "durationsMs": {
+              "focus": 1500000,
+              "long_break": 900000,
+              "short_break": 300000
+            },
+            "history": [
+              {
+                "commandId": "01a057c7-b160-78cf-b67c-59c2c6684d95",
+                "completedAt": "2026-08-31T12:25:00Z",
+                "endedAt": "2026-08-31T12:25:00Z",
+                "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                "phase": "focus",
+                "plannedDurationMs": 1500000,
+                "status": "completed",
+                "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+              }
+            ],
+            "selectedTaskId": null,
+            "tasks": [],
+            "timerOutcomes": {
+              "01a057c7-b160-78cf-b67c-59c2c6684d95": {
+                "outcome": "applied",
+                "reason": ""
+              }
+            },
+            "winningOperationIds": {
+              "autoStart": null,
+              "durations": {},
+              "selectedTask": null,
+              "tasks": {}
+            }
+          },
+          "reason": "",
+          "schemaVersion": 1,
+          "selection": {
+            "explicit": false,
+            "generation": "0",
+            "phase": "short_break"
+          },
+          "source": {
+            "completedAt": "2026-08-31T12:25:00Z",
+            "endedAt": "2026-08-31T12:25:00Z",
+            "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+            "phase": "focus",
+            "plannedDurationMs": 1500000,
+            "status": "completed",
+            "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+          },
+          "sourceStatus": "naturalExpiry",
+          "workspace": {
+            "base": {
+              "autoStartBreaks": false,
+              "canonicalTimer": {
+                "anchorAt": "2026-08-31T12:25:00Z",
+                "elapsedAtAnchorMs": 1500000,
+                "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                "lastIntent": {
+                  "commandId": "01a057b0-ce00-7000-8000-000000000015",
+                  "deviceId": "p222-device",
+                  "occurredAt": "2026-08-31T12:00:00Z",
+                  "type": "start"
+                },
+                "phase": "focus",
+                "plannedDurationMs": 1500000,
+                "startedByDeviceId": "p222-device",
+                "status": "completed"
+              },
+              "durationsMs": {
+                "focus": 1500000,
+                "long_break": 900000,
+                "short_break": 300000
+              },
+              "history": [
+                {
+                  "completedAt": "2026-08-31T12:25:00Z",
+                  "endedAt": "2026-08-31T12:25:00Z",
+                  "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                  "phase": "focus",
+                  "plannedDurationMs": 1500000,
+                  "status": "completed",
+                  "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+                }
+              ],
+              "selectedTaskId": null,
+              "tasks": []
+            },
+            "canonicalHead": null,
+            "displayContext": {
+              "profile": "pwaStorage",
+              "projectionPending": {
+                "autoStartOperations": [],
+                "commands": [
+                  {
+                    "deviceId": "p222-device",
+                    "deviceSequence": 9,
+                    "hlcCounter": 0,
+                    "hlcWallMs": 1788179100000,
+                    "id": "01a057c7-b160-78cf-b67c-59c2c6684d95",
+                    "observedElapsedMs": 1500000,
+                    "occurredAt": "2026-08-31T12:25:00.000Z",
+                    "phase": "focus",
+                    "plannedDurationMs": 1500000,
+                    "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                    "type": "finish"
+                  }
+                ],
+                "durationOperations": [],
+                "selectedTaskOperations": [],
+                "taskOperations": []
+              }
+            },
+            "local": {
+              "autoStartOperations": [],
+              "commands": [
+                {
+                  "deviceId": "p222-device",
+                  "deviceSequence": 9,
+                  "hlcCounter": 0,
+                  "hlcWallMs": 1788179100000,
+                  "id": "01a057c7-b160-78cf-b67c-59c2c6684d95",
+                  "observedElapsedMs": 1500000,
+                  "occurredAt": "2026-08-31T12:25:00.000Z",
+                  "phase": "focus",
+                  "plannedDurationMs": 1500000,
+                  "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                  "type": "finish"
+                }
+              ],
+              "durationOperations": [],
+              "selectedTaskOperations": [],
+              "taskOperations": []
+            },
+            "neverSent": {
+              "autoStartOperations": [],
+              "commands": [
+                "01a057c7-b160-78cf-b67c-59c2c6684d95"
+              ],
+              "durationOperations": [],
+              "selectedTaskOperations": [],
+              "taskOperations": []
+            },
+            "timerDependencies": []
+          }
+        }
+      }
+    },
+    {
+      "name": "finish-raw-shape-replicationMode",
+      "operation": "workspace.completionMutation.v1",
+      "inputRaw": "{\"compatibility\":\"pwaStorage\",\"replicationMode\":{\"centralized\":null},\"workspace\":{\"base\":{\"canonicalTimer\":{\"anchorAt\":\"2026-08-31T12:25:00Z\",\"elapsedAtAnchorMs\":1500000,\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"lastIntent\":{\"commandId\":\"01a057b0-ce00-7000-8000-000000000015\",\"deviceId\":\"p222-device\",\"occurredAt\":\"2026-08-31T12:00:00Z\",\"type\":\"start\"},\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"startedByDeviceId\":\"p222-device\",\"status\":\"completed\"},\"history\":[{\"completedAt\":\"2026-08-31T12:25:00Z\",\"endedAt\":\"2026-08-31T12:25:00Z\",\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"status\":\"completed\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}],\"tasks\":[],\"durationsMs\":{\"focus\":1500000,\"short_break\":300000,\"long_break\":900000},\"autoStartBreaks\":false,\"selectedTaskId\":null},\"local\":{\"commands\":[],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]},\"canonicalHead\":null,\"neverSent\":{\"commands\":[],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]},\"timerDependencies\":[],\"displayContext\":{\"profile\":\"pwaStorage\",\"projectionPending\":{\"commands\":[],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]}}},\"selection\":{\"phase\":\"focus\",\"generation\":\"0\",\"explicit\":false},\"allocation\":{\"deviceId\":\"p222-device\",\"deviceSequence\":8,\"hlc\":{\"counter\":3,\"wallMs\":1788177600000},\"lastUuid\":\"01a057b0-ce00-7000-8000-000000000015\"},\"observation\":{\"canonicalAnchorAt\":\"2026-08-31T12:25:00Z\",\"commandTimes\":{}},\"clock\":{\"occurredAt\":\"2026-08-31T12:25:00.000Z\",\"physicalNow\":\"2026-08-31T12:25:00.000Z\",\"observedAt\":\"2026-08-31T12:25:00.000Z\"},\"identities\":{\"commandUuids\":[\"01a057c7-b160-78cf-b67c-59c2c6684d95\",\"01a057c7-b160-78cf-b67c-59c2c6684d96\"],\"timerUuid\":\"22222222-2222-4222-8222-222222222222\"},\"calendarIntervals\":[{\"start\":\"2026-08-30T19:00:00.000Z\",\"end\":\"2026-08-31T19:00:00.000Z\"}],\"requestedTimer\":{\"anchorAt\":\"2026-08-31T12:25:00Z\",\"elapsedAtAnchorMs\":1500000,\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"lastIntent\":{\"commandId\":\"01a057b0-ce00-7000-8000-000000000015\",\"deviceId\":\"p222-device\",\"occurredAt\":\"2026-08-31T12:00:00Z\",\"type\":\"start\"},\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"startedByDeviceId\":\"p222-device\",\"status\":\"completed\"},\"stage\":\"finishCommit\",\"ownership\":{\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"deviceId\":\"p222-device\",\"tabId\":\"p222-tab-0\",\"leaseExpiresAtMs\":1788177660000},\"localTabId\":\"p222-tab-0\",\"leaseNowMs\":1788179100000,\"leaseDurationMs\":60000}",
+      "priorEnvelopeRaw": "{\"ok\":true,\"value\":{\"allocation\":{\"deviceId\":\"p222-device\",\"deviceSequence\":9,\"hlc\":{\"counter\":0,\"wallMs\":1788179100000},\"lastUuid\":\"01a057c7-b160-78cf-b67c-59c2c6684d95\"},\"atomicCommandIds\":[\"01a057c7-b160-78cf-b67c-59c2c6684d95\"],\"commandOutcomes\":[{\"id\":\"01a057c7-b160-78cf-b67c-59c2c6684d95\",\"outcome\":\"applied\"}],\"commands\":[{\"deviceId\":\"p222-device\",\"deviceSequence\":9,\"hlcCounter\":0,\"hlcWallMs\":1788179100000,\"id\":\"01a057c7-b160-78cf-b67c-59c2c6684d95\",\"observedElapsedMs\":1500000,\"occurredAt\":\"2026-08-31T12:25:00.000Z\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"type\":\"finish\"}],\"completionRecords\":{\"pendingAutoBreak\":null,\"phaseAdvance\":null,\"provisionalBreak\":null},\"durableCommands\":[{\"deviceId\":\"p222-device\",\"deviceSequence\":9,\"hlcCounter\":0,\"hlcWallMs\":1788179100000,\"id\":\"01a057c7-b160-78cf-b67c-59c2c6684d95\",\"observedElapsedMs\":1500000,\"occurredAt\":\"2026-08-31T12:25:00.000Z\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"type\":\"finish\"}],\"effectsAfterCommit\":[{\"kind\":\"launchSync\"},{\"kind\":\"cancelAlarm\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}],\"lifecycle\":{\"consumedCompletions\":[{\"commandId\":null,\"phase\":\"focus\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"},{\"commandId\":\"01a057c7-b160-78cf-b67c-59c2c6684d95\",\"phase\":\"focus\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}],\"pendingBreaks\":[]},\"observation\":{\"canonicalAnchorAt\":\"2026-08-31T12:25:00Z\",\"commandTimes\":{\"01a057c7-b160-78cf-b67c-59c2c6684d95\":\"2026-08-31T12:25:00.000Z\"}},\"outcome\":\"planned\",\"ownershipWrites\":[{\"kind\":\"removeTimerOwner\"}],\"projection\":{\"autoStartBreaks\":false,\"canonicalTimer\":{\"anchorAt\":\"2026-08-31T12:25:00Z\",\"elapsedAtAnchorMs\":1500000,\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"lastIntent\":{\"commandId\":\"01a057c7-b160-78cf-b67c-59c2c6684d95\",\"deviceId\":\"p222-device\",\"occurredAt\":\"2026-08-31T12:25:00Z\",\"type\":\"finish\"},\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"startedByDeviceId\":\"p222-device\",\"status\":\"completed\"},\"durationsMs\":{\"focus\":1500000,\"long_break\":900000,\"short_break\":300000},\"history\":[{\"commandId\":\"01a057c7-b160-78cf-b67c-59c2c6684d95\",\"completedAt\":\"2026-08-31T12:25:00Z\",\"endedAt\":\"2026-08-31T12:25:00Z\",\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"status\":\"completed\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}],\"selectedTaskId\":null,\"tasks\":[],\"timerOutcomes\":{\"01a057c7-b160-78cf-b67c-59c2c6684d95\":{\"outcome\":\"applied\",\"reason\":\"\"}},\"winningOperationIds\":{\"autoStart\":null,\"durations\":{},\"selectedTask\":null,\"tasks\":{}}},\"reason\":\"\",\"schemaVersion\":1,\"selection\":{\"explicit\":false,\"generation\":\"0\",\"phase\":\"short_break\"},\"source\":{\"completedAt\":\"2026-08-31T12:25:00Z\",\"endedAt\":\"2026-08-31T12:25:00Z\",\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"status\":\"completed\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"},\"sourceStatus\":\"naturalExpiry\",\"workspace\":{\"base\":{\"autoStartBreaks\":false,\"canonicalTimer\":{\"anchorAt\":\"2026-08-31T12:25:00Z\",\"elapsedAtAnchorMs\":1500000,\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"lastIntent\":{\"commandId\":\"01a057b0-ce00-7000-8000-000000000015\",\"deviceId\":\"p222-device\",\"occurredAt\":\"2026-08-31T12:00:00Z\",\"type\":\"start\"},\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"startedByDeviceId\":\"p222-device\",\"status\":\"completed\"},\"durationsMs\":{\"focus\":1500000,\"long_break\":900000,\"short_break\":300000},\"history\":[{\"completedAt\":\"2026-08-31T12:25:00Z\",\"endedAt\":\"2026-08-31T12:25:00Z\",\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"status\":\"completed\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}],\"selectedTaskId\":null,\"tasks\":[]},\"canonicalHead\":null,\"displayContext\":{\"profile\":\"pwaStorage\",\"projectionPending\":{\"autoStartOperations\":[],\"commands\":[{\"deviceId\":\"p222-device\",\"deviceSequence\":9,\"hlcCounter\":0,\"hlcWallMs\":1788179100000,\"id\":\"01a057c7-b160-78cf-b67c-59c2c6684d95\",\"observedElapsedMs\":1500000,\"occurredAt\":\"2026-08-31T12:25:00.000Z\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"type\":\"finish\"}],\"durationOperations\":[],\"selectedTaskOperations\":[],\"taskOperations\":[]}},\"local\":{\"autoStartOperations\":[],\"commands\":[{\"deviceId\":\"p222-device\",\"deviceSequence\":9,\"hlcCounter\":0,\"hlcWallMs\":1788179100000,\"id\":\"01a057c7-b160-78cf-b67c-59c2c6684d95\",\"observedElapsedMs\":1500000,\"occurredAt\":\"2026-08-31T12:25:00.000Z\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"type\":\"finish\"}],\"durationOperations\":[],\"selectedTaskOperations\":[],\"taskOperations\":[]},\"neverSent\":{\"autoStartOperations\":[],\"commands\":[\"01a057c7-b160-78cf-b67c-59c2c6684d95\"],\"durationOperations\":[],\"selectedTaskOperations\":[],\"taskOperations\":[]},\"timerDependencies\":[]}}}",
+      "priorReturn": {
+        "ok": true,
+        "value": {
+          "allocation": {
+            "deviceId": "p222-device",
+            "deviceSequence": 9,
+            "hlc": {
+              "counter": 0,
+              "wallMs": 1788179100000
+            },
+            "lastUuid": "01a057c7-b160-78cf-b67c-59c2c6684d95"
+          },
+          "atomicCommandIds": [
+            "01a057c7-b160-78cf-b67c-59c2c6684d95"
+          ],
+          "commandOutcomes": [
+            {
+              "id": "01a057c7-b160-78cf-b67c-59c2c6684d95",
+              "outcome": "applied"
+            }
+          ],
+          "commands": [
+            {
+              "deviceId": "p222-device",
+              "deviceSequence": 9,
+              "hlcCounter": 0,
+              "hlcWallMs": 1788179100000,
+              "id": "01a057c7-b160-78cf-b67c-59c2c6684d95",
+              "observedElapsedMs": 1500000,
+              "occurredAt": "2026-08-31T12:25:00.000Z",
+              "phase": "focus",
+              "plannedDurationMs": 1500000,
+              "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+              "type": "finish"
+            }
+          ],
+          "completionRecords": {
+            "pendingAutoBreak": null,
+            "phaseAdvance": null,
+            "provisionalBreak": null
+          },
+          "durableCommands": [
+            {
+              "deviceId": "p222-device",
+              "deviceSequence": 9,
+              "hlcCounter": 0,
+              "hlcWallMs": 1788179100000,
+              "id": "01a057c7-b160-78cf-b67c-59c2c6684d95",
+              "observedElapsedMs": 1500000,
+              "occurredAt": "2026-08-31T12:25:00.000Z",
+              "phase": "focus",
+              "plannedDurationMs": 1500000,
+              "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+              "type": "finish"
+            }
+          ],
+          "effectsAfterCommit": [
+            {
+              "kind": "launchSync"
+            },
+            {
+              "kind": "cancelAlarm",
+              "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+            }
+          ],
+          "lifecycle": {
+            "consumedCompletions": [
+              {
+                "commandId": null,
+                "phase": "focus",
+                "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+              },
+              {
+                "commandId": "01a057c7-b160-78cf-b67c-59c2c6684d95",
+                "phase": "focus",
+                "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+              }
+            ],
+            "pendingBreaks": []
+          },
+          "observation": {
+            "canonicalAnchorAt": "2026-08-31T12:25:00Z",
+            "commandTimes": {
+              "01a057c7-b160-78cf-b67c-59c2c6684d95": "2026-08-31T12:25:00.000Z"
+            }
+          },
+          "outcome": "planned",
+          "ownershipWrites": [
+            {
+              "kind": "removeTimerOwner"
+            }
+          ],
+          "projection": {
+            "autoStartBreaks": false,
+            "canonicalTimer": {
+              "anchorAt": "2026-08-31T12:25:00Z",
+              "elapsedAtAnchorMs": 1500000,
+              "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+              "lastIntent": {
+                "commandId": "01a057c7-b160-78cf-b67c-59c2c6684d95",
+                "deviceId": "p222-device",
+                "occurredAt": "2026-08-31T12:25:00Z",
+                "type": "finish"
+              },
+              "phase": "focus",
+              "plannedDurationMs": 1500000,
+              "startedByDeviceId": "p222-device",
+              "status": "completed"
+            },
+            "durationsMs": {
+              "focus": 1500000,
+              "long_break": 900000,
+              "short_break": 300000
+            },
+            "history": [
+              {
+                "commandId": "01a057c7-b160-78cf-b67c-59c2c6684d95",
+                "completedAt": "2026-08-31T12:25:00Z",
+                "endedAt": "2026-08-31T12:25:00Z",
+                "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                "phase": "focus",
+                "plannedDurationMs": 1500000,
+                "status": "completed",
+                "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+              }
+            ],
+            "selectedTaskId": null,
+            "tasks": [],
+            "timerOutcomes": {
+              "01a057c7-b160-78cf-b67c-59c2c6684d95": {
+                "outcome": "applied",
+                "reason": ""
+              }
+            },
+            "winningOperationIds": {
+              "autoStart": null,
+              "durations": {},
+              "selectedTask": null,
+              "tasks": {}
+            }
+          },
+          "reason": "",
+          "schemaVersion": 1,
+          "selection": {
+            "explicit": false,
+            "generation": "0",
+            "phase": "short_break"
+          },
+          "source": {
+            "completedAt": "2026-08-31T12:25:00Z",
+            "endedAt": "2026-08-31T12:25:00Z",
+            "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+            "phase": "focus",
+            "plannedDurationMs": 1500000,
+            "status": "completed",
+            "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+          },
+          "sourceStatus": "naturalExpiry",
+          "workspace": {
+            "base": {
+              "autoStartBreaks": false,
+              "canonicalTimer": {
+                "anchorAt": "2026-08-31T12:25:00Z",
+                "elapsedAtAnchorMs": 1500000,
+                "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                "lastIntent": {
+                  "commandId": "01a057b0-ce00-7000-8000-000000000015",
+                  "deviceId": "p222-device",
+                  "occurredAt": "2026-08-31T12:00:00Z",
+                  "type": "start"
+                },
+                "phase": "focus",
+                "plannedDurationMs": 1500000,
+                "startedByDeviceId": "p222-device",
+                "status": "completed"
+              },
+              "durationsMs": {
+                "focus": 1500000,
+                "long_break": 900000,
+                "short_break": 300000
+              },
+              "history": [
+                {
+                  "completedAt": "2026-08-31T12:25:00Z",
+                  "endedAt": "2026-08-31T12:25:00Z",
+                  "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                  "phase": "focus",
+                  "plannedDurationMs": 1500000,
+                  "status": "completed",
+                  "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+                }
+              ],
+              "selectedTaskId": null,
+              "tasks": []
+            },
+            "canonicalHead": null,
+            "displayContext": {
+              "profile": "pwaStorage",
+              "projectionPending": {
+                "autoStartOperations": [],
+                "commands": [
+                  {
+                    "deviceId": "p222-device",
+                    "deviceSequence": 9,
+                    "hlcCounter": 0,
+                    "hlcWallMs": 1788179100000,
+                    "id": "01a057c7-b160-78cf-b67c-59c2c6684d95",
+                    "observedElapsedMs": 1500000,
+                    "occurredAt": "2026-08-31T12:25:00.000Z",
+                    "phase": "focus",
+                    "plannedDurationMs": 1500000,
+                    "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                    "type": "finish"
+                  }
+                ],
+                "durationOperations": [],
+                "selectedTaskOperations": [],
+                "taskOperations": []
+              }
+            },
+            "local": {
+              "autoStartOperations": [],
+              "commands": [
+                {
+                  "deviceId": "p222-device",
+                  "deviceSequence": 9,
+                  "hlcCounter": 0,
+                  "hlcWallMs": 1788179100000,
+                  "id": "01a057c7-b160-78cf-b67c-59c2c6684d95",
+                  "observedElapsedMs": 1500000,
+                  "occurredAt": "2026-08-31T12:25:00.000Z",
+                  "phase": "focus",
+                  "plannedDurationMs": 1500000,
+                  "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                  "type": "finish"
+                }
+              ],
+              "durationOperations": [],
+              "selectedTaskOperations": [],
+              "taskOperations": []
+            },
+            "neverSent": {
+              "autoStartOperations": [],
+              "commands": [
+                "01a057c7-b160-78cf-b67c-59c2c6684d95"
+              ],
+              "durationOperations": [],
+              "selectedTaskOperations": [],
+              "taskOperations": []
+            },
+            "timerDependencies": []
+          }
+        }
+      }
+    },
+    {
+      "name": "finish-raw-shape-selection",
+      "operation": "workspace.completionMutation.v1",
+      "inputRaw": "{\"compatibility\":\"pwaStorage\",\"replicationMode\":\"centralized\",\"workspace\":{\"base\":{\"canonicalTimer\":{\"anchorAt\":\"2026-08-31T12:25:00Z\",\"elapsedAtAnchorMs\":1500000,\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"lastIntent\":{\"commandId\":\"01a057b0-ce00-7000-8000-000000000015\",\"deviceId\":\"p222-device\",\"occurredAt\":\"2026-08-31T12:00:00Z\",\"type\":\"start\"},\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"startedByDeviceId\":\"p222-device\",\"status\":\"completed\"},\"history\":[{\"completedAt\":\"2026-08-31T12:25:00Z\",\"endedAt\":\"2026-08-31T12:25:00Z\",\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"status\":\"completed\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}],\"tasks\":[],\"durationsMs\":{\"focus\":1500000,\"short_break\":300000,\"long_break\":900000},\"autoStartBreaks\":false,\"selectedTaskId\":null},\"local\":{\"commands\":[],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]},\"canonicalHead\":null,\"neverSent\":{\"commands\":[],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]},\"timerDependencies\":[],\"displayContext\":{\"profile\":\"pwaStorage\",\"projectionPending\":{\"commands\":[],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]}}},\"selection\":[\"focus\",\"0\",false],\"allocation\":{\"deviceId\":\"p222-device\",\"deviceSequence\":8,\"hlc\":{\"counter\":3,\"wallMs\":1788177600000},\"lastUuid\":\"01a057b0-ce00-7000-8000-000000000015\"},\"observation\":{\"canonicalAnchorAt\":\"2026-08-31T12:25:00Z\",\"commandTimes\":{}},\"clock\":{\"occurredAt\":\"2026-08-31T12:25:00.000Z\",\"physicalNow\":\"2026-08-31T12:25:00.000Z\",\"observedAt\":\"2026-08-31T12:25:00.000Z\"},\"identities\":{\"commandUuids\":[\"01a057c7-b160-78cf-b67c-59c2c6684d95\",\"01a057c7-b160-78cf-b67c-59c2c6684d96\"],\"timerUuid\":\"22222222-2222-4222-8222-222222222222\"},\"calendarIntervals\":[{\"start\":\"2026-08-30T19:00:00.000Z\",\"end\":\"2026-08-31T19:00:00.000Z\"}],\"requestedTimer\":{\"anchorAt\":\"2026-08-31T12:25:00Z\",\"elapsedAtAnchorMs\":1500000,\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"lastIntent\":{\"commandId\":\"01a057b0-ce00-7000-8000-000000000015\",\"deviceId\":\"p222-device\",\"occurredAt\":\"2026-08-31T12:00:00Z\",\"type\":\"start\"},\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"startedByDeviceId\":\"p222-device\",\"status\":\"completed\"},\"stage\":\"finishCommit\",\"ownership\":{\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"deviceId\":\"p222-device\",\"tabId\":\"p222-tab-0\",\"leaseExpiresAtMs\":1788177660000},\"localTabId\":\"p222-tab-0\",\"leaseNowMs\":1788179100000,\"leaseDurationMs\":60000}",
+      "priorEnvelopeRaw": "{\"ok\":true,\"value\":{\"allocation\":{\"deviceId\":\"p222-device\",\"deviceSequence\":9,\"hlc\":{\"counter\":0,\"wallMs\":1788179100000},\"lastUuid\":\"01a057c7-b160-78cf-b67c-59c2c6684d95\"},\"atomicCommandIds\":[\"01a057c7-b160-78cf-b67c-59c2c6684d95\"],\"commandOutcomes\":[{\"id\":\"01a057c7-b160-78cf-b67c-59c2c6684d95\",\"outcome\":\"applied\"}],\"commands\":[{\"deviceId\":\"p222-device\",\"deviceSequence\":9,\"hlcCounter\":0,\"hlcWallMs\":1788179100000,\"id\":\"01a057c7-b160-78cf-b67c-59c2c6684d95\",\"observedElapsedMs\":1500000,\"occurredAt\":\"2026-08-31T12:25:00.000Z\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"type\":\"finish\"}],\"completionRecords\":{\"pendingAutoBreak\":null,\"phaseAdvance\":null,\"provisionalBreak\":null},\"durableCommands\":[{\"deviceId\":\"p222-device\",\"deviceSequence\":9,\"hlcCounter\":0,\"hlcWallMs\":1788179100000,\"id\":\"01a057c7-b160-78cf-b67c-59c2c6684d95\",\"observedElapsedMs\":1500000,\"occurredAt\":\"2026-08-31T12:25:00.000Z\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"type\":\"finish\"}],\"effectsAfterCommit\":[{\"kind\":\"launchSync\"},{\"kind\":\"cancelAlarm\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}],\"lifecycle\":{\"consumedCompletions\":[{\"commandId\":null,\"phase\":\"focus\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"},{\"commandId\":\"01a057c7-b160-78cf-b67c-59c2c6684d95\",\"phase\":\"focus\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}],\"pendingBreaks\":[]},\"observation\":{\"canonicalAnchorAt\":\"2026-08-31T12:25:00Z\",\"commandTimes\":{\"01a057c7-b160-78cf-b67c-59c2c6684d95\":\"2026-08-31T12:25:00.000Z\"}},\"outcome\":\"planned\",\"ownershipWrites\":[{\"kind\":\"removeTimerOwner\"}],\"projection\":{\"autoStartBreaks\":false,\"canonicalTimer\":{\"anchorAt\":\"2026-08-31T12:25:00Z\",\"elapsedAtAnchorMs\":1500000,\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"lastIntent\":{\"commandId\":\"01a057c7-b160-78cf-b67c-59c2c6684d95\",\"deviceId\":\"p222-device\",\"occurredAt\":\"2026-08-31T12:25:00Z\",\"type\":\"finish\"},\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"startedByDeviceId\":\"p222-device\",\"status\":\"completed\"},\"durationsMs\":{\"focus\":1500000,\"long_break\":900000,\"short_break\":300000},\"history\":[{\"commandId\":\"01a057c7-b160-78cf-b67c-59c2c6684d95\",\"completedAt\":\"2026-08-31T12:25:00Z\",\"endedAt\":\"2026-08-31T12:25:00Z\",\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"status\":\"completed\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}],\"selectedTaskId\":null,\"tasks\":[],\"timerOutcomes\":{\"01a057c7-b160-78cf-b67c-59c2c6684d95\":{\"outcome\":\"applied\",\"reason\":\"\"}},\"winningOperationIds\":{\"autoStart\":null,\"durations\":{},\"selectedTask\":null,\"tasks\":{}}},\"reason\":\"\",\"schemaVersion\":1,\"selection\":{\"explicit\":false,\"generation\":\"0\",\"phase\":\"short_break\"},\"source\":{\"completedAt\":\"2026-08-31T12:25:00Z\",\"endedAt\":\"2026-08-31T12:25:00Z\",\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"status\":\"completed\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"},\"sourceStatus\":\"naturalExpiry\",\"workspace\":{\"base\":{\"autoStartBreaks\":false,\"canonicalTimer\":{\"anchorAt\":\"2026-08-31T12:25:00Z\",\"elapsedAtAnchorMs\":1500000,\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"lastIntent\":{\"commandId\":\"01a057b0-ce00-7000-8000-000000000015\",\"deviceId\":\"p222-device\",\"occurredAt\":\"2026-08-31T12:00:00Z\",\"type\":\"start\"},\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"startedByDeviceId\":\"p222-device\",\"status\":\"completed\"},\"durationsMs\":{\"focus\":1500000,\"long_break\":900000,\"short_break\":300000},\"history\":[{\"completedAt\":\"2026-08-31T12:25:00Z\",\"endedAt\":\"2026-08-31T12:25:00Z\",\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"status\":\"completed\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}],\"selectedTaskId\":null,\"tasks\":[]},\"canonicalHead\":null,\"displayContext\":{\"profile\":\"pwaStorage\",\"projectionPending\":{\"autoStartOperations\":[],\"commands\":[{\"deviceId\":\"p222-device\",\"deviceSequence\":9,\"hlcCounter\":0,\"hlcWallMs\":1788179100000,\"id\":\"01a057c7-b160-78cf-b67c-59c2c6684d95\",\"observedElapsedMs\":1500000,\"occurredAt\":\"2026-08-31T12:25:00.000Z\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"type\":\"finish\"}],\"durationOperations\":[],\"selectedTaskOperations\":[],\"taskOperations\":[]}},\"local\":{\"autoStartOperations\":[],\"commands\":[{\"deviceId\":\"p222-device\",\"deviceSequence\":9,\"hlcCounter\":0,\"hlcWallMs\":1788179100000,\"id\":\"01a057c7-b160-78cf-b67c-59c2c6684d95\",\"observedElapsedMs\":1500000,\"occurredAt\":\"2026-08-31T12:25:00.000Z\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"type\":\"finish\"}],\"durationOperations\":[],\"selectedTaskOperations\":[],\"taskOperations\":[]},\"neverSent\":{\"autoStartOperations\":[],\"commands\":[\"01a057c7-b160-78cf-b67c-59c2c6684d95\"],\"durationOperations\":[],\"selectedTaskOperations\":[],\"taskOperations\":[]},\"timerDependencies\":[]}}}",
+      "priorReturn": {
+        "ok": true,
+        "value": {
+          "allocation": {
+            "deviceId": "p222-device",
+            "deviceSequence": 9,
+            "hlc": {
+              "counter": 0,
+              "wallMs": 1788179100000
+            },
+            "lastUuid": "01a057c7-b160-78cf-b67c-59c2c6684d95"
+          },
+          "atomicCommandIds": [
+            "01a057c7-b160-78cf-b67c-59c2c6684d95"
+          ],
+          "commandOutcomes": [
+            {
+              "id": "01a057c7-b160-78cf-b67c-59c2c6684d95",
+              "outcome": "applied"
+            }
+          ],
+          "commands": [
+            {
+              "deviceId": "p222-device",
+              "deviceSequence": 9,
+              "hlcCounter": 0,
+              "hlcWallMs": 1788179100000,
+              "id": "01a057c7-b160-78cf-b67c-59c2c6684d95",
+              "observedElapsedMs": 1500000,
+              "occurredAt": "2026-08-31T12:25:00.000Z",
+              "phase": "focus",
+              "plannedDurationMs": 1500000,
+              "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+              "type": "finish"
+            }
+          ],
+          "completionRecords": {
+            "pendingAutoBreak": null,
+            "phaseAdvance": null,
+            "provisionalBreak": null
+          },
+          "durableCommands": [
+            {
+              "deviceId": "p222-device",
+              "deviceSequence": 9,
+              "hlcCounter": 0,
+              "hlcWallMs": 1788179100000,
+              "id": "01a057c7-b160-78cf-b67c-59c2c6684d95",
+              "observedElapsedMs": 1500000,
+              "occurredAt": "2026-08-31T12:25:00.000Z",
+              "phase": "focus",
+              "plannedDurationMs": 1500000,
+              "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+              "type": "finish"
+            }
+          ],
+          "effectsAfterCommit": [
+            {
+              "kind": "launchSync"
+            },
+            {
+              "kind": "cancelAlarm",
+              "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+            }
+          ],
+          "lifecycle": {
+            "consumedCompletions": [
+              {
+                "commandId": null,
+                "phase": "focus",
+                "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+              },
+              {
+                "commandId": "01a057c7-b160-78cf-b67c-59c2c6684d95",
+                "phase": "focus",
+                "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+              }
+            ],
+            "pendingBreaks": []
+          },
+          "observation": {
+            "canonicalAnchorAt": "2026-08-31T12:25:00Z",
+            "commandTimes": {
+              "01a057c7-b160-78cf-b67c-59c2c6684d95": "2026-08-31T12:25:00.000Z"
+            }
+          },
+          "outcome": "planned",
+          "ownershipWrites": [
+            {
+              "kind": "removeTimerOwner"
+            }
+          ],
+          "projection": {
+            "autoStartBreaks": false,
+            "canonicalTimer": {
+              "anchorAt": "2026-08-31T12:25:00Z",
+              "elapsedAtAnchorMs": 1500000,
+              "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+              "lastIntent": {
+                "commandId": "01a057c7-b160-78cf-b67c-59c2c6684d95",
+                "deviceId": "p222-device",
+                "occurredAt": "2026-08-31T12:25:00Z",
+                "type": "finish"
+              },
+              "phase": "focus",
+              "plannedDurationMs": 1500000,
+              "startedByDeviceId": "p222-device",
+              "status": "completed"
+            },
+            "durationsMs": {
+              "focus": 1500000,
+              "long_break": 900000,
+              "short_break": 300000
+            },
+            "history": [
+              {
+                "commandId": "01a057c7-b160-78cf-b67c-59c2c6684d95",
+                "completedAt": "2026-08-31T12:25:00Z",
+                "endedAt": "2026-08-31T12:25:00Z",
+                "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                "phase": "focus",
+                "plannedDurationMs": 1500000,
+                "status": "completed",
+                "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+              }
+            ],
+            "selectedTaskId": null,
+            "tasks": [],
+            "timerOutcomes": {
+              "01a057c7-b160-78cf-b67c-59c2c6684d95": {
+                "outcome": "applied",
+                "reason": ""
+              }
+            },
+            "winningOperationIds": {
+              "autoStart": null,
+              "durations": {},
+              "selectedTask": null,
+              "tasks": {}
+            }
+          },
+          "reason": "",
+          "schemaVersion": 1,
+          "selection": {
+            "explicit": false,
+            "generation": "0",
+            "phase": "short_break"
+          },
+          "source": {
+            "completedAt": "2026-08-31T12:25:00Z",
+            "endedAt": "2026-08-31T12:25:00Z",
+            "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+            "phase": "focus",
+            "plannedDurationMs": 1500000,
+            "status": "completed",
+            "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+          },
+          "sourceStatus": "naturalExpiry",
+          "workspace": {
+            "base": {
+              "autoStartBreaks": false,
+              "canonicalTimer": {
+                "anchorAt": "2026-08-31T12:25:00Z",
+                "elapsedAtAnchorMs": 1500000,
+                "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                "lastIntent": {
+                  "commandId": "01a057b0-ce00-7000-8000-000000000015",
+                  "deviceId": "p222-device",
+                  "occurredAt": "2026-08-31T12:00:00Z",
+                  "type": "start"
+                },
+                "phase": "focus",
+                "plannedDurationMs": 1500000,
+                "startedByDeviceId": "p222-device",
+                "status": "completed"
+              },
+              "durationsMs": {
+                "focus": 1500000,
+                "long_break": 900000,
+                "short_break": 300000
+              },
+              "history": [
+                {
+                  "completedAt": "2026-08-31T12:25:00Z",
+                  "endedAt": "2026-08-31T12:25:00Z",
+                  "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                  "phase": "focus",
+                  "plannedDurationMs": 1500000,
+                  "status": "completed",
+                  "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+                }
+              ],
+              "selectedTaskId": null,
+              "tasks": []
+            },
+            "canonicalHead": null,
+            "displayContext": {
+              "profile": "pwaStorage",
+              "projectionPending": {
+                "autoStartOperations": [],
+                "commands": [
+                  {
+                    "deviceId": "p222-device",
+                    "deviceSequence": 9,
+                    "hlcCounter": 0,
+                    "hlcWallMs": 1788179100000,
+                    "id": "01a057c7-b160-78cf-b67c-59c2c6684d95",
+                    "observedElapsedMs": 1500000,
+                    "occurredAt": "2026-08-31T12:25:00.000Z",
+                    "phase": "focus",
+                    "plannedDurationMs": 1500000,
+                    "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                    "type": "finish"
+                  }
+                ],
+                "durationOperations": [],
+                "selectedTaskOperations": [],
+                "taskOperations": []
+              }
+            },
+            "local": {
+              "autoStartOperations": [],
+              "commands": [
+                {
+                  "deviceId": "p222-device",
+                  "deviceSequence": 9,
+                  "hlcCounter": 0,
+                  "hlcWallMs": 1788179100000,
+                  "id": "01a057c7-b160-78cf-b67c-59c2c6684d95",
+                  "observedElapsedMs": 1500000,
+                  "occurredAt": "2026-08-31T12:25:00.000Z",
+                  "phase": "focus",
+                  "plannedDurationMs": 1500000,
+                  "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                  "type": "finish"
+                }
+              ],
+              "durationOperations": [],
+              "selectedTaskOperations": [],
+              "taskOperations": []
+            },
+            "neverSent": {
+              "autoStartOperations": [],
+              "commands": [
+                "01a057c7-b160-78cf-b67c-59c2c6684d95"
+              ],
+              "durationOperations": [],
+              "selectedTaskOperations": [],
+              "taskOperations": []
+            },
+            "timerDependencies": []
+          }
+        }
+      }
+    },
+    {
+      "name": "read-raw-shape-profile",
+      "operation": "workspace.readModel.v1",
+      "inputRaw": "{\"profile\":{\"pwaStorage\":null},\"source\":{\"kind\":\"workspace\",\"value\":{\"base\":{\"canonicalTimer\":{\"anchorAt\":\"2026-08-31T12:25:00Z\",\"elapsedAtAnchorMs\":1500000,\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"lastIntent\":{\"commandId\":\"01a057b0-ce00-7000-8000-000000000015\",\"deviceId\":\"p222-device\",\"occurredAt\":\"2026-08-31T12:00:00Z\",\"type\":\"start\"},\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"startedByDeviceId\":\"p222-device\",\"status\":\"completed\"},\"history\":[{\"completedAt\":\"2026-08-31T12:25:00Z\",\"endedAt\":\"2026-08-31T12:25:00Z\",\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"status\":\"completed\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}],\"tasks\":[],\"durationsMs\":{\"focus\":1500000,\"short_break\":300000,\"long_break\":900000},\"autoStartBreaks\":false,\"selectedTaskId\":null},\"local\":{\"commands\":[],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]},\"canonicalHead\":null,\"neverSent\":{\"commands\":[],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]},\"timerDependencies\":[],\"displayContext\":{\"profile\":\"pwaStorage\",\"projectionPending\":{\"commands\":[],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]}}}},\"selectedPhase\":\"focus\",\"selection\":{\"phase\":\"focus\",\"generation\":\"0\",\"explicit\":false},\"lifecycle\":{},\"observedAt\":\"2026-08-31T12:25:00.000Z\",\"calendarIntervals\":[{\"start\":\"2026-08-30T19:00:00.000Z\",\"end\":\"2026-08-31T19:00:00.000Z\"}]}",
+      "priorEnvelopeRaw": "{\"ok\":true,\"value\":{\"availableIntents\":[\"start\",\"selectPhase\",\"finish\"],\"cadence\":{\"completedFocusToday\":1,\"completedFocusTodayPlannedDurationMs\":1500000,\"completedFocusTotal\":1,\"longBreakProgress\":1,\"nextCompletedFocusBreakPhase\":\"short_break\",\"skipDestination\":\"focus\"},\"canonical\":{\"deadlineAt\":null,\"elapsedMs\":1500000.0,\"observedElapsedMs\":1500000,\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"progress\":1.0,\"remainingMs\":0.0,\"status\":\"completed\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"},\"display\":{\"elapsedMs\":0.0,\"phase\":\"short_break\",\"plannedDurationMs\":300000,\"progress\":0.0,\"remainingMs\":300000.0,\"remainingSecondsCeil\":300,\"status\":\"completed\"},\"schemaVersion\":1,\"tasks\":{\"completedFocusTodayByTask\":{},\"selectedTaskId\":null,\"total\":0}}}",
+      "priorReturn": {
+        "ok": true,
+        "value": {
+          "availableIntents": [
+            "start",
+            "selectPhase",
+            "finish"
+          ],
+          "cadence": {
+            "completedFocusToday": 1,
+            "completedFocusTodayPlannedDurationMs": 1500000,
+            "completedFocusTotal": 1,
+            "longBreakProgress": 1,
+            "nextCompletedFocusBreakPhase": "short_break",
+            "skipDestination": "focus"
+          },
+          "canonical": {
+            "deadlineAt": null,
+            "elapsedMs": 1500000,
+            "observedElapsedMs": 1500000,
+            "phase": "focus",
+            "plannedDurationMs": 1500000,
+            "progress": 1,
+            "remainingMs": 0,
+            "status": "completed",
+            "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+          },
+          "display": {
+            "elapsedMs": 0,
+            "phase": "short_break",
+            "plannedDurationMs": 300000,
+            "progress": 0,
+            "remainingMs": 300000,
+            "remainingSecondsCeil": 300,
+            "status": "completed"
+          },
+          "schemaVersion": 1,
+          "tasks": {
+            "completedFocusTodayByTask": {},
+            "selectedTaskId": null,
+            "total": 0
+          }
+        }
+      }
+    },
+    {
+      "name": "install-raw-shape-compatibility",
+      "operation": "timer.completionState.v1",
+      "inputRaw": "{\"kind\":\"install\",\"compatibility\":{\"pwaRejectedFinish\":null},\"beforeHistory\":[],\"afterHistory\":[{\"completedAt\":\"2026-08-31T12:25:00Z\",\"endedAt\":\"2026-08-31T12:25:00Z\",\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"status\":\"completed\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}],\"canonicalTimer\":{\"anchorAt\":\"2026-08-31T12:25:00Z\",\"elapsedAtAnchorMs\":1500000,\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"lastIntent\":{\"commandId\":\"01a057b0-ce00-7000-8000-000000000015\",\"deviceId\":\"p222-device\",\"occurredAt\":\"2026-08-31T12:00:00Z\",\"type\":\"start\"},\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"startedByDeviceId\":\"p222-device\",\"status\":\"completed\"},\"selection\":{\"phase\":\"focus\",\"generation\":\"0\",\"explicit\":false},\"lifecycle\":{\"consumedCompletions\":[],\"pendingBreaks\":[]},\"pending\":{\"commandIds\":[],\"sendableCommandIds\":[],\"otherOperationIds\":[]},\"advances\":[],\"acknowledgements\":[],\"discardedCommandIds\":[],\"referenceTime\":\"2026-08-31T12:25:00.000Z\",\"calendarIntervals\":[{\"start\":\"2026-08-30T19:00:00.000Z\",\"end\":\"2026-08-31T19:00:00.000Z\"}],\"sentContext\":{\"kind\":\"pwa\",\"commands\":[],\"rollbackHistory\":[]}}",
+      "priorEnvelopeRaw": "{\"ok\":true,\"value\":{\"advances\":[],\"lifecycle\":{\"consumedCompletions\":[{\"commandId\":null,\"phase\":\"focus\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}],\"pendingBreaks\":[]},\"reason\":\"completionSelected\",\"retiredAdvanceIds\":[],\"rolledBackAdvanceIds\":[],\"selection\":{\"explicit\":false,\"generation\":\"0\",\"phase\":\"short_break\"},\"source\":{\"commandId\":null,\"historyId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"occurredAt\":\"2026-08-31T12:25:00Z\",\"phase\":\"focus\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}}}",
+      "priorReturn": {
+        "ok": true,
+        "value": {
+          "advances": [],
+          "lifecycle": {
+            "consumedCompletions": [
+              {
+                "commandId": null,
+                "phase": "focus",
+                "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+              }
+            ],
+            "pendingBreaks": []
+          },
+          "reason": "completionSelected",
+          "retiredAdvanceIds": [],
+          "rolledBackAdvanceIds": [],
+          "selection": {
+            "explicit": false,
+            "generation": "0",
+            "phase": "short_break"
+          },
+          "source": {
+            "commandId": null,
+            "historyId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+            "occurredAt": "2026-08-31T12:25:00Z",
+            "phase": "focus",
+            "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+          }
+        }
+      }
+    },
+    {
+      "name": "install-raw-shape-selection",
+      "operation": "timer.completionState.v1",
+      "inputRaw": "{\"kind\":\"install\",\"compatibility\":\"pwaRejectedFinish\",\"beforeHistory\":[],\"afterHistory\":[{\"completedAt\":\"2026-08-31T12:25:00Z\",\"endedAt\":\"2026-08-31T12:25:00Z\",\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"status\":\"completed\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}],\"canonicalTimer\":{\"anchorAt\":\"2026-08-31T12:25:00Z\",\"elapsedAtAnchorMs\":1500000,\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"lastIntent\":{\"commandId\":\"01a057b0-ce00-7000-8000-000000000015\",\"deviceId\":\"p222-device\",\"occurredAt\":\"2026-08-31T12:00:00Z\",\"type\":\"start\"},\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"startedByDeviceId\":\"p222-device\",\"status\":\"completed\"},\"selection\":[\"focus\",\"0\",false],\"lifecycle\":{\"consumedCompletions\":[],\"pendingBreaks\":[]},\"pending\":{\"commandIds\":[],\"sendableCommandIds\":[],\"otherOperationIds\":[]},\"advances\":[],\"acknowledgements\":[],\"discardedCommandIds\":[],\"referenceTime\":\"2026-08-31T12:25:00.000Z\",\"calendarIntervals\":[{\"start\":\"2026-08-30T19:00:00.000Z\",\"end\":\"2026-08-31T19:00:00.000Z\"}],\"sentContext\":{\"kind\":\"pwa\",\"commands\":[],\"rollbackHistory\":[]}}",
+      "priorEnvelopeRaw": "{\"ok\":true,\"value\":{\"advances\":[],\"lifecycle\":{\"consumedCompletions\":[{\"commandId\":null,\"phase\":\"focus\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}],\"pendingBreaks\":[]},\"reason\":\"completionSelected\",\"retiredAdvanceIds\":[],\"rolledBackAdvanceIds\":[],\"selection\":{\"explicit\":false,\"generation\":\"0\",\"phase\":\"short_break\"},\"source\":{\"commandId\":null,\"historyId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"occurredAt\":\"2026-08-31T12:25:00Z\",\"phase\":\"focus\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}}}",
+      "priorReturn": {
+        "ok": true,
+        "value": {
+          "advances": [],
+          "lifecycle": {
+            "consumedCompletions": [
+              {
+                "commandId": null,
+                "phase": "focus",
+                "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+              }
+            ],
+            "pendingBreaks": []
+          },
+          "reason": "completionSelected",
+          "retiredAdvanceIds": [],
+          "rolledBackAdvanceIds": [],
+          "selection": {
+            "explicit": false,
+            "generation": "0",
+            "phase": "short_break"
+          },
+          "source": {
+            "commandId": null,
+            "historyId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+            "occurredAt": "2026-08-31T12:25:00Z",
+            "phase": "focus",
+            "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+          }
+        }
+      }
+    },
+    {
+      "name": "install-raw-shape-sentContext",
+      "operation": "timer.completionState.v1",
+      "inputRaw": "{\"kind\":\"install\",\"compatibility\":\"pwaRejectedFinish\",\"beforeHistory\":[],\"afterHistory\":[{\"completedAt\":\"2026-08-31T12:25:00Z\",\"endedAt\":\"2026-08-31T12:25:00Z\",\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"status\":\"completed\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}],\"canonicalTimer\":{\"anchorAt\":\"2026-08-31T12:25:00Z\",\"elapsedAtAnchorMs\":1500000,\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"lastIntent\":{\"commandId\":\"01a057b0-ce00-7000-8000-000000000015\",\"deviceId\":\"p222-device\",\"occurredAt\":\"2026-08-31T12:00:00Z\",\"type\":\"start\"},\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"startedByDeviceId\":\"p222-device\",\"status\":\"completed\"},\"selection\":{\"phase\":\"focus\",\"generation\":\"0\",\"explicit\":false},\"lifecycle\":{\"consumedCompletions\":[],\"pendingBreaks\":[]},\"pending\":{\"commandIds\":[],\"sendableCommandIds\":[],\"otherOperationIds\":[]},\"advances\":[],\"acknowledgements\":[],\"discardedCommandIds\":[],\"referenceTime\":\"2026-08-31T12:25:00.000Z\",\"calendarIntervals\":[{\"start\":\"2026-08-30T19:00:00.000Z\",\"end\":\"2026-08-31T19:00:00.000Z\"}],\"sentContext\":{\"kind\":\"pwa\",\"commands\":[[\"unused-command\",\"timer\",\"start\",\"focus\",1,\"2026-08-31T12:00:00Z\",null]],\"rollbackHistory\":[]}}",
+      "priorEnvelopeRaw": "{\"ok\":true,\"value\":{\"advances\":[],\"lifecycle\":{\"consumedCompletions\":[{\"commandId\":null,\"phase\":\"focus\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}],\"pendingBreaks\":[]},\"reason\":\"completionSelected\",\"retiredAdvanceIds\":[],\"rolledBackAdvanceIds\":[],\"selection\":{\"explicit\":false,\"generation\":\"0\",\"phase\":\"short_break\"},\"source\":{\"commandId\":null,\"historyId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"occurredAt\":\"2026-08-31T12:25:00Z\",\"phase\":\"focus\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}}}",
+      "priorReturn": {
+        "ok": true,
+        "value": {
+          "advances": [],
+          "lifecycle": {
+            "consumedCompletions": [
+              {
+                "commandId": null,
+                "phase": "focus",
+                "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+              }
+            ],
+            "pendingBreaks": []
+          },
+          "reason": "completionSelected",
+          "retiredAdvanceIds": [],
+          "rolledBackAdvanceIds": [],
+          "selection": {
+            "explicit": false,
+            "generation": "0",
+            "phase": "short_break"
+          },
+          "source": {
+            "commandId": null,
+            "historyId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+            "occurredAt": "2026-08-31T12:25:00Z",
+            "phase": "focus",
+            "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+          }
+        }
+      }
+    },
+    {
+      "name": "install-raw-evidence-canonicalTimer",
+      "operation": "timer.completionState.v1",
+      "inputRaw": "{\"kind\":\"install\",\"compatibility\":\"pwaRejectedFinish\",\"beforeHistory\":[],\"afterHistory\":[{\"completedAt\":\"2026-08-31T12:25:00Z\",\"endedAt\":\"2026-08-31T12:25:00Z\",\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"status\":\"completed\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}],\"canonicalTimer\":[\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",null,\"focus\",\"completed\",1500000,1500000,\"2026-08-31T12:25:00Z\",\"p222-device\",{\"commandId\":\"01a057b0-ce00-7000-8000-000000000015\",\"deviceId\":\"p222-device\",\"occurredAt\":\"2026-08-31T12:00:00Z\",\"type\":\"start\"}],\"selection\":{\"phase\":\"focus\",\"generation\":\"0\",\"explicit\":false},\"lifecycle\":{\"consumedCompletions\":[],\"pendingBreaks\":[]},\"pending\":{\"commandIds\":[],\"sendableCommandIds\":[],\"otherOperationIds\":[]},\"advances\":[],\"acknowledgements\":[],\"discardedCommandIds\":[],\"referenceTime\":\"2026-08-31T12:25:00.000Z\",\"calendarIntervals\":[{\"start\":\"2026-08-30T19:00:00.000Z\",\"end\":\"2026-08-31T19:00:00.000Z\"}],\"sentContext\":{\"kind\":\"pwa\",\"commands\":[],\"rollbackHistory\":[]}}",
+      "priorEnvelopeRaw": "{\"ok\":true,\"value\":{\"advances\":[],\"lifecycle\":{\"consumedCompletions\":[{\"commandId\":null,\"phase\":\"focus\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}],\"pendingBreaks\":[]},\"reason\":\"completionSelected\",\"retiredAdvanceIds\":[],\"rolledBackAdvanceIds\":[],\"selection\":{\"explicit\":false,\"generation\":\"0\",\"phase\":\"short_break\"},\"source\":{\"commandId\":null,\"historyId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"occurredAt\":\"2026-08-31T12:25:00Z\",\"phase\":\"focus\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}}}",
+      "priorReturn": {
+        "ok": true,
+        "value": {
+          "advances": [],
+          "lifecycle": {
+            "consumedCompletions": [
+              {
+                "commandId": null,
+                "phase": "focus",
+                "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+              }
+            ],
+            "pendingBreaks": []
+          },
+          "reason": "completionSelected",
+          "retiredAdvanceIds": [],
+          "rolledBackAdvanceIds": [],
+          "selection": {
+            "explicit": false,
+            "generation": "0",
+            "phase": "short_break"
+          },
+          "source": {
+            "commandId": null,
+            "historyId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+            "occurredAt": "2026-08-31T12:25:00Z",
+            "phase": "focus",
+            "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+          }
+        }
+      }
+    },
+    {
+      "name": "install-raw-evidence-afterHistory",
+      "operation": "timer.completionState.v1",
+      "inputRaw": "{\"kind\":\"install\",\"compatibility\":\"pwaRejectedFinish\",\"beforeHistory\":[],\"afterHistory\":[[\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",null,null,\"focus\",\"completed\",1500000,\"2026-08-31T12:25:00Z\",\"2026-08-31T12:25:00Z\"]],\"canonicalTimer\":{\"anchorAt\":\"2026-08-31T12:25:00Z\",\"elapsedAtAnchorMs\":1500000,\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"lastIntent\":{\"commandId\":\"01a057b0-ce00-7000-8000-000000000015\",\"deviceId\":\"p222-device\",\"occurredAt\":\"2026-08-31T12:00:00Z\",\"type\":\"start\"},\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"startedByDeviceId\":\"p222-device\",\"status\":\"completed\"},\"selection\":{\"phase\":\"focus\",\"generation\":\"0\",\"explicit\":false},\"lifecycle\":{\"consumedCompletions\":[],\"pendingBreaks\":[]},\"pending\":{\"commandIds\":[],\"sendableCommandIds\":[],\"otherOperationIds\":[]},\"advances\":[],\"acknowledgements\":[],\"discardedCommandIds\":[],\"referenceTime\":\"2026-08-31T12:25:00.000Z\",\"calendarIntervals\":[{\"start\":\"2026-08-30T19:00:00.000Z\",\"end\":\"2026-08-31T19:00:00.000Z\"}],\"sentContext\":{\"kind\":\"pwa\",\"commands\":[],\"rollbackHistory\":[]}}",
+      "priorEnvelopeRaw": "{\"ok\":true,\"value\":{\"advances\":[],\"lifecycle\":{\"consumedCompletions\":[{\"commandId\":null,\"phase\":\"focus\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}],\"pendingBreaks\":[]},\"reason\":\"completionSelected\",\"retiredAdvanceIds\":[],\"rolledBackAdvanceIds\":[],\"selection\":{\"explicit\":false,\"generation\":\"0\",\"phase\":\"short_break\"},\"source\":{\"commandId\":null,\"historyId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"occurredAt\":\"2026-08-31T12:25:00Z\",\"phase\":\"focus\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}}}",
+      "priorReturn": {
+        "ok": true,
+        "value": {
+          "advances": [],
+          "lifecycle": {
+            "consumedCompletions": [
+              {
+                "commandId": null,
+                "phase": "focus",
+                "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+              }
+            ],
+            "pendingBreaks": []
+          },
+          "reason": "completionSelected",
+          "retiredAdvanceIds": [],
+          "rolledBackAdvanceIds": [],
+          "selection": {
+            "explicit": false,
+            "generation": "0",
+            "phase": "short_break"
+          },
+          "source": {
+            "commandId": null,
+            "historyId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+            "occurredAt": "2026-08-31T12:25:00Z",
+            "phase": "focus",
+            "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+          }
+        }
+      }
+    }
+  ]
+}

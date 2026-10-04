@@ -6,6 +6,8 @@ export const operations = [
   "sync.batchPlan.v1", "timer.completionState.v1", "clock.observe.v1",
   "reconcile.rebase.v3",
   "workspace.ownershipPlan.v1",
+  "workspace.legacyPreferences.v1",
+  "workspace.legacyDependencyPlan.v1",
 ];
 
 export function fixture(name) {

@@ -1,5 +1,9 @@
 # Pomodorough Core
 
+[Core 0.46.0 release scope and evidence](RELEASE_0_46.md) covers legacy dependency
+migration, zero-clock preference migration, natural completion, durable selection
+and original Finish evidence, and pagehide lease release.
+
 Shared deterministic domain models and synchronization reducers for all Pomodorough clients and the authoritative server.
 
 ## Boundary
@@ -53,8 +57,9 @@ CORE-PWA04 schema, shared bootstrap validation, display and delivery separation,
 and V3 context trimming.
 
 The [PWA raw ownership plan](OWNERSHIP_PLAN.md) defines
-`workspace.ownershipPlan.v1`, missing-owner installation, lease renewal, and
-owner removal at the guarded storage transaction boundary.
+`workspace.ownershipPlan.v1`, missing-owner installation, lease renewal, owner
+removal, and [pagehide lease release](PWA_LEASE_RELEASE.md) at the guarded storage
+transaction boundary.
 
 ```sh
 cargo fmt --all -- --check

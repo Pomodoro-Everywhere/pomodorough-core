@@ -60,7 +60,8 @@ supplies a proposed command, an eligibility flag, or a computed next phase.
 which Start ownership records Core returns.
 `intent.kind` accepts `start`, `pause`, `resume`, `cancel`, `cancelAndClear`,
 `clear`, `restart`, `selectPhase`, or `skip`. `selectPhase` additionally needs
-`phase` (`focus`, `short_break`, `long_break`). `skip` is Apple-only. `restart`
+`phase` (`focus`, `short_break`, `long_break`). `skip` is Apple-only unless the
+[PWA selection lifecycle extension](PWA_SELECTION_INTENT.md) is present. `restart`
 models Desktop's atomic clear/start action; other profiles have no matching
   entrypoint, so it returns a no-op there. A caller invokes `start` for an
   individual Start button. Finish, automatic break, and reconciliation intents
@@ -78,10 +79,11 @@ key order and JSON whitespace are not preserved.
 
 `selection` is durable local state, separate from the canonical base. Its
 `generation` is a decimal string, so a 64-bit generation survives JavaScript
-bridges. `explicit` represents Apple's explicit phase choice. For desktop
+bridges. `explicit` represents Apple's explicit phase choice or an opted-in PWA choice. For desktop
 compatibility, generation is a nonnegative unbounded decimal string. Apple
 wraps `Int64.max` to `0`; Android wraps signed 64-bit to `Int64.min`; PWA keeps
-its generation because that client has no local generation counter.
+its generation when the lifecycle extension is absent. With the extension,
+Core advances the PWA generation and records explicit choice for each user phase or Skip action.
 
 `allocation` contains persisted device identity, last device sequence, HLC,
 and optional last UUIDv7. `identities.commandUuids` supplies ordered, unused,

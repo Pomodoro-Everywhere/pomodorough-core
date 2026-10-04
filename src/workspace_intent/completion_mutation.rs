@@ -1,6 +1,14 @@
 //! Completion decisions at each client's original local commit boundary.
 mod generated_break;
 mod lifecycle;
+mod natural;
+
+pub(crate) use lifecycle::evidence::installation as lifecycle_install_evidence;
+pub(crate) use lifecycle::evidence::workspace as lifecycle_evidence;
+pub(crate) use lifecycle::{
+    State as CompletionLifecycle, parse_state as parse_lifecycle,
+    validate_state as validate_lifecycle,
+};
 
 use crate::timer_ownership::{self, Ownership};
 use chrono::SecondsFormat;
@@ -103,6 +111,7 @@ impl Request {
             durability: None,
             local_durations_ms: None,
             known_tasks: None,
+            lifecycle: None,
         }
     }
 
@@ -129,6 +138,7 @@ fn plan_raw(raw: &str) -> Result<String, CoreError> {
     ) {
         return lifecycle::plan_json(value);
     }
+    crate::strict_json::shape::validate(&value, &crate::completion_schema::FINISH, "")?;
     if value.get("ownership").is_none() {
         return Err(invalid("missing completion ownership"));
     }
@@ -136,6 +146,9 @@ fn plan_raw(raw: &str) -> Result<String, CoreError> {
         return Err(invalid("workspace.now is owned by completion planner"));
     }
     let requested_dependency = value["requestedTimer"].get("dependsOnCommandId").cloned();
+    if let Some(state) = value.get("lifecycle") {
+        parse_lifecycle(state)?;
+    }
     let request: Request = serde_json::from_value(value)?;
     let input = request.context();
     validate(&request, &input)?;
@@ -147,8 +160,18 @@ fn plan_finish(
     input: &Input,
     requested_dependency: Option<&Value>,
 ) -> Result<String, CoreError> {
-    let before = unexpired(input)?;
+    let before = if request.compatibility == Compatibility::PwaStorage
+        && (request.requested_timer.status == "completed"
+            || request.lifecycle.has_finish_evidence())
+    {
+        monotonic::before(input)?.0
+    } else {
+        unexpired(input)?
+    };
     let timer = &before["canonicalTimer"];
+    if request.compatibility == Compatibility::PwaStorage && timer["status"] == "completed" {
+        return natural::plan(request, input, &before, requested_dependency);
+    }
     if !matches!(timer["status"].as_str(), Some("running" | "paused"))
         || presented_stale(request, input, timer)?
     {
@@ -228,6 +251,11 @@ fn validate(request: &Request, input: &Input) -> Result<(), CoreError> {
     validate_completion_observation(request, input)?;
     validate_completion_workspace(input)?;
     lifecycle::validate_state(&request.lifecycle)?;
+    if request.compatibility == Compatibility::PwaStorage {
+        lifecycle::evidence::workspace(&request.lifecycle, &request.workspace)?;
+    } else if request.lifecycle.has_finish_evidence() {
+        return Err(invalid("original Finish evidence requires PWA completion"));
+    }
     Ok(())
 }
 
@@ -707,7 +735,7 @@ fn completion_phase<'a>(
     let context = json!({"kind": "finishApplied", "source": {
         "commandId": command["id"], "timerId": command["timerId"],
         "phase": command["phase"], "occurredAt": source["completedAt"]},
-        "history": after["history"], "autoStartBreaks": after["autoStartBreaks"],
+        "history": after["history"], "autoStartBreaks": natural::auto_start(request, after["autoStartBreaks"] == true),
         "localDeviceId": request.allocation.device_id, "ownership": owner,
         "dayStart": day.start, "dayEnd": day.end});
     let plan: Value =
@@ -766,7 +794,9 @@ fn selection_records(
     let mut selection = request.selection.clone();
     let previous = selection.phase.name();
     let mut record = Value::Null;
-    if request.compatibility != Compatibility::AppleWorkspace || !selection.explicit {
+    if natural::advance_selection(request)
+        && (request.compatibility != Compatibility::AppleWorkspace || !selection.explicit)
+    {
         selection.phase = serde_json::from_value(json!(phase))?;
     }
     if request.compatibility == Compatibility::AppleWorkspace && !selection.explicit {
@@ -840,4 +870,51 @@ fn noop_with_retry(
         result.as_object_mut().unwrap().remove("retryAtMs");
     }
     Ok(result.to_string())
+}
+
+#[cfg(test)]
+mod shape_guards {
+    use crate::completion_schema::{self as schema, tests::assert_fields};
+
+    #[test]
+    fn finish_decoder_fields_require_shared_shape_guards() {
+        assert_fields::<super::Request>(&schema::FINISH, &[]);
+        assert_fields::<super::BoundaryRetry>(&schema::BOUNDARY_RETRY, &[]);
+        assert_fields::<super::Selection>(&schema::SELECTION, &[]);
+        assert_fields::<super::Allocation>(&schema::ALLOCATION, &[]);
+        assert_fields::<super::Observation>(&schema::OBSERVATION, &[]);
+        assert_fields::<super::Clock>(&schema::CLOCK, &[]);
+        assert_fields::<super::Identities>(&schema::IDENTITIES, &[]);
+        assert_fields::<super::Interval>(&schema::INTERVAL, &[]);
+        assert_fields::<super::Ownership>(&schema::OWNER, &[]);
+        assert_fields::<crate::timer::CanonicalTimer>(&schema::TIMER, &[]);
+        assert_fields::<crate::timer::HistoryItem>(&schema::HISTORY, &[]);
+    }
+
+    #[test]
+    fn flattened_intent_fields_keep_concrete_provenance_guards() {
+        let intent = crate::timer::Intent {
+            kind: "start".into(),
+            command_id: "origin".into(),
+            occurred_at: "2026-08-31T12:00:00Z".into(),
+            device_id: None,
+            native_extensions: std::collections::BTreeMap::new(),
+        };
+        let object = serde_json::to_value(intent).unwrap();
+        let crate::strict_json::shape::Shape::Fields(fields) = &schema::INTENT else {
+            panic!("intent schema")
+        };
+        let guarded: std::collections::BTreeSet<_> =
+            fields.iter().map(|field| field.name).collect();
+        let wire: std::collections::BTreeSet<_> = object
+            .as_object()
+            .unwrap()
+            .keys()
+            .map(String::as_str)
+            .collect();
+        assert_eq!(
+            wire, guarded,
+            "flattened intent fields changed without provenance guards"
+        );
+    }
 }

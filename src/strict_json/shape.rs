@@ -5,12 +5,16 @@ use crate::CoreError;
 
 #[derive(Clone, Copy)]
 pub(crate) enum Shape {
+    // Serde retains primitive validation and its shipped numeric error envelopes.
+    Scalar,
     Object,
     String,
     Integer,
     Boolean,
     StringEnum(&'static [&'static str]),
     Record(&'static [Field]),
+    // Validate representations without replacing Serde's field/presence policy.
+    Fields(&'static [Field]),
     TaggedObject {
         tag: &'static str,
         variants: &'static [Variant],
@@ -57,6 +61,7 @@ impl Field {
 pub(crate) fn validate(value: &Value, shape: &Shape, path: &str) -> Result<(), CoreError> {
     let (valid, expected) = match shape {
         Shape::Record(fields) => return record(super::object(value, path)?, fields, path, None),
+        Shape::Fields(fields) => return fields_present(super::object(value, path)?, fields, path),
         Shape::TaggedObject { tag, variants } => return tagged(value, tag, variants, path),
         Shape::Array(element) => return array(value, element, path),
         Shape::Nullable(inner) => {
@@ -67,6 +72,7 @@ pub(crate) fn validate(value: &Value, shape: &Shape, path: &str) -> Result<(), C
             };
         }
         Shape::Object => (value.is_object(), "object"),
+        Shape::Scalar => (!value.is_object() && !value.is_array(), "scalar"),
         Shape::String => (value.is_string(), "string"),
         Shape::Integer => (value.as_i64().is_some(), "integer"),
         Shape::Boolean => (value.is_boolean(), "boolean"),
@@ -82,6 +88,19 @@ pub(crate) fn validate(value: &Value, shape: &Shape, path: &str) -> Result<(), C
     } else {
         Err(invalid(path, expected))
     }
+}
+
+fn fields_present(
+    object: &Map<String, Value>,
+    fields: &[Field],
+    path: &str,
+) -> Result<(), CoreError> {
+    for field in fields {
+        if let Some(value) = object.get(field.name) {
+            validate(value, &field.shape, &child(path, field.name))?;
+        }
+    }
+    Ok(())
 }
 
 fn array(value: &Value, element: &Shape, path: &str) -> Result<(), CoreError> {

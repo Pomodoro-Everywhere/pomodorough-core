@@ -12,6 +12,9 @@ mod monotonic;
 mod mutation;
 mod policy;
 mod projection;
+mod pwa_selection;
+
+pub(crate) use allocation::validate_uuid;
 
 fn invalid(message: &str) -> CoreError {
     CoreError::InvalidInput(message.into())
@@ -23,46 +26,55 @@ pub(crate) fn plan_json(raw: &str) -> Result<String, CoreError> {
 
 fn plan_raw(raw: &str) -> Result<String, CoreError> {
     let value = crate::strict_json::parse(raw)?;
-    let input: Input = serde_json::from_value(value.clone())?;
+    let input = pwa_selection::parse(&value)?;
     known_tasks::validate(&input, &value)?;
     validate_intent_metadata(&input, &value)?;
     validate(&input)?;
-    if input.intent.is_workspace_mutation() {
-        return mutation::plan(&input);
+    if let Some(lifecycle) = &input.lifecycle {
+        completion_mutation::lifecycle_evidence(lifecycle, &input.workspace)?;
     }
-    let (before, observed) = monotonic::before(&input)?;
-    let decision = projection::entrypoint(&input, &before, &observed, &input.clock.physical_now)?;
-    let target = policy::target(&input, &decision);
-    policy::validate_target(&input, &target["canonicalTimer"])?;
-    let mut selection = policy::selection(&input, &decision)?;
+    let result = if input.intent.is_workspace_mutation() {
+        mutation::plan(&input)?
+    } else {
+        plan_timer(&input)?
+    };
+    pwa_selection::with_lifecycle(&input, result)
+}
+
+fn plan_timer(input: &Input) -> Result<String, CoreError> {
+    let (before, observed) = monotonic::before(input)?;
+    let decision = projection::entrypoint(input, &before, &observed, &input.clock.physical_now)?;
+    let target = policy::target(input, &decision);
+    policy::validate_target(input, &target["canonicalTimer"])?;
+    let mut selection = policy::selection(input, &decision)?;
     let (workspace, allocation, mut observation, commands) =
-        prepare_commands(&input, &target, observed)?;
+        prepare_commands(input, &target, observed)?;
     if input.compatibility == Compatibility::AppleWorkspace
         && commands.iter().any(|command| command["type"] == "start")
     {
         selection.explicit = false;
     }
-    let after = projection::after(&input, &before, &workspace, &observation, &commands)?;
+    let after = projection::after(input, &before, &workspace, &observation, &commands)?;
     policy::after_commands(
-        &input,
+        input,
         &decision,
         &after["admission"]["workspace"],
         &commands,
         &mut selection,
     )?;
-    monotonic::after(&input, &after["workspace"], &mut observation)?;
+    monotonic::after(input, &after["workspace"], &mut observation)?;
     let changed = !commands.is_empty()
         || serde_json::to_value(&selection)? != serde_json::to_value(&input.selection)?;
-    let effects = effects(&input, &commands, changed, &before)?;
+    let effects = effects(input, &commands, changed, &before)?;
     Ok(
         json!({"schemaVersion": 1, "outcome": if changed {"planned"} else {"noop"},
-        "reason": if changed {""} else {policy::no_change_reason(&input, &target)},
+        "reason": if changed {""} else {policy::no_change_reason(input, &target)},
         "workspace": workspace, "selection": selection, "allocation": allocation,
          "observation": observation, "commands": commands,
          "commandOutcomes": admission::command_outcomes(&after["workspace"], &commands),
-        "timerObservation": monotonic::timer_observation(&input, &after["workspace"], &observation)?,
+         "timerObservation": monotonic::timer_observation(input, &after["workspace"], &observation)?,
         "atomicCommandIds": commands.iter().map(|command| &command["id"]).collect::<Vec<_>>(),
-        "ownershipWrites": ownership_writes(&input, &commands),
+        "ownershipWrites": ownership_writes(input, &commands),
         "projection": after["workspace"], "effectsAfterCommit": effects})
         .to_string(),
     )

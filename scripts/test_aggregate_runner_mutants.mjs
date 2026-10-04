@@ -59,3 +59,98 @@ test("static checker kills skipped raw shape rejection dispatches", async () => 
     source.replace("  const staticCases = aggregateCases();", "  const staticCases = aggregateCases().filter((item) => !item.rejectionHit);") }),
   /required raw rejection hit counts/);
 });
+
+test("static checker kills skipped legacy restart dispatches", async () => {
+  await assert.rejects(() => verifyRunner({ "aggregate_artifact/corpus.mjs": (source) =>
+    source.replace("  legacyScenarios(call);", "") }), /semantic branch hit counts/);
+});
+
+test("static checker kills skipped raw legacy rejection dispatches", async () => {
+  await assert.rejects(() => verifyRunner({ "aggregate_artifact/corpus.mjs": (source) =>
+    source.replace("  const staticCases = aggregateCases();", "  const staticCases = aggregateCases().filter((item) => item.rejectionHit !== 'legacyPreferences');") }),
+  /required raw rejection hit counts/);
+});
+
+test("static checker kills skipped numeric preservation dispatches", async () => {
+  await assert.rejects(() => verifyRunner({ "aggregate_artifact/corpus.mjs": (source) =>
+    source.replace("  const staticCases = aggregateCases();", "  const staticCases = aggregateCases().filter((item) => item.hit !== 'legacyNumeric');") }),
+  /semantic branch hit counts/);
+});
+
+test("static checker kills skipped numeric rejection dispatches", async () => {
+  await assert.rejects(() => verifyRunner({ "aggregate_artifact/corpus.mjs": (source) =>
+    source.replace("  const staticCases = aggregateCases();", "  const staticCases = aggregateCases().filter((item) => item.rejectionHit !== 'legacyNumeric');") }),
+  /required raw rejection hit counts/);
+});
+
+test("static checker kills skipped natural lifecycle dispatches", async () => {
+  await assert.rejects(() => verifyRunner({ "aggregate_artifact/corpus.mjs": (source) =>
+    source.replace("  naturalScenarios(call);", "") }), /semantic branch hit counts/);
+});
+
+test("static checker kills skipped natural evidence rejections", async () => {
+  await assert.rejects(() => verifyRunner({ "aggregate_artifact/corpus.mjs": (source) =>
+    source.replace("  const staticCases = aggregateCases();", "  const staticCases = aggregateCases().filter((item) => item.rejectionHit !== 'pwaNatural');") }),
+  /required raw rejection hit counts/);
+});
+
+test("static checker kills skipped completion representation guards", async () => {
+  await assert.rejects(() => verifyRunner({ "aggregate_artifact/corpus.mjs": (source) =>
+    source.replace("  const staticCases = aggregateCases();", "  const staticCases = aggregateCases().filter((item) => item.rejectionHit !== 'pwaStructure');") }),
+  /required raw rejection hit counts/);
+});
+
+test("static checker kills skipped consumed natural provenance cases", async () => {
+  await assert.rejects(() => verifyRunner({ "aggregate_artifact/corpus.mjs": (source) =>
+    source.replace("  const staticCases = aggregateCases();", "  const staticCases = aggregateCases().filter((item) => item.hit !== 'pwaProvenance');") }),
+  /semantic branch hit counts/);
+});
+
+test("static checker kills skipped dependency restart dispatches", async () => {
+  await assert.rejects(() => verifyRunner({ "aggregate_artifact/corpus.mjs": (source) =>
+    source.replace("  dependencyScenarios(call);", "") }), /semantic branch hit counts/);
+});
+
+test("static checker kills skipped dependency raw rejections", async () => {
+  await assert.rejects(() => verifyRunner({ "aggregate_artifact/corpus.mjs": (source) =>
+    source.replace("  const staticCases = aggregateCases();", "  const staticCases = aggregateCases().filter((item) => item.rejectionHit !== 'legacyDependencies');") }),
+  /required raw rejection hit counts/);
+});
+
+test("static checker kills skipped release boundary dispatches", async () => {
+  await assert.rejects(() => verifyRunner({ "aggregate_artifact/corpus.mjs": (source) =>
+    source.replace("  releaseScenarios(call);", "") }), /semantic branch hit counts/);
+});
+
+for (const hit of ["pwaRelease", "pwaReleaseShape"]) test(`static checker kills skipped ${hit} rejections`, async () => {
+  await assert.rejects(() => verifyRunner({ "aggregate_artifact/corpus.mjs": (source) =>
+    source.replace("  const staticCases = aggregateCases();", `  const staticCases = aggregateCases().filter((item) => item.rejectionHit !== '${hit}');`) }),
+  /required raw rejection hit counts/);
+});
+
+test("static checker rejects skipped explicit-choice lifecycle dispatches", async () => {
+  await assert.rejects(() => verifyRunner({ "aggregate_artifact/corpus.mjs": (source) =>
+    source.replace("  selectionScenarios(call);", "") }), /semantic branch hit counts/);
+});
+
+test("static checker rejects skipped selection representation dispatches", async () => {
+  await assert.rejects(() => verifyRunner({ "aggregate_artifact/corpus.mjs": (source) =>
+    source.replace("  const staticCases = aggregateCases();", "  const staticCases = aggregateCases().filter((item) => item.rejectionHit !== 'pwaChoiceShape');") }),
+  /required raw rejection hit counts/);
+});
+
+test("static checker rejects skipping the immutable old-envelope preservation gate", async () => {
+  await assert.rejects(() => verifyRunner({ "aggregate_artifact/corpus.mjs": (source) =>
+    source.replace("  assertSelectionPreservation(cases, expected);", "") }), /preserved old envelopes/);
+});
+
+test("static checker rejects missing public cycle and discharge scenarios", async () => {
+  await assert.rejects(() => verifyRunner({ "aggregate_artifact/corpus.mjs": (source) =>
+    source.replace("  cycleScenarios(call);", "") }), /semantic branch hit counts/);
+});
+
+test("static checker rejects missing fabricated-discharge and durable-evidence rejections", async () => {
+  await assert.rejects(() => verifyRunner({ "aggregate_artifact/corpus.mjs": (source) =>
+    source.replace("  const staticCases = aggregateCases();", "  const staticCases = aggregateCases().filter((item) => item.rejectionHit !== 'pwaDischargeShape');") }),
+    /required raw rejection hit counts/);
+});

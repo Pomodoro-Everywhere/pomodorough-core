@@ -7,14 +7,16 @@ use crate::workspace_intent::{
 };
 
 mod deferred;
+pub(crate) mod evidence;
 mod expiry;
 mod model;
 mod output;
 mod validation;
 
-pub(super) use model::State;
+pub(crate) use model::State;
 use model::{Request, Stage, Trigger};
-pub(super) use validation::state as validate_state;
+pub(crate) use validation::parse_state;
+pub(crate) use validation::state as validate_state;
 
 pub(super) fn plan_json(value: Value) -> Result<String, CoreError> {
     if value.get("ownership").is_none() {

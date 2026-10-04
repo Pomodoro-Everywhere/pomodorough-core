@@ -5,6 +5,7 @@ use super::{parse_bounds, phase_after, validate_optional_timer, validate_phase};
 use crate::CoreError;
 use crate::timer::{CanonicalTimer, HistoryItem, parse_time, validate_history};
 
+mod pwa;
 mod rollback;
 mod sent;
 
@@ -49,6 +50,8 @@ struct Install {
     calendar_intervals: Vec<Interval>,
     #[serde(default)]
     sent_context: Option<sent::Context>,
+    #[serde(skip)]
+    lifecycle: Option<crate::workspace_intent::completion_mutation::CompletionLifecycle>,
 }
 
 #[derive(Deserialize)]
@@ -85,6 +88,8 @@ struct Output {
     advances: Vec<rollback::Advance>,
     retired_advance_ids: Vec<String>,
     rolled_back_advance_ids: Vec<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    lifecycle: Option<crate::workspace_intent::completion_mutation::CompletionLifecycle>,
 }
 
 #[derive(Serialize)]
@@ -99,8 +104,32 @@ struct Source {
 
 pub(crate) fn plan_json(input: &str) -> Result<String, CoreError> {
     crate::check_input_len(input)?;
-    let output = match serde_json::from_value(crate::strict_json::parse(input)?)? {
-        Input::Install(input) => install(*input)?,
+    // The extension must not change the shipped unknown-field error envelope.
+    let mut value = crate::strict_json::parse(input)?;
+    if value["kind"] == "install" {
+        crate::strict_json::shape::validate(&value, &crate::completion_schema::INSTALL, "")?;
+    }
+    let lifecycle = if value["kind"] == "install" {
+        value
+            .as_object_mut()
+            .and_then(|object| object.remove("lifecycle"))
+    } else {
+        None
+    };
+    let original = value.clone();
+    let output = match serde_json::from_value(value)? {
+        Input::Install(mut input) => {
+            input.lifecycle = lifecycle
+                .as_ref()
+                .map(crate::workspace_intent::completion_mutation::parse_lifecycle)
+                .transpose()?;
+            if let Some(state) = &input.lifecycle {
+                crate::workspace_intent::completion_mutation::lifecycle_install_evidence(
+                    state, &original,
+                )?;
+            }
+            install(*input)?
+        }
         Input::Skip(input) => skip(input)?,
     };
     Ok(serde_json::to_string(&output)?)
@@ -158,6 +187,12 @@ fn validate_install(input: &Install) -> Result<(), CoreError> {
         return Err(invalid("sendable completion command is not pending"));
     }
     rollback::validate(input)?;
+    if let Some(state) = &input.lifecycle {
+        if input.compatibility != Compatibility::PwaRejectedFinish {
+            return Err(invalid("completion lifecycle requires PWA install"));
+        }
+        crate::workspace_intent::completion_mutation::validate_lifecycle(state)?;
+    }
     sent::validate(input)
 }
 
@@ -334,5 +369,22 @@ fn skip(input: Skip) -> Result<Output, CoreError> {
         advances: vec![],
         retired_advance_ids: vec![],
         rolled_back_advance_ids: vec![],
+        lifecycle: None,
     })
+}
+
+#[cfg(test)]
+mod shape_guards {
+    use crate::completion_schema::{self as schema, tests::assert_fields};
+
+    #[test]
+    fn install_decoder_fields_require_shared_shape_guards() {
+        assert_fields::<super::Install>(&schema::INSTALL, &["lifecycle"]);
+        assert_fields::<super::Selection>(&schema::SELECTION, &[]);
+        assert_fields::<super::Pending>(&schema::PENDING, &[]);
+        assert_fields::<super::Interval>(&schema::INTERVAL, &[]);
+        assert_fields::<super::rollback::Advance>(&schema::ADVANCE, &[]);
+        assert_fields::<super::rollback::Acknowledgement>(&schema::ACK, &[]);
+        assert_fields::<super::sent::SentCommand>(&schema::SENT_COMMAND, &[]);
+    }
 }

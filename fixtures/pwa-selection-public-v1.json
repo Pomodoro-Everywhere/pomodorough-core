@@ -1,0 +1,3745 @@
+{
+  "hashes": {
+    "currentStorage": "dbefb903a0b5c73ac896fc045fe2321093c9898926b91360d6a36062b05f1811",
+    "frozenStorage": "1447c6040e77baba050d884c1ec62eb552cdc2f2d8559c53b9482d204a810929",
+    "transaction": "eb64f66ee74dd87cd461ae53693b71abfe0eb45e2a6f3279ff05b52d5c797163"
+  },
+  "receipts": [
+    {
+      "phase": "focus",
+      "legacyActionReturn": false,
+      "legacyCompletePlanner": {
+        "operation": "workspace.intent.v1",
+        "inputRaw": "{\"compatibility\":\"pwaStorage\",\"replicationMode\":\"centralized\",\"workspace\":{\"base\":{\"canonicalTimer\":{\"anchorAt\":\"2026-08-31T12:25:00Z\",\"elapsedAtAnchorMs\":1500000,\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"lastIntent\":{\"commandId\":\"01a057b0-ce00-7000-8000-000000000015\",\"deviceId\":\"p222-device\",\"occurredAt\":\"2026-08-31T12:00:00Z\",\"type\":\"start\"},\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"startedByDeviceId\":\"p222-device\",\"status\":\"completed\"},\"history\":[{\"completedAt\":\"2026-08-31T12:25:00Z\",\"endedAt\":\"2026-08-31T12:25:00Z\",\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"status\":\"completed\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}],\"tasks\":[],\"durationsMs\":{\"focus\":1500000,\"short_break\":300000,\"long_break\":900000},\"autoStartBreaks\":false,\"selectedTaskId\":null},\"local\":{\"commands\":[],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]},\"canonicalHead\":null,\"neverSent\":{\"commands\":[],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]},\"timerDependencies\":[],\"displayContext\":{\"profile\":\"pwaStorage\",\"projectionPending\":{\"commands\":[],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]}}},\"selection\":{\"phase\":\"focus\",\"generation\":\"0\",\"explicit\":false},\"allocation\":{\"deviceId\":\"p222-device\",\"deviceSequence\":8,\"hlc\":{\"counter\":3,\"wallMs\":1788177600000},\"lastUuid\":\"01a057b0-ce00-7000-8000-000000000015\"},\"observation\":{\"canonicalAnchorAt\":\"2026-08-31T12:25:00Z\",\"commandTimes\":{}},\"clock\":{\"occurredAt\":\"2026-08-31T12:25:00.000Z\",\"physicalNow\":\"2026-08-31T12:25:00.000Z\",\"observedAt\":\"2026-08-31T12:25:00.000Z\",\"continuityId\":\"7e13723a-bbc5-4bba-8866-c70494047295\"},\"identities\":{\"commandUuids\":[\"01a057c7-b160-7b55-8130-d399e9e5f611\",\"01a057c7-b160-7b55-8130-d399e9e5f612\"],\"timerUuid\":\"77a4680c-4771-49cc-bd12-1cf7cc448046\"},\"calendarIntervals\":[{\"start\":\"2026-08-30T19:00:00.000Z\",\"end\":\"2026-08-31T19:00:00.000Z\"}],\"intent\":{\"kind\":\"selectPhase\",\"phase\":\"focus\"}}",
+        "input": {
+          "compatibility": "pwaStorage",
+          "replicationMode": "centralized",
+          "workspace": {
+            "base": {
+              "canonicalTimer": {
+                "anchorAt": "2026-08-31T12:25:00Z",
+                "elapsedAtAnchorMs": 1500000,
+                "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                "lastIntent": {
+                  "commandId": "01a057b0-ce00-7000-8000-000000000015",
+                  "deviceId": "p222-device",
+                  "occurredAt": "2026-08-31T12:00:00Z",
+                  "type": "start"
+                },
+                "phase": "focus",
+                "plannedDurationMs": 1500000,
+                "startedByDeviceId": "p222-device",
+                "status": "completed"
+              },
+              "history": [
+                {
+                  "completedAt": "2026-08-31T12:25:00Z",
+                  "endedAt": "2026-08-31T12:25:00Z",
+                  "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                  "phase": "focus",
+                  "plannedDurationMs": 1500000,
+                  "status": "completed",
+                  "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+                }
+              ],
+              "tasks": [],
+              "durationsMs": {
+                "focus": 1500000,
+                "short_break": 300000,
+                "long_break": 900000
+              },
+              "autoStartBreaks": false,
+              "selectedTaskId": null
+            },
+            "local": {
+              "commands": [],
+              "taskOperations": [],
+              "durationOperations": [],
+              "autoStartOperations": [],
+              "selectedTaskOperations": []
+            },
+            "canonicalHead": null,
+            "neverSent": {
+              "commands": [],
+              "taskOperations": [],
+              "durationOperations": [],
+              "autoStartOperations": [],
+              "selectedTaskOperations": []
+            },
+            "timerDependencies": [],
+            "displayContext": {
+              "profile": "pwaStorage",
+              "projectionPending": {
+                "commands": [],
+                "taskOperations": [],
+                "durationOperations": [],
+                "autoStartOperations": [],
+                "selectedTaskOperations": []
+              }
+            }
+          },
+          "selection": {
+            "phase": "focus",
+            "generation": "0",
+            "explicit": false
+          },
+          "allocation": {
+            "deviceId": "p222-device",
+            "deviceSequence": 8,
+            "hlc": {
+              "counter": 3,
+              "wallMs": 1788177600000
+            },
+            "lastUuid": "01a057b0-ce00-7000-8000-000000000015"
+          },
+          "observation": {
+            "canonicalAnchorAt": "2026-08-31T12:25:00Z",
+            "commandTimes": {}
+          },
+          "clock": {
+            "occurredAt": "2026-08-31T12:25:00.000Z",
+            "physicalNow": "2026-08-31T12:25:00.000Z",
+            "observedAt": "2026-08-31T12:25:00.000Z",
+            "continuityId": "7e13723a-bbc5-4bba-8866-c70494047295"
+          },
+          "identities": {
+            "commandUuids": [
+              "01a057c7-b160-7b55-8130-d399e9e5f611",
+              "01a057c7-b160-7b55-8130-d399e9e5f612"
+            ],
+            "timerUuid": "77a4680c-4771-49cc-bd12-1cf7cc448046"
+          },
+          "calendarIntervals": [
+            {
+              "start": "2026-08-30T19:00:00.000Z",
+              "end": "2026-08-31T19:00:00.000Z"
+            }
+          ],
+          "intent": {
+            "kind": "selectPhase",
+            "phase": "focus"
+          }
+        },
+        "envelopeRaw": "{\"ok\":true,\"value\":{\"allocation\":{\"deviceId\":\"p222-device\",\"deviceSequence\":8,\"hlc\":{\"counter\":3,\"wallMs\":1788177600000},\"lastUuid\":\"01a057b0-ce00-7000-8000-000000000015\"},\"atomicCommandIds\":[],\"commandOutcomes\":[],\"commands\":[],\"effectsAfterCommit\":[],\"observation\":{\"canonicalAnchorAt\":\"2026-08-31T12:25:00Z\",\"commandTimes\":{}},\"outcome\":\"noop\",\"ownershipWrites\":[],\"projection\":{\"autoStartBreaks\":false,\"canonicalTimer\":{\"anchorAt\":\"2026-08-31T12:25:00Z\",\"elapsedAtAnchorMs\":1500000,\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"lastIntent\":{\"commandId\":\"01a057b0-ce00-7000-8000-000000000015\",\"deviceId\":\"p222-device\",\"occurredAt\":\"2026-08-31T12:00:00Z\",\"type\":\"start\"},\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"startedByDeviceId\":\"p222-device\",\"status\":\"completed\"},\"durationsMs\":{\"focus\":1500000,\"long_break\":900000,\"short_break\":300000},\"history\":[{\"completedAt\":\"2026-08-31T12:25:00Z\",\"endedAt\":\"2026-08-31T12:25:00Z\",\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"status\":\"completed\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}],\"selectedTaskId\":null,\"tasks\":[],\"timerOutcomes\":{},\"winningOperationIds\":{\"autoStart\":null,\"durations\":{},\"selectedTask\":null,\"tasks\":{}}},\"reason\":\"selectionUnchangedOrActive\",\"schemaVersion\":1,\"selection\":{\"explicit\":false,\"generation\":\"0\",\"phase\":\"focus\"},\"timerObservation\":{\"deadlineAt\":null,\"elapsedMs\":1500000,\"remainingMs\":0,\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"},\"workspace\":{\"base\":{\"autoStartBreaks\":false,\"canonicalTimer\":{\"anchorAt\":\"2026-08-31T12:25:00Z\",\"elapsedAtAnchorMs\":1500000,\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"lastIntent\":{\"commandId\":\"01a057b0-ce00-7000-8000-000000000015\",\"deviceId\":\"p222-device\",\"occurredAt\":\"2026-08-31T12:00:00Z\",\"type\":\"start\"},\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"startedByDeviceId\":\"p222-device\",\"status\":\"completed\"},\"durationsMs\":{\"focus\":1500000,\"long_break\":900000,\"short_break\":300000},\"history\":[{\"completedAt\":\"2026-08-31T12:25:00Z\",\"endedAt\":\"2026-08-31T12:25:00Z\",\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"status\":\"completed\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}],\"selectedTaskId\":null,\"tasks\":[]},\"canonicalHead\":null,\"displayContext\":{\"profile\":\"pwaStorage\",\"projectionPending\":{\"autoStartOperations\":[],\"commands\":[],\"durationOperations\":[],\"selectedTaskOperations\":[],\"taskOperations\":[]}},\"local\":{\"autoStartOperations\":[],\"commands\":[],\"durationOperations\":[],\"selectedTaskOperations\":[],\"taskOperations\":[]},\"neverSent\":{\"autoStartOperations\":[],\"commands\":[],\"durationOperations\":[],\"selectedTaskOperations\":[],\"taskOperations\":[]},\"timerDependencies\":[]}}}",
+        "completeReturn": {
+          "allocation": {
+            "deviceId": "p222-device",
+            "deviceSequence": 8,
+            "hlc": {
+              "counter": 3,
+              "wallMs": 1788177600000
+            },
+            "lastUuid": "01a057b0-ce00-7000-8000-000000000015"
+          },
+          "atomicCommandIds": [],
+          "commandOutcomes": [],
+          "commands": [],
+          "effectsAfterCommit": [],
+          "observation": {
+            "canonicalAnchorAt": "2026-08-31T12:25:00Z",
+            "commandTimes": {}
+          },
+          "outcome": "noop",
+          "ownershipWrites": [],
+          "projection": {
+            "autoStartBreaks": false,
+            "canonicalTimer": {
+              "anchorAt": "2026-08-31T12:25:00Z",
+              "elapsedAtAnchorMs": 1500000,
+              "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+              "lastIntent": {
+                "commandId": "01a057b0-ce00-7000-8000-000000000015",
+                "deviceId": "p222-device",
+                "occurredAt": "2026-08-31T12:00:00Z",
+                "type": "start"
+              },
+              "phase": "focus",
+              "plannedDurationMs": 1500000,
+              "startedByDeviceId": "p222-device",
+              "status": "completed"
+            },
+            "durationsMs": {
+              "focus": 1500000,
+              "long_break": 900000,
+              "short_break": 300000
+            },
+            "history": [
+              {
+                "completedAt": "2026-08-31T12:25:00Z",
+                "endedAt": "2026-08-31T12:25:00Z",
+                "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                "phase": "focus",
+                "plannedDurationMs": 1500000,
+                "status": "completed",
+                "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+              }
+            ],
+            "selectedTaskId": null,
+            "tasks": [],
+            "timerOutcomes": {},
+            "winningOperationIds": {
+              "autoStart": null,
+              "durations": {},
+              "selectedTask": null,
+              "tasks": {}
+            }
+          },
+          "reason": "selectionUnchangedOrActive",
+          "schemaVersion": 1,
+          "selection": {
+            "explicit": false,
+            "generation": "0",
+            "phase": "focus"
+          },
+          "timerObservation": {
+            "deadlineAt": null,
+            "elapsedMs": 1500000,
+            "remainingMs": 0,
+            "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+          },
+          "workspace": {
+            "base": {
+              "autoStartBreaks": false,
+              "canonicalTimer": {
+                "anchorAt": "2026-08-31T12:25:00Z",
+                "elapsedAtAnchorMs": 1500000,
+                "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                "lastIntent": {
+                  "commandId": "01a057b0-ce00-7000-8000-000000000015",
+                  "deviceId": "p222-device",
+                  "occurredAt": "2026-08-31T12:00:00Z",
+                  "type": "start"
+                },
+                "phase": "focus",
+                "plannedDurationMs": 1500000,
+                "startedByDeviceId": "p222-device",
+                "status": "completed"
+              },
+              "durationsMs": {
+                "focus": 1500000,
+                "long_break": 900000,
+                "short_break": 300000
+              },
+              "history": [
+                {
+                  "completedAt": "2026-08-31T12:25:00Z",
+                  "endedAt": "2026-08-31T12:25:00Z",
+                  "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                  "phase": "focus",
+                  "plannedDurationMs": 1500000,
+                  "status": "completed",
+                  "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+                }
+              ],
+              "selectedTaskId": null,
+              "tasks": []
+            },
+            "canonicalHead": null,
+            "displayContext": {
+              "profile": "pwaStorage",
+              "projectionPending": {
+                "autoStartOperations": [],
+                "commands": [],
+                "durationOperations": [],
+                "selectedTaskOperations": [],
+                "taskOperations": []
+              }
+            },
+            "local": {
+              "autoStartOperations": [],
+              "commands": [],
+              "durationOperations": [],
+              "selectedTaskOperations": [],
+              "taskOperations": []
+            },
+            "neverSent": {
+              "autoStartOperations": [],
+              "commands": [],
+              "durationOperations": [],
+              "selectedTaskOperations": [],
+              "taskOperations": []
+            },
+            "timerDependencies": []
+          }
+        }
+      },
+      "before": {
+        "meta": [
+          {
+            "key": "completionRecords",
+            "value": {}
+          },
+          {
+            "key": "completionState",
+            "value": {
+              "selection": {
+                "phase": "focus",
+                "generation": "7",
+                "explicit": false
+              },
+              "lifecycle": {
+                "consumedCompletions": [],
+                "pendingBreaks": []
+              }
+            }
+          },
+          {
+            "key": "deliveryProof",
+            "value": {
+              "commands": [],
+              "taskOperations": [],
+              "durationOperations": [],
+              "autoStartOperations": [],
+              "selectedTaskOperations": []
+            }
+          },
+          {
+            "key": "deviceId",
+            "value": "p222-device"
+          },
+          {
+            "key": "deviceSequence",
+            "value": 8
+          },
+          {
+            "key": "displayHistory",
+            "value": []
+          },
+          {
+            "key": "hlc",
+            "value": {
+              "counter": 3,
+              "wallMs": 1788177600000
+            }
+          },
+          {
+            "key": "projectionPending",
+            "value": {
+              "commands": [],
+              "taskOperations": [],
+              "durationOperations": [],
+              "autoStartOperations": [],
+              "selectedTaskOperations": []
+            }
+          },
+          {
+            "key": "settings",
+            "value": {
+              "selectedPhase": "focus",
+              "durationSyncBootstrapped": true,
+              "autoStartSyncBootstrapped": true,
+              "selectedTaskSyncBootstrapped": true
+            }
+          },
+          {
+            "key": "snapshot",
+            "value": {
+              "user": {
+                "id": "p222-account",
+                "accountIncarnation": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+              },
+              "revision": 3,
+              "serverTime": "2026-08-31T12:00:00.000Z",
+              "canonicalTimer": {
+                "anchorAt": "2026-08-31T12:25:00Z",
+                "elapsedAtAnchorMs": 1500000,
+                "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                "lastIntent": {
+                  "commandId": "01a057b0-ce00-7000-8000-000000000015",
+                  "deviceId": "p222-device",
+                  "occurredAt": "2026-08-31T12:00:00Z",
+                  "type": "start"
+                },
+                "phase": "focus",
+                "plannedDurationMs": 1500000,
+                "startedByDeviceId": "p222-device",
+                "status": "completed"
+              },
+              "history": [
+                {
+                  "completedAt": "2026-08-31T12:25:00Z",
+                  "endedAt": "2026-08-31T12:25:00Z",
+                  "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                  "phase": "focus",
+                  "plannedDurationMs": 1500000,
+                  "status": "completed",
+                  "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+                }
+              ],
+              "tasks": [],
+              "selectedTaskId": null,
+              "autoStartBreaks": false,
+              "durationsMs": {
+                "focus": 1500000,
+                "short_break": 300000,
+                "long_break": 900000
+              }
+            }
+          },
+          {
+            "key": "timerDependencies",
+            "value": []
+          },
+          {
+            "key": "timerOwner",
+            "value": {
+              "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+              "deviceId": "p222-device",
+              "tabId": "p222-tab-0",
+              "leaseExpiresAtMs": 1788177660000
+            }
+          },
+          {
+            "key": "uuidV7",
+            "value": "01a057b0-ce00-7000-8000-000000000015"
+          },
+          {
+            "key": "workspaceGroups",
+            "value": [
+              {
+                "atomicCommandIds": [
+                  "01a057b0-ce00-7000-8000-000000000015"
+                ],
+                "atomicOperationIds": null,
+                "commandOutcomes": [
+                  {
+                    "id": "01a057b0-ce00-7000-8000-000000000015",
+                    "outcome": "applied"
+                  }
+                ],
+                "groupOutcomes": null
+              }
+            ]
+          },
+          {
+            "key": "workspaceObservation",
+            "value": {
+              "canonicalAnchorAt": "2026-08-31T12:25:00Z",
+              "commandTimes": {}
+            }
+          }
+        ],
+        "pending": [],
+        "pendingTasks": [],
+        "pendingDurations": [],
+        "pendingAutoStarts": [],
+        "pendingSelectedTasks": []
+      },
+      "selected": {
+        "operation": "workspace.intent.v1",
+        "inputRaw": "{\"compatibility\":\"pwaStorage\",\"replicationMode\":\"centralized\",\"workspace\":{\"base\":{\"canonicalTimer\":{\"anchorAt\":\"2026-08-31T12:25:00Z\",\"elapsedAtAnchorMs\":1500000,\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"lastIntent\":{\"commandId\":\"01a057b0-ce00-7000-8000-000000000015\",\"deviceId\":\"p222-device\",\"occurredAt\":\"2026-08-31T12:00:00Z\",\"type\":\"start\"},\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"startedByDeviceId\":\"p222-device\",\"status\":\"completed\"},\"history\":[{\"completedAt\":\"2026-08-31T12:25:00Z\",\"endedAt\":\"2026-08-31T12:25:00Z\",\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"status\":\"completed\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}],\"tasks\":[],\"durationsMs\":{\"focus\":1500000,\"short_break\":300000,\"long_break\":900000},\"autoStartBreaks\":false,\"selectedTaskId\":null},\"local\":{\"commands\":[],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]},\"canonicalHead\":null,\"neverSent\":{\"commands\":[],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]},\"timerDependencies\":[],\"displayContext\":{\"profile\":\"pwaStorage\",\"projectionPending\":{\"commands\":[],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]}}},\"selection\":{\"phase\":\"focus\",\"generation\":\"7\",\"explicit\":false},\"allocation\":{\"deviceId\":\"p222-device\",\"deviceSequence\":8,\"hlc\":{\"counter\":3,\"wallMs\":1788177600000},\"lastUuid\":\"01a057b0-ce00-7000-8000-000000000015\"},\"observation\":{\"canonicalAnchorAt\":\"2026-08-31T12:25:00Z\",\"commandTimes\":{}},\"clock\":{\"occurredAt\":\"2026-08-31T12:25:00.000Z\",\"physicalNow\":\"2026-08-31T12:25:00.000Z\",\"observedAt\":\"2026-08-31T12:25:00.000Z\",\"continuityId\":\"7e13723a-bbc5-4bba-8866-c70494047295\"},\"identities\":{\"commandUuids\":[\"01a057c7-b160-70bd-ab8e-d7628227fb84\",\"01a057c7-b160-70bd-ab8e-d7628227fb85\"],\"timerUuid\":\"08e30943-1ad8-44d2-b59a-c561a6bbbde4\"},\"calendarIntervals\":[{\"start\":\"2026-08-30T19:00:00.000Z\",\"end\":\"2026-08-31T19:00:00.000Z\"}],\"lifecycle\":{\"consumedCompletions\":[],\"pendingBreaks\":[]},\"intent\":{\"kind\":\"selectPhase\",\"phase\":\"focus\"}}",
+        "input": {
+          "compatibility": "pwaStorage",
+          "replicationMode": "centralized",
+          "workspace": {
+            "base": {
+              "canonicalTimer": {
+                "anchorAt": "2026-08-31T12:25:00Z",
+                "elapsedAtAnchorMs": 1500000,
+                "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                "lastIntent": {
+                  "commandId": "01a057b0-ce00-7000-8000-000000000015",
+                  "deviceId": "p222-device",
+                  "occurredAt": "2026-08-31T12:00:00Z",
+                  "type": "start"
+                },
+                "phase": "focus",
+                "plannedDurationMs": 1500000,
+                "startedByDeviceId": "p222-device",
+                "status": "completed"
+              },
+              "history": [
+                {
+                  "completedAt": "2026-08-31T12:25:00Z",
+                  "endedAt": "2026-08-31T12:25:00Z",
+                  "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                  "phase": "focus",
+                  "plannedDurationMs": 1500000,
+                  "status": "completed",
+                  "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+                }
+              ],
+              "tasks": [],
+              "durationsMs": {
+                "focus": 1500000,
+                "short_break": 300000,
+                "long_break": 900000
+              },
+              "autoStartBreaks": false,
+              "selectedTaskId": null
+            },
+            "local": {
+              "commands": [],
+              "taskOperations": [],
+              "durationOperations": [],
+              "autoStartOperations": [],
+              "selectedTaskOperations": []
+            },
+            "canonicalHead": null,
+            "neverSent": {
+              "commands": [],
+              "taskOperations": [],
+              "durationOperations": [],
+              "autoStartOperations": [],
+              "selectedTaskOperations": []
+            },
+            "timerDependencies": [],
+            "displayContext": {
+              "profile": "pwaStorage",
+              "projectionPending": {
+                "commands": [],
+                "taskOperations": [],
+                "durationOperations": [],
+                "autoStartOperations": [],
+                "selectedTaskOperations": []
+              }
+            }
+          },
+          "selection": {
+            "phase": "focus",
+            "generation": "7",
+            "explicit": false
+          },
+          "allocation": {
+            "deviceId": "p222-device",
+            "deviceSequence": 8,
+            "hlc": {
+              "counter": 3,
+              "wallMs": 1788177600000
+            },
+            "lastUuid": "01a057b0-ce00-7000-8000-000000000015"
+          },
+          "observation": {
+            "canonicalAnchorAt": "2026-08-31T12:25:00Z",
+            "commandTimes": {}
+          },
+          "clock": {
+            "occurredAt": "2026-08-31T12:25:00.000Z",
+            "physicalNow": "2026-08-31T12:25:00.000Z",
+            "observedAt": "2026-08-31T12:25:00.000Z",
+            "continuityId": "7e13723a-bbc5-4bba-8866-c70494047295"
+          },
+          "identities": {
+            "commandUuids": [
+              "01a057c7-b160-70bd-ab8e-d7628227fb84",
+              "01a057c7-b160-70bd-ab8e-d7628227fb85"
+            ],
+            "timerUuid": "08e30943-1ad8-44d2-b59a-c561a6bbbde4"
+          },
+          "calendarIntervals": [
+            {
+              "start": "2026-08-30T19:00:00.000Z",
+              "end": "2026-08-31T19:00:00.000Z"
+            }
+          ],
+          "lifecycle": {
+            "consumedCompletions": [],
+            "pendingBreaks": []
+          },
+          "intent": {
+            "kind": "selectPhase",
+            "phase": "focus"
+          }
+        },
+        "envelopeRaw": "{\"ok\":true,\"value\":{\"allocation\":{\"deviceId\":\"p222-device\",\"deviceSequence\":8,\"hlc\":{\"counter\":3,\"wallMs\":1788177600000},\"lastUuid\":\"01a057b0-ce00-7000-8000-000000000015\"},\"atomicCommandIds\":[],\"commandOutcomes\":[],\"commands\":[],\"effectsAfterCommit\":[],\"lifecycle\":{\"consumedCompletions\":[{\"commandId\":null,\"phase\":\"focus\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}],\"pendingBreaks\":[]},\"observation\":{\"canonicalAnchorAt\":\"2026-08-31T12:25:00Z\",\"commandTimes\":{}},\"outcome\":\"planned\",\"ownershipWrites\":[],\"projection\":{\"autoStartBreaks\":false,\"canonicalTimer\":{\"anchorAt\":\"2026-08-31T12:25:00Z\",\"elapsedAtAnchorMs\":1500000,\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"lastIntent\":{\"commandId\":\"01a057b0-ce00-7000-8000-000000000015\",\"deviceId\":\"p222-device\",\"occurredAt\":\"2026-08-31T12:00:00Z\",\"type\":\"start\"},\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"startedByDeviceId\":\"p222-device\",\"status\":\"completed\"},\"durationsMs\":{\"focus\":1500000,\"long_break\":900000,\"short_break\":300000},\"history\":[{\"completedAt\":\"2026-08-31T12:25:00Z\",\"endedAt\":\"2026-08-31T12:25:00Z\",\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"status\":\"completed\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}],\"selectedTaskId\":null,\"tasks\":[],\"timerOutcomes\":{},\"winningOperationIds\":{\"autoStart\":null,\"durations\":{},\"selectedTask\":null,\"tasks\":{}}},\"reason\":\"\",\"schemaVersion\":1,\"selection\":{\"explicit\":true,\"generation\":\"8\",\"phase\":\"focus\"},\"timerObservation\":{\"deadlineAt\":null,\"elapsedMs\":1500000,\"remainingMs\":0,\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"},\"workspace\":{\"base\":{\"autoStartBreaks\":false,\"canonicalTimer\":{\"anchorAt\":\"2026-08-31T12:25:00Z\",\"elapsedAtAnchorMs\":1500000,\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"lastIntent\":{\"commandId\":\"01a057b0-ce00-7000-8000-000000000015\",\"deviceId\":\"p222-device\",\"occurredAt\":\"2026-08-31T12:00:00Z\",\"type\":\"start\"},\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"startedByDeviceId\":\"p222-device\",\"status\":\"completed\"},\"durationsMs\":{\"focus\":1500000,\"long_break\":900000,\"short_break\":300000},\"history\":[{\"completedAt\":\"2026-08-31T12:25:00Z\",\"endedAt\":\"2026-08-31T12:25:00Z\",\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"status\":\"completed\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}],\"selectedTaskId\":null,\"tasks\":[]},\"canonicalHead\":null,\"displayContext\":{\"profile\":\"pwaStorage\",\"projectionPending\":{\"autoStartOperations\":[],\"commands\":[],\"durationOperations\":[],\"selectedTaskOperations\":[],\"taskOperations\":[]}},\"local\":{\"autoStartOperations\":[],\"commands\":[],\"durationOperations\":[],\"selectedTaskOperations\":[],\"taskOperations\":[]},\"neverSent\":{\"autoStartOperations\":[],\"commands\":[],\"durationOperations\":[],\"selectedTaskOperations\":[],\"taskOperations\":[]},\"timerDependencies\":[]}}}",
+        "completeReturn": {
+          "allocation": {
+            "deviceId": "p222-device",
+            "deviceSequence": 8,
+            "hlc": {
+              "counter": 3,
+              "wallMs": 1788177600000
+            },
+            "lastUuid": "01a057b0-ce00-7000-8000-000000000015"
+          },
+          "atomicCommandIds": [],
+          "commandOutcomes": [],
+          "commands": [],
+          "effectsAfterCommit": [],
+          "lifecycle": {
+            "consumedCompletions": [
+              {
+                "commandId": null,
+                "phase": "focus",
+                "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+              }
+            ],
+            "pendingBreaks": []
+          },
+          "observation": {
+            "canonicalAnchorAt": "2026-08-31T12:25:00Z",
+            "commandTimes": {}
+          },
+          "outcome": "planned",
+          "ownershipWrites": [],
+          "projection": {
+            "autoStartBreaks": false,
+            "canonicalTimer": {
+              "anchorAt": "2026-08-31T12:25:00Z",
+              "elapsedAtAnchorMs": 1500000,
+              "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+              "lastIntent": {
+                "commandId": "01a057b0-ce00-7000-8000-000000000015",
+                "deviceId": "p222-device",
+                "occurredAt": "2026-08-31T12:00:00Z",
+                "type": "start"
+              },
+              "phase": "focus",
+              "plannedDurationMs": 1500000,
+              "startedByDeviceId": "p222-device",
+              "status": "completed"
+            },
+            "durationsMs": {
+              "focus": 1500000,
+              "long_break": 900000,
+              "short_break": 300000
+            },
+            "history": [
+              {
+                "completedAt": "2026-08-31T12:25:00Z",
+                "endedAt": "2026-08-31T12:25:00Z",
+                "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                "phase": "focus",
+                "plannedDurationMs": 1500000,
+                "status": "completed",
+                "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+              }
+            ],
+            "selectedTaskId": null,
+            "tasks": [],
+            "timerOutcomes": {},
+            "winningOperationIds": {
+              "autoStart": null,
+              "durations": {},
+              "selectedTask": null,
+              "tasks": {}
+            }
+          },
+          "reason": "",
+          "schemaVersion": 1,
+          "selection": {
+            "explicit": true,
+            "generation": "8",
+            "phase": "focus"
+          },
+          "timerObservation": {
+            "deadlineAt": null,
+            "elapsedMs": 1500000,
+            "remainingMs": 0,
+            "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+          },
+          "workspace": {
+            "base": {
+              "autoStartBreaks": false,
+              "canonicalTimer": {
+                "anchorAt": "2026-08-31T12:25:00Z",
+                "elapsedAtAnchorMs": 1500000,
+                "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                "lastIntent": {
+                  "commandId": "01a057b0-ce00-7000-8000-000000000015",
+                  "deviceId": "p222-device",
+                  "occurredAt": "2026-08-31T12:00:00Z",
+                  "type": "start"
+                },
+                "phase": "focus",
+                "plannedDurationMs": 1500000,
+                "startedByDeviceId": "p222-device",
+                "status": "completed"
+              },
+              "durationsMs": {
+                "focus": 1500000,
+                "long_break": 900000,
+                "short_break": 300000
+              },
+              "history": [
+                {
+                  "completedAt": "2026-08-31T12:25:00Z",
+                  "endedAt": "2026-08-31T12:25:00Z",
+                  "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                  "phase": "focus",
+                  "plannedDurationMs": 1500000,
+                  "status": "completed",
+                  "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+                }
+              ],
+              "selectedTaskId": null,
+              "tasks": []
+            },
+            "canonicalHead": null,
+            "displayContext": {
+              "profile": "pwaStorage",
+              "projectionPending": {
+                "autoStartOperations": [],
+                "commands": [],
+                "durationOperations": [],
+                "selectedTaskOperations": [],
+                "taskOperations": []
+              }
+            },
+            "local": {
+              "autoStartOperations": [],
+              "commands": [],
+              "durationOperations": [],
+              "selectedTaskOperations": [],
+              "taskOperations": []
+            },
+            "neverSent": {
+              "autoStartOperations": [],
+              "commands": [],
+              "durationOperations": [],
+              "selectedTaskOperations": [],
+              "taskOperations": []
+            },
+            "timerDependencies": []
+          }
+        }
+      },
+      "after": {
+        "meta": [
+          {
+            "key": "completionRecords",
+            "value": {}
+          },
+          {
+            "key": "completionState",
+            "value": {
+              "selection": {
+                "explicit": true,
+                "generation": "8",
+                "phase": "focus"
+              },
+              "lifecycle": {
+                "consumedCompletions": [
+                  {
+                    "commandId": null,
+                    "phase": "focus",
+                    "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+                  }
+                ],
+                "pendingBreaks": []
+              }
+            }
+          },
+          {
+            "key": "deliveryProof",
+            "value": {
+              "autoStartOperations": [],
+              "commands": [],
+              "durationOperations": [],
+              "selectedTaskOperations": [],
+              "taskOperations": []
+            }
+          },
+          {
+            "key": "deviceId",
+            "value": "p222-device"
+          },
+          {
+            "key": "deviceSequence",
+            "value": 8
+          },
+          {
+            "key": "displayHistory",
+            "value": [
+              {
+                "completedAt": "2026-08-31T12:25:00Z",
+                "endedAt": "2026-08-31T12:25:00Z",
+                "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                "phase": "focus",
+                "plannedDurationMs": 1500000,
+                "status": "completed",
+                "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+              }
+            ]
+          },
+          {
+            "key": "hlc",
+            "value": {
+              "counter": 3,
+              "wallMs": 1788177600000
+            }
+          },
+          {
+            "key": "projectionPending",
+            "value": {
+              "autoStartOperations": [],
+              "commands": [],
+              "durationOperations": [],
+              "selectedTaskOperations": [],
+              "taskOperations": []
+            }
+          },
+          {
+            "key": "settings",
+            "value": {
+              "selectedPhase": "focus",
+              "durationSyncBootstrapped": true,
+              "autoStartSyncBootstrapped": true,
+              "selectedTaskSyncBootstrapped": true
+            }
+          },
+          {
+            "key": "snapshot",
+            "value": {
+              "user": {
+                "id": "p222-account",
+                "accountIncarnation": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+              },
+              "revision": 3,
+              "serverTime": "2026-08-31T12:00:00.000Z",
+              "canonicalTimer": {
+                "anchorAt": "2026-08-31T12:25:00Z",
+                "elapsedAtAnchorMs": 1500000,
+                "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                "lastIntent": {
+                  "commandId": "01a057b0-ce00-7000-8000-000000000015",
+                  "deviceId": "p222-device",
+                  "occurredAt": "2026-08-31T12:00:00Z",
+                  "type": "start"
+                },
+                "phase": "focus",
+                "plannedDurationMs": 1500000,
+                "startedByDeviceId": "p222-device",
+                "status": "completed"
+              },
+              "history": [
+                {
+                  "completedAt": "2026-08-31T12:25:00Z",
+                  "endedAt": "2026-08-31T12:25:00Z",
+                  "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                  "phase": "focus",
+                  "plannedDurationMs": 1500000,
+                  "status": "completed",
+                  "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+                }
+              ],
+              "tasks": [],
+              "selectedTaskId": null,
+              "autoStartBreaks": false,
+              "durationsMs": {
+                "focus": 1500000,
+                "short_break": 300000,
+                "long_break": 900000
+              }
+            }
+          },
+          {
+            "key": "timerDependencies",
+            "value": []
+          },
+          {
+            "key": "timerOwner",
+            "value": {
+              "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+              "deviceId": "p222-device",
+              "tabId": "p222-tab-0",
+              "leaseExpiresAtMs": 1788177660000
+            }
+          },
+          {
+            "key": "uuidV7",
+            "value": "01a057b0-ce00-7000-8000-000000000015"
+          },
+          {
+            "key": "workspaceGroups",
+            "value": [
+              {
+                "atomicCommandIds": [
+                  "01a057b0-ce00-7000-8000-000000000015"
+                ],
+                "atomicOperationIds": null,
+                "commandOutcomes": [
+                  {
+                    "id": "01a057b0-ce00-7000-8000-000000000015",
+                    "outcome": "applied"
+                  }
+                ],
+                "groupOutcomes": null
+              },
+              {
+                "atomicCommandIds": [],
+                "atomicOperationIds": null,
+                "commandOutcomes": [],
+                "groupOutcomes": null
+              }
+            ]
+          },
+          {
+            "key": "workspaceObservation",
+            "value": {
+              "canonicalAnchorAt": "2026-08-31T12:25:00Z",
+              "commandTimes": {}
+            }
+          }
+        ],
+        "pending": [],
+        "pendingTasks": [],
+        "pendingDurations": [],
+        "pendingAutoStarts": [],
+        "pendingSelectedTasks": []
+      },
+      "completeCurrentReturn": {
+        "allocation": {
+          "deviceId": "p222-device",
+          "deviceSequence": 8,
+          "hlc": {
+            "counter": 3,
+            "wallMs": 1788177600000
+          },
+          "lastUuid": "01a057b0-ce00-7000-8000-000000000015"
+        },
+        "atomicCommandIds": [],
+        "commandOutcomes": [],
+        "commands": [],
+        "effectsAfterCommit": [],
+        "lifecycle": {
+          "consumedCompletions": [
+            {
+              "commandId": null,
+              "phase": "focus",
+              "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+            }
+          ],
+          "pendingBreaks": []
+        },
+        "observation": {
+          "canonicalAnchorAt": "2026-08-31T12:25:00Z",
+          "commandTimes": {}
+        },
+        "outcome": "planned",
+        "ownershipWrites": [],
+        "projection": {
+          "autoStartBreaks": false,
+          "canonicalTimer": {
+            "anchorAt": "2026-08-31T12:25:00Z",
+            "elapsedAtAnchorMs": 1500000,
+            "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+            "lastIntent": {
+              "commandId": "01a057b0-ce00-7000-8000-000000000015",
+              "deviceId": "p222-device",
+              "occurredAt": "2026-08-31T12:00:00Z",
+              "type": "start"
+            },
+            "phase": "focus",
+            "plannedDurationMs": 1500000,
+            "startedByDeviceId": "p222-device",
+            "status": "completed"
+          },
+          "durationsMs": {
+            "focus": 1500000,
+            "long_break": 900000,
+            "short_break": 300000
+          },
+          "history": [
+            {
+              "completedAt": "2026-08-31T12:25:00Z",
+              "endedAt": "2026-08-31T12:25:00Z",
+              "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+              "phase": "focus",
+              "plannedDurationMs": 1500000,
+              "status": "completed",
+              "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+            }
+          ],
+          "selectedTaskId": null,
+          "tasks": [],
+          "timerOutcomes": {},
+          "winningOperationIds": {
+            "autoStart": null,
+            "durations": {},
+            "selectedTask": null,
+            "tasks": {}
+          }
+        },
+        "reason": "",
+        "schemaVersion": 1,
+        "selection": {
+          "explicit": true,
+          "generation": "8",
+          "phase": "focus"
+        },
+        "timerObservation": {
+          "deadlineAt": null,
+          "elapsedMs": 1500000,
+          "remainingMs": 0,
+          "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+        },
+        "workspace": {
+          "base": {
+            "autoStartBreaks": false,
+            "canonicalTimer": {
+              "anchorAt": "2026-08-31T12:25:00Z",
+              "elapsedAtAnchorMs": 1500000,
+              "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+              "lastIntent": {
+                "commandId": "01a057b0-ce00-7000-8000-000000000015",
+                "deviceId": "p222-device",
+                "occurredAt": "2026-08-31T12:00:00Z",
+                "type": "start"
+              },
+              "phase": "focus",
+              "plannedDurationMs": 1500000,
+              "startedByDeviceId": "p222-device",
+              "status": "completed"
+            },
+            "durationsMs": {
+              "focus": 1500000,
+              "long_break": 900000,
+              "short_break": 300000
+            },
+            "history": [
+              {
+                "completedAt": "2026-08-31T12:25:00Z",
+                "endedAt": "2026-08-31T12:25:00Z",
+                "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                "phase": "focus",
+                "plannedDurationMs": 1500000,
+                "status": "completed",
+                "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+              }
+            ],
+            "selectedTaskId": null,
+            "tasks": []
+          },
+          "canonicalHead": null,
+          "displayContext": {
+            "profile": "pwaStorage",
+            "projectionPending": {
+              "autoStartOperations": [],
+              "commands": [],
+              "durationOperations": [],
+              "selectedTaskOperations": [],
+              "taskOperations": []
+            }
+          },
+          "local": {
+            "autoStartOperations": [],
+            "commands": [],
+            "durationOperations": [],
+            "selectedTaskOperations": [],
+            "taskOperations": []
+          },
+          "neverSent": {
+            "autoStartOperations": [],
+            "commands": [],
+            "durationOperations": [],
+            "selectedTaskOperations": [],
+            "taskOperations": []
+          },
+          "timerDependencies": []
+        }
+      },
+      "completeFrozenReturn": {
+        "allocation": {
+          "deviceId": "p222-device",
+          "deviceSequence": 8,
+          "hlc": {
+            "counter": 3,
+            "wallMs": 1788177600000
+          },
+          "lastUuid": "01a057b0-ce00-7000-8000-000000000015"
+        },
+        "atomicCommandIds": [],
+        "commandOutcomes": [],
+        "commands": [],
+        "effectsAfterCommit": [],
+        "lifecycle": {
+          "consumedCompletions": [
+            {
+              "commandId": null,
+              "phase": "focus",
+              "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+            }
+          ],
+          "pendingBreaks": []
+        },
+        "observation": {
+          "canonicalAnchorAt": "2026-08-31T12:25:00Z",
+          "commandTimes": {}
+        },
+        "outcome": "planned",
+        "ownershipWrites": [],
+        "projection": {
+          "autoStartBreaks": false,
+          "canonicalTimer": {
+            "anchorAt": "2026-08-31T12:25:00Z",
+            "elapsedAtAnchorMs": 1500000,
+            "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+            "lastIntent": {
+              "commandId": "01a057b0-ce00-7000-8000-000000000015",
+              "deviceId": "p222-device",
+              "occurredAt": "2026-08-31T12:00:00Z",
+              "type": "start"
+            },
+            "phase": "focus",
+            "plannedDurationMs": 1500000,
+            "startedByDeviceId": "p222-device",
+            "status": "completed"
+          },
+          "durationsMs": {
+            "focus": 1500000,
+            "long_break": 900000,
+            "short_break": 300000
+          },
+          "history": [
+            {
+              "completedAt": "2026-08-31T12:25:00Z",
+              "endedAt": "2026-08-31T12:25:00Z",
+              "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+              "phase": "focus",
+              "plannedDurationMs": 1500000,
+              "status": "completed",
+              "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+            }
+          ],
+          "selectedTaskId": null,
+          "tasks": [],
+          "timerOutcomes": {},
+          "winningOperationIds": {
+            "autoStart": null,
+            "durations": {},
+            "selectedTask": null,
+            "tasks": {}
+          }
+        },
+        "reason": "",
+        "schemaVersion": 1,
+        "selection": {
+          "explicit": true,
+          "generation": "8",
+          "phase": "focus"
+        },
+        "timerObservation": {
+          "deadlineAt": null,
+          "elapsedMs": 1500000,
+          "remainingMs": 0,
+          "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+        },
+        "workspace": {
+          "base": {
+            "autoStartBreaks": false,
+            "canonicalTimer": {
+              "anchorAt": "2026-08-31T12:25:00Z",
+              "elapsedAtAnchorMs": 1500000,
+              "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+              "lastIntent": {
+                "commandId": "01a057b0-ce00-7000-8000-000000000015",
+                "deviceId": "p222-device",
+                "occurredAt": "2026-08-31T12:00:00Z",
+                "type": "start"
+              },
+              "phase": "focus",
+              "plannedDurationMs": 1500000,
+              "startedByDeviceId": "p222-device",
+              "status": "completed"
+            },
+            "durationsMs": {
+              "focus": 1500000,
+              "long_break": 900000,
+              "short_break": 300000
+            },
+            "history": [
+              {
+                "completedAt": "2026-08-31T12:25:00Z",
+                "endedAt": "2026-08-31T12:25:00Z",
+                "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                "phase": "focus",
+                "plannedDurationMs": 1500000,
+                "status": "completed",
+                "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+              }
+            ],
+            "selectedTaskId": null,
+            "tasks": []
+          },
+          "canonicalHead": null,
+          "displayContext": {
+            "profile": "pwaStorage",
+            "projectionPending": {
+              "autoStartOperations": [],
+              "commands": [],
+              "durationOperations": [],
+              "selectedTaskOperations": [],
+              "taskOperations": []
+            }
+          },
+          "local": {
+            "autoStartOperations": [],
+            "commands": [],
+            "durationOperations": [],
+            "selectedTaskOperations": [],
+            "taskOperations": []
+          },
+          "neverSent": {
+            "autoStartOperations": [],
+            "commands": [],
+            "durationOperations": [],
+            "selectedTaskOperations": [],
+            "taskOperations": []
+          },
+          "timerDependencies": []
+        }
+      },
+      "currentCall": {
+        "operation": "workspace.intent.v1",
+        "inputRaw": "{\"compatibility\":\"pwaStorage\",\"replicationMode\":\"centralized\",\"workspace\":{\"base\":{\"canonicalTimer\":{\"anchorAt\":\"2026-08-31T12:25:00Z\",\"elapsedAtAnchorMs\":1500000,\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"lastIntent\":{\"commandId\":\"01a057b0-ce00-7000-8000-000000000015\",\"deviceId\":\"p222-device\",\"occurredAt\":\"2026-08-31T12:00:00Z\",\"type\":\"start\"},\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"startedByDeviceId\":\"p222-device\",\"status\":\"completed\"},\"history\":[{\"completedAt\":\"2026-08-31T12:25:00Z\",\"endedAt\":\"2026-08-31T12:25:00Z\",\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"status\":\"completed\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}],\"tasks\":[],\"durationsMs\":{\"focus\":1500000,\"short_break\":300000,\"long_break\":900000},\"autoStartBreaks\":false,\"selectedTaskId\":null},\"local\":{\"commands\":[],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]},\"canonicalHead\":null,\"neverSent\":{\"commands\":[],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]},\"timerDependencies\":[],\"displayContext\":{\"profile\":\"pwaStorage\",\"projectionPending\":{\"commands\":[],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]}}},\"selection\":{\"phase\":\"focus\",\"generation\":\"7\",\"explicit\":false},\"allocation\":{\"deviceId\":\"p222-device\",\"deviceSequence\":8,\"hlc\":{\"counter\":3,\"wallMs\":1788177600000},\"lastUuid\":\"01a057b0-ce00-7000-8000-000000000015\"},\"observation\":{\"canonicalAnchorAt\":\"2026-08-31T12:25:00Z\",\"commandTimes\":{}},\"clock\":{\"occurredAt\":\"2026-08-31T12:25:00.000Z\",\"physicalNow\":\"2026-08-31T12:25:00.000Z\",\"observedAt\":\"2026-08-31T12:25:00.000Z\"},\"identities\":{\"commandUuids\":[\"01a057c7-b160-7000-8000-000000000000\",\"01a057c7-b160-7000-8000-000000000001\"],\"timerUuid\":\"08e30943-1ad8-44d2-b59a-c561a6bbbde4\"},\"calendarIntervals\":[{\"start\":\"2026-08-30T19:00:00.000Z\",\"end\":\"2026-08-31T19:00:00.000Z\"}],\"lifecycle\":{\"consumedCompletions\":[],\"pendingBreaks\":[]},\"intent\":{\"kind\":\"selectPhase\",\"phase\":\"focus\"}}",
+        "input": {
+          "compatibility": "pwaStorage",
+          "replicationMode": "centralized",
+          "workspace": {
+            "base": {
+              "canonicalTimer": {
+                "anchorAt": "2026-08-31T12:25:00Z",
+                "elapsedAtAnchorMs": 1500000,
+                "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                "lastIntent": {
+                  "commandId": "01a057b0-ce00-7000-8000-000000000015",
+                  "deviceId": "p222-device",
+                  "occurredAt": "2026-08-31T12:00:00Z",
+                  "type": "start"
+                },
+                "phase": "focus",
+                "plannedDurationMs": 1500000,
+                "startedByDeviceId": "p222-device",
+                "status": "completed"
+              },
+              "history": [
+                {
+                  "completedAt": "2026-08-31T12:25:00Z",
+                  "endedAt": "2026-08-31T12:25:00Z",
+                  "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                  "phase": "focus",
+                  "plannedDurationMs": 1500000,
+                  "status": "completed",
+                  "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+                }
+              ],
+              "tasks": [],
+              "durationsMs": {
+                "focus": 1500000,
+                "short_break": 300000,
+                "long_break": 900000
+              },
+              "autoStartBreaks": false,
+              "selectedTaskId": null
+            },
+            "local": {
+              "commands": [],
+              "taskOperations": [],
+              "durationOperations": [],
+              "autoStartOperations": [],
+              "selectedTaskOperations": []
+            },
+            "canonicalHead": null,
+            "neverSent": {
+              "commands": [],
+              "taskOperations": [],
+              "durationOperations": [],
+              "autoStartOperations": [],
+              "selectedTaskOperations": []
+            },
+            "timerDependencies": [],
+            "displayContext": {
+              "profile": "pwaStorage",
+              "projectionPending": {
+                "commands": [],
+                "taskOperations": [],
+                "durationOperations": [],
+                "autoStartOperations": [],
+                "selectedTaskOperations": []
+              }
+            }
+          },
+          "selection": {
+            "phase": "focus",
+            "generation": "7",
+            "explicit": false
+          },
+          "allocation": {
+            "deviceId": "p222-device",
+            "deviceSequence": 8,
+            "hlc": {
+              "counter": 3,
+              "wallMs": 1788177600000
+            },
+            "lastUuid": "01a057b0-ce00-7000-8000-000000000015"
+          },
+          "observation": {
+            "canonicalAnchorAt": "2026-08-31T12:25:00Z",
+            "commandTimes": {}
+          },
+          "clock": {
+            "occurredAt": "2026-08-31T12:25:00.000Z",
+            "physicalNow": "2026-08-31T12:25:00.000Z",
+            "observedAt": "2026-08-31T12:25:00.000Z"
+          },
+          "identities": {
+            "commandUuids": [
+              "01a057c7-b160-7000-8000-000000000000",
+              "01a057c7-b160-7000-8000-000000000001"
+            ],
+            "timerUuid": "08e30943-1ad8-44d2-b59a-c561a6bbbde4"
+          },
+          "calendarIntervals": [
+            {
+              "start": "2026-08-30T19:00:00.000Z",
+              "end": "2026-08-31T19:00:00.000Z"
+            }
+          ],
+          "lifecycle": {
+            "consumedCompletions": [],
+            "pendingBreaks": []
+          },
+          "intent": {
+            "kind": "selectPhase",
+            "phase": "focus"
+          }
+        },
+        "envelopeRaw": "{\"ok\":true,\"value\":{\"allocation\":{\"deviceId\":\"p222-device\",\"deviceSequence\":8,\"hlc\":{\"counter\":3,\"wallMs\":1788177600000},\"lastUuid\":\"01a057b0-ce00-7000-8000-000000000015\"},\"atomicCommandIds\":[],\"commandOutcomes\":[],\"commands\":[],\"effectsAfterCommit\":[],\"lifecycle\":{\"consumedCompletions\":[{\"commandId\":null,\"phase\":\"focus\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}],\"pendingBreaks\":[]},\"observation\":{\"canonicalAnchorAt\":\"2026-08-31T12:25:00Z\",\"commandTimes\":{}},\"outcome\":\"planned\",\"ownershipWrites\":[],\"projection\":{\"autoStartBreaks\":false,\"canonicalTimer\":{\"anchorAt\":\"2026-08-31T12:25:00Z\",\"elapsedAtAnchorMs\":1500000,\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"lastIntent\":{\"commandId\":\"01a057b0-ce00-7000-8000-000000000015\",\"deviceId\":\"p222-device\",\"occurredAt\":\"2026-08-31T12:00:00Z\",\"type\":\"start\"},\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"startedByDeviceId\":\"p222-device\",\"status\":\"completed\"},\"durationsMs\":{\"focus\":1500000,\"long_break\":900000,\"short_break\":300000},\"history\":[{\"completedAt\":\"2026-08-31T12:25:00Z\",\"endedAt\":\"2026-08-31T12:25:00Z\",\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"status\":\"completed\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}],\"selectedTaskId\":null,\"tasks\":[],\"timerOutcomes\":{},\"winningOperationIds\":{\"autoStart\":null,\"durations\":{},\"selectedTask\":null,\"tasks\":{}}},\"reason\":\"\",\"schemaVersion\":1,\"selection\":{\"explicit\":true,\"generation\":\"8\",\"phase\":\"focus\"},\"timerObservation\":{\"deadlineAt\":null,\"elapsedMs\":1500000,\"remainingMs\":0,\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"},\"workspace\":{\"base\":{\"autoStartBreaks\":false,\"canonicalTimer\":{\"anchorAt\":\"2026-08-31T12:25:00Z\",\"elapsedAtAnchorMs\":1500000,\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"lastIntent\":{\"commandId\":\"01a057b0-ce00-7000-8000-000000000015\",\"deviceId\":\"p222-device\",\"occurredAt\":\"2026-08-31T12:00:00Z\",\"type\":\"start\"},\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"startedByDeviceId\":\"p222-device\",\"status\":\"completed\"},\"durationsMs\":{\"focus\":1500000,\"long_break\":900000,\"short_break\":300000},\"history\":[{\"completedAt\":\"2026-08-31T12:25:00Z\",\"endedAt\":\"2026-08-31T12:25:00Z\",\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"status\":\"completed\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}],\"selectedTaskId\":null,\"tasks\":[]},\"canonicalHead\":null,\"displayContext\":{\"profile\":\"pwaStorage\",\"projectionPending\":{\"autoStartOperations\":[],\"commands\":[],\"durationOperations\":[],\"selectedTaskOperations\":[],\"taskOperations\":[]}},\"local\":{\"autoStartOperations\":[],\"commands\":[],\"durationOperations\":[],\"selectedTaskOperations\":[],\"taskOperations\":[]},\"neverSent\":{\"autoStartOperations\":[],\"commands\":[],\"durationOperations\":[],\"selectedTaskOperations\":[],\"taskOperations\":[]},\"timerDependencies\":[]}}}",
+        "completeReturn": {
+          "allocation": {
+            "deviceId": "p222-device",
+            "deviceSequence": 8,
+            "hlc": {
+              "counter": 3,
+              "wallMs": 1788177600000
+            },
+            "lastUuid": "01a057b0-ce00-7000-8000-000000000015"
+          },
+          "atomicCommandIds": [],
+          "commandOutcomes": [],
+          "commands": [],
+          "effectsAfterCommit": [],
+          "lifecycle": {
+            "consumedCompletions": [
+              {
+                "commandId": null,
+                "phase": "focus",
+                "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+              }
+            ],
+            "pendingBreaks": []
+          },
+          "observation": {
+            "canonicalAnchorAt": "2026-08-31T12:25:00Z",
+            "commandTimes": {}
+          },
+          "outcome": "planned",
+          "ownershipWrites": [],
+          "projection": {
+            "autoStartBreaks": false,
+            "canonicalTimer": {
+              "anchorAt": "2026-08-31T12:25:00Z",
+              "elapsedAtAnchorMs": 1500000,
+              "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+              "lastIntent": {
+                "commandId": "01a057b0-ce00-7000-8000-000000000015",
+                "deviceId": "p222-device",
+                "occurredAt": "2026-08-31T12:00:00Z",
+                "type": "start"
+              },
+              "phase": "focus",
+              "plannedDurationMs": 1500000,
+              "startedByDeviceId": "p222-device",
+              "status": "completed"
+            },
+            "durationsMs": {
+              "focus": 1500000,
+              "long_break": 900000,
+              "short_break": 300000
+            },
+            "history": [
+              {
+                "completedAt": "2026-08-31T12:25:00Z",
+                "endedAt": "2026-08-31T12:25:00Z",
+                "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                "phase": "focus",
+                "plannedDurationMs": 1500000,
+                "status": "completed",
+                "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+              }
+            ],
+            "selectedTaskId": null,
+            "tasks": [],
+            "timerOutcomes": {},
+            "winningOperationIds": {
+              "autoStart": null,
+              "durations": {},
+              "selectedTask": null,
+              "tasks": {}
+            }
+          },
+          "reason": "",
+          "schemaVersion": 1,
+          "selection": {
+            "explicit": true,
+            "generation": "8",
+            "phase": "focus"
+          },
+          "timerObservation": {
+            "deadlineAt": null,
+            "elapsedMs": 1500000,
+            "remainingMs": 0,
+            "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+          },
+          "workspace": {
+            "base": {
+              "autoStartBreaks": false,
+              "canonicalTimer": {
+                "anchorAt": "2026-08-31T12:25:00Z",
+                "elapsedAtAnchorMs": 1500000,
+                "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                "lastIntent": {
+                  "commandId": "01a057b0-ce00-7000-8000-000000000015",
+                  "deviceId": "p222-device",
+                  "occurredAt": "2026-08-31T12:00:00Z",
+                  "type": "start"
+                },
+                "phase": "focus",
+                "plannedDurationMs": 1500000,
+                "startedByDeviceId": "p222-device",
+                "status": "completed"
+              },
+              "durationsMs": {
+                "focus": 1500000,
+                "long_break": 900000,
+                "short_break": 300000
+              },
+              "history": [
+                {
+                  "completedAt": "2026-08-31T12:25:00Z",
+                  "endedAt": "2026-08-31T12:25:00Z",
+                  "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                  "phase": "focus",
+                  "plannedDurationMs": 1500000,
+                  "status": "completed",
+                  "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+                }
+              ],
+              "selectedTaskId": null,
+              "tasks": []
+            },
+            "canonicalHead": null,
+            "displayContext": {
+              "profile": "pwaStorage",
+              "projectionPending": {
+                "autoStartOperations": [],
+                "commands": [],
+                "durationOperations": [],
+                "selectedTaskOperations": [],
+                "taskOperations": []
+              }
+            },
+            "local": {
+              "autoStartOperations": [],
+              "commands": [],
+              "durationOperations": [],
+              "selectedTaskOperations": [],
+              "taskOperations": []
+            },
+            "neverSent": {
+              "autoStartOperations": [],
+              "commands": [],
+              "durationOperations": [],
+              "selectedTaskOperations": [],
+              "taskOperations": []
+            },
+            "timerDependencies": []
+          }
+        }
+      },
+      "frozenCall": {
+        "operation": "workspace.intent.v1",
+        "inputRaw": "{\"compatibility\":\"pwaStorage\",\"replicationMode\":\"centralized\",\"workspace\":{\"base\":{\"canonicalTimer\":{\"anchorAt\":\"2026-08-31T12:25:00Z\",\"elapsedAtAnchorMs\":1500000,\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"lastIntent\":{\"commandId\":\"01a057b0-ce00-7000-8000-000000000015\",\"deviceId\":\"p222-device\",\"occurredAt\":\"2026-08-31T12:00:00Z\",\"type\":\"start\"},\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"startedByDeviceId\":\"p222-device\",\"status\":\"completed\"},\"history\":[{\"completedAt\":\"2026-08-31T12:25:00Z\",\"endedAt\":\"2026-08-31T12:25:00Z\",\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"status\":\"completed\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}],\"tasks\":[],\"durationsMs\":{\"focus\":1500000,\"short_break\":300000,\"long_break\":900000},\"autoStartBreaks\":false,\"selectedTaskId\":null},\"local\":{\"commands\":[],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]},\"canonicalHead\":null,\"neverSent\":{\"commands\":[],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]},\"timerDependencies\":[],\"displayContext\":{\"profile\":\"pwaStorage\",\"projectionPending\":{\"commands\":[],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]}}},\"selection\":{\"phase\":\"focus\",\"generation\":\"7\",\"explicit\":false},\"allocation\":{\"deviceId\":\"p222-device\",\"deviceSequence\":8,\"hlc\":{\"counter\":3,\"wallMs\":1788177600000},\"lastUuid\":\"01a057b0-ce00-7000-8000-000000000015\"},\"observation\":{\"canonicalAnchorAt\":\"2026-08-31T12:25:00Z\",\"commandTimes\":{}},\"clock\":{\"occurredAt\":\"2026-08-31T12:25:00.000Z\",\"physicalNow\":\"2026-08-31T12:25:00.000Z\",\"observedAt\":\"2026-08-31T12:25:00.000Z\"},\"identities\":{\"commandUuids\":[\"01a057c7-b160-7000-8000-000000000000\",\"01a057c7-b160-7000-8000-000000000001\"],\"timerUuid\":\"08e30943-1ad8-44d2-b59a-c561a6bbbde4\"},\"calendarIntervals\":[{\"start\":\"2026-08-30T19:00:00.000Z\",\"end\":\"2026-08-31T19:00:00.000Z\"}],\"lifecycle\":{\"consumedCompletions\":[],\"pendingBreaks\":[]},\"intent\":{\"kind\":\"selectPhase\",\"phase\":\"focus\"}}",
+        "input": {
+          "compatibility": "pwaStorage",
+          "replicationMode": "centralized",
+          "workspace": {
+            "base": {
+              "canonicalTimer": {
+                "anchorAt": "2026-08-31T12:25:00Z",
+                "elapsedAtAnchorMs": 1500000,
+                "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                "lastIntent": {
+                  "commandId": "01a057b0-ce00-7000-8000-000000000015",
+                  "deviceId": "p222-device",
+                  "occurredAt": "2026-08-31T12:00:00Z",
+                  "type": "start"
+                },
+                "phase": "focus",
+                "plannedDurationMs": 1500000,
+                "startedByDeviceId": "p222-device",
+                "status": "completed"
+              },
+              "history": [
+                {
+                  "completedAt": "2026-08-31T12:25:00Z",
+                  "endedAt": "2026-08-31T12:25:00Z",
+                  "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                  "phase": "focus",
+                  "plannedDurationMs": 1500000,
+                  "status": "completed",
+                  "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+                }
+              ],
+              "tasks": [],
+              "durationsMs": {
+                "focus": 1500000,
+                "short_break": 300000,
+                "long_break": 900000
+              },
+              "autoStartBreaks": false,
+              "selectedTaskId": null
+            },
+            "local": {
+              "commands": [],
+              "taskOperations": [],
+              "durationOperations": [],
+              "autoStartOperations": [],
+              "selectedTaskOperations": []
+            },
+            "canonicalHead": null,
+            "neverSent": {
+              "commands": [],
+              "taskOperations": [],
+              "durationOperations": [],
+              "autoStartOperations": [],
+              "selectedTaskOperations": []
+            },
+            "timerDependencies": [],
+            "displayContext": {
+              "profile": "pwaStorage",
+              "projectionPending": {
+                "commands": [],
+                "taskOperations": [],
+                "durationOperations": [],
+                "autoStartOperations": [],
+                "selectedTaskOperations": []
+              }
+            }
+          },
+          "selection": {
+            "phase": "focus",
+            "generation": "7",
+            "explicit": false
+          },
+          "allocation": {
+            "deviceId": "p222-device",
+            "deviceSequence": 8,
+            "hlc": {
+              "counter": 3,
+              "wallMs": 1788177600000
+            },
+            "lastUuid": "01a057b0-ce00-7000-8000-000000000015"
+          },
+          "observation": {
+            "canonicalAnchorAt": "2026-08-31T12:25:00Z",
+            "commandTimes": {}
+          },
+          "clock": {
+            "occurredAt": "2026-08-31T12:25:00.000Z",
+            "physicalNow": "2026-08-31T12:25:00.000Z",
+            "observedAt": "2026-08-31T12:25:00.000Z"
+          },
+          "identities": {
+            "commandUuids": [
+              "01a057c7-b160-7000-8000-000000000000",
+              "01a057c7-b160-7000-8000-000000000001"
+            ],
+            "timerUuid": "08e30943-1ad8-44d2-b59a-c561a6bbbde4"
+          },
+          "calendarIntervals": [
+            {
+              "start": "2026-08-30T19:00:00.000Z",
+              "end": "2026-08-31T19:00:00.000Z"
+            }
+          ],
+          "lifecycle": {
+            "consumedCompletions": [],
+            "pendingBreaks": []
+          },
+          "intent": {
+            "kind": "selectPhase",
+            "phase": "focus"
+          }
+        },
+        "envelopeRaw": "{\"ok\":true,\"value\":{\"allocation\":{\"deviceId\":\"p222-device\",\"deviceSequence\":8,\"hlc\":{\"counter\":3,\"wallMs\":1788177600000},\"lastUuid\":\"01a057b0-ce00-7000-8000-000000000015\"},\"atomicCommandIds\":[],\"commandOutcomes\":[],\"commands\":[],\"effectsAfterCommit\":[],\"lifecycle\":{\"consumedCompletions\":[{\"commandId\":null,\"phase\":\"focus\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}],\"pendingBreaks\":[]},\"observation\":{\"canonicalAnchorAt\":\"2026-08-31T12:25:00Z\",\"commandTimes\":{}},\"outcome\":\"planned\",\"ownershipWrites\":[],\"projection\":{\"autoStartBreaks\":false,\"canonicalTimer\":{\"anchorAt\":\"2026-08-31T12:25:00Z\",\"elapsedAtAnchorMs\":1500000,\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"lastIntent\":{\"commandId\":\"01a057b0-ce00-7000-8000-000000000015\",\"deviceId\":\"p222-device\",\"occurredAt\":\"2026-08-31T12:00:00Z\",\"type\":\"start\"},\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"startedByDeviceId\":\"p222-device\",\"status\":\"completed\"},\"durationsMs\":{\"focus\":1500000,\"long_break\":900000,\"short_break\":300000},\"history\":[{\"completedAt\":\"2026-08-31T12:25:00Z\",\"endedAt\":\"2026-08-31T12:25:00Z\",\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"status\":\"completed\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}],\"selectedTaskId\":null,\"tasks\":[],\"timerOutcomes\":{},\"winningOperationIds\":{\"autoStart\":null,\"durations\":{},\"selectedTask\":null,\"tasks\":{}}},\"reason\":\"\",\"schemaVersion\":1,\"selection\":{\"explicit\":true,\"generation\":\"8\",\"phase\":\"focus\"},\"timerObservation\":{\"deadlineAt\":null,\"elapsedMs\":1500000,\"remainingMs\":0,\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"},\"workspace\":{\"base\":{\"autoStartBreaks\":false,\"canonicalTimer\":{\"anchorAt\":\"2026-08-31T12:25:00Z\",\"elapsedAtAnchorMs\":1500000,\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"lastIntent\":{\"commandId\":\"01a057b0-ce00-7000-8000-000000000015\",\"deviceId\":\"p222-device\",\"occurredAt\":\"2026-08-31T12:00:00Z\",\"type\":\"start\"},\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"startedByDeviceId\":\"p222-device\",\"status\":\"completed\"},\"durationsMs\":{\"focus\":1500000,\"long_break\":900000,\"short_break\":300000},\"history\":[{\"completedAt\":\"2026-08-31T12:25:00Z\",\"endedAt\":\"2026-08-31T12:25:00Z\",\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"status\":\"completed\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}],\"selectedTaskId\":null,\"tasks\":[]},\"canonicalHead\":null,\"displayContext\":{\"profile\":\"pwaStorage\",\"projectionPending\":{\"autoStartOperations\":[],\"commands\":[],\"durationOperations\":[],\"selectedTaskOperations\":[],\"taskOperations\":[]}},\"local\":{\"autoStartOperations\":[],\"commands\":[],\"durationOperations\":[],\"selectedTaskOperations\":[],\"taskOperations\":[]},\"neverSent\":{\"autoStartOperations\":[],\"commands\":[],\"durationOperations\":[],\"selectedTaskOperations\":[],\"taskOperations\":[]},\"timerDependencies\":[]}}}",
+        "completeReturn": {
+          "allocation": {
+            "deviceId": "p222-device",
+            "deviceSequence": 8,
+            "hlc": {
+              "counter": 3,
+              "wallMs": 1788177600000
+            },
+            "lastUuid": "01a057b0-ce00-7000-8000-000000000015"
+          },
+          "atomicCommandIds": [],
+          "commandOutcomes": [],
+          "commands": [],
+          "effectsAfterCommit": [],
+          "lifecycle": {
+            "consumedCompletions": [
+              {
+                "commandId": null,
+                "phase": "focus",
+                "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+              }
+            ],
+            "pendingBreaks": []
+          },
+          "observation": {
+            "canonicalAnchorAt": "2026-08-31T12:25:00Z",
+            "commandTimes": {}
+          },
+          "outcome": "planned",
+          "ownershipWrites": [],
+          "projection": {
+            "autoStartBreaks": false,
+            "canonicalTimer": {
+              "anchorAt": "2026-08-31T12:25:00Z",
+              "elapsedAtAnchorMs": 1500000,
+              "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+              "lastIntent": {
+                "commandId": "01a057b0-ce00-7000-8000-000000000015",
+                "deviceId": "p222-device",
+                "occurredAt": "2026-08-31T12:00:00Z",
+                "type": "start"
+              },
+              "phase": "focus",
+              "plannedDurationMs": 1500000,
+              "startedByDeviceId": "p222-device",
+              "status": "completed"
+            },
+            "durationsMs": {
+              "focus": 1500000,
+              "long_break": 900000,
+              "short_break": 300000
+            },
+            "history": [
+              {
+                "completedAt": "2026-08-31T12:25:00Z",
+                "endedAt": "2026-08-31T12:25:00Z",
+                "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                "phase": "focus",
+                "plannedDurationMs": 1500000,
+                "status": "completed",
+                "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+              }
+            ],
+            "selectedTaskId": null,
+            "tasks": [],
+            "timerOutcomes": {},
+            "winningOperationIds": {
+              "autoStart": null,
+              "durations": {},
+              "selectedTask": null,
+              "tasks": {}
+            }
+          },
+          "reason": "",
+          "schemaVersion": 1,
+          "selection": {
+            "explicit": true,
+            "generation": "8",
+            "phase": "focus"
+          },
+          "timerObservation": {
+            "deadlineAt": null,
+            "elapsedMs": 1500000,
+            "remainingMs": 0,
+            "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+          },
+          "workspace": {
+            "base": {
+              "autoStartBreaks": false,
+              "canonicalTimer": {
+                "anchorAt": "2026-08-31T12:25:00Z",
+                "elapsedAtAnchorMs": 1500000,
+                "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                "lastIntent": {
+                  "commandId": "01a057b0-ce00-7000-8000-000000000015",
+                  "deviceId": "p222-device",
+                  "occurredAt": "2026-08-31T12:00:00Z",
+                  "type": "start"
+                },
+                "phase": "focus",
+                "plannedDurationMs": 1500000,
+                "startedByDeviceId": "p222-device",
+                "status": "completed"
+              },
+              "durationsMs": {
+                "focus": 1500000,
+                "long_break": 900000,
+                "short_break": 300000
+              },
+              "history": [
+                {
+                  "completedAt": "2026-08-31T12:25:00Z",
+                  "endedAt": "2026-08-31T12:25:00Z",
+                  "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                  "phase": "focus",
+                  "plannedDurationMs": 1500000,
+                  "status": "completed",
+                  "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+                }
+              ],
+              "selectedTaskId": null,
+              "tasks": []
+            },
+            "canonicalHead": null,
+            "displayContext": {
+              "profile": "pwaStorage",
+              "projectionPending": {
+                "autoStartOperations": [],
+                "commands": [],
+                "durationOperations": [],
+                "selectedTaskOperations": [],
+                "taskOperations": []
+              }
+            },
+            "local": {
+              "autoStartOperations": [],
+              "commands": [],
+              "durationOperations": [],
+              "selectedTaskOperations": [],
+              "taskOperations": []
+            },
+            "neverSent": {
+              "autoStartOperations": [],
+              "commands": [],
+              "durationOperations": [],
+              "selectedTaskOperations": [],
+              "taskOperations": []
+            },
+            "timerDependencies": []
+          }
+        }
+      },
+      "rawRecordRead": {
+        "snapshot": {
+          "user": {
+            "id": "p222-account",
+            "accountIncarnation": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          },
+          "revision": 3,
+          "serverTime": "2026-08-31T12:00:00.000Z",
+          "canonicalTimer": {
+            "anchorAt": "2026-08-31T12:25:00Z",
+            "elapsedAtAnchorMs": 1500000,
+            "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+            "lastIntent": {
+              "commandId": "01a057b0-ce00-7000-8000-000000000015",
+              "deviceId": "p222-device",
+              "occurredAt": "2026-08-31T12:00:00Z",
+              "type": "start"
+            },
+            "phase": "focus",
+            "plannedDurationMs": 1500000,
+            "startedByDeviceId": "p222-device",
+            "status": "completed"
+          },
+          "history": [
+            {
+              "completedAt": "2026-08-31T12:25:00Z",
+              "endedAt": "2026-08-31T12:25:00Z",
+              "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+              "phase": "focus",
+              "plannedDurationMs": 1500000,
+              "status": "completed",
+              "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+            }
+          ],
+          "tasks": [],
+          "selectedTaskId": null,
+          "autoStartBreaks": false,
+          "durationsMs": {
+            "focus": 1500000,
+            "short_break": 300000,
+            "long_break": 900000
+          }
+        },
+        "settings": {
+          "selectedPhase": "focus",
+          "durationSyncBootstrapped": true,
+          "autoStartSyncBootstrapped": true,
+          "selectedTaskSyncBootstrapped": true
+        },
+        "deviceId": "p222-device",
+        "deviceSequence": 8,
+        "hlc": {
+          "counter": 3,
+          "wallMs": 1788177600000
+        },
+        "uuidV7": "01a057b0-ce00-7000-8000-000000000015",
+        "deliveryProof": {
+          "commands": [],
+          "taskOperations": [],
+          "durationOperations": [],
+          "autoStartOperations": [],
+          "selectedTaskOperations": []
+        },
+        "projectionPending": {
+          "commands": [],
+          "taskOperations": [],
+          "durationOperations": [],
+          "autoStartOperations": [],
+          "selectedTaskOperations": []
+        },
+        "timerDependencies": [],
+        "completionState": {
+          "selection": {
+            "phase": "focus",
+            "generation": "7",
+            "explicit": false
+          },
+          "lifecycle": {
+            "consumedCompletions": [],
+            "pendingBreaks": []
+          }
+        },
+        "workspaceObservation": {
+          "canonicalAnchorAt": "2026-08-31T12:25:00Z",
+          "commandTimes": {}
+        },
+        "workspaceGroups": [
+          {
+            "atomicCommandIds": [
+              "01a057b0-ce00-7000-8000-000000000015"
+            ],
+            "atomicOperationIds": null,
+            "commandOutcomes": [
+              {
+                "id": "01a057b0-ce00-7000-8000-000000000015",
+                "outcome": "applied"
+              }
+            ],
+            "groupOutcomes": null
+          }
+        ],
+        "completionRecords": {},
+        "displayHistory": [],
+        "timerOwner": {
+          "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+          "deviceId": "p222-device",
+          "tabId": "p222-tab-0",
+          "leaseExpiresAtMs": 1788177660000
+        },
+        "commands": [],
+        "taskOperations": [],
+        "durationOperations": [],
+        "autoStartOperations": [],
+        "selectedTaskOperations": []
+      },
+      "read": {
+        "availableIntents": [
+          "start",
+          "selectPhase",
+          "finish"
+        ],
+        "cadence": {
+          "completedFocusToday": 1,
+          "completedFocusTodayPlannedDurationMs": 1500000,
+          "completedFocusTotal": 1,
+          "longBreakProgress": 1,
+          "nextCompletedFocusBreakPhase": "short_break",
+          "skipDestination": "short_break"
+        },
+        "canonical": {
+          "deadlineAt": null,
+          "elapsedMs": 1500000,
+          "observedElapsedMs": 1500000,
+          "phase": "focus",
+          "plannedDurationMs": 1500000,
+          "progress": 1,
+          "remainingMs": 0,
+          "status": "completed",
+          "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+        },
+        "display": {
+          "elapsedMs": 0,
+          "phase": "focus",
+          "plannedDurationMs": 1500000,
+          "progress": 0,
+          "remainingMs": 1500000,
+          "remainingSecondsCeil": 1500,
+          "status": "completed"
+        },
+        "schemaVersion": 1,
+        "tasks": {
+          "completedFocusTodayByTask": {},
+          "selectedTaskId": null,
+          "total": 0
+        }
+      }
+    },
+    {
+      "phase": "long_break",
+      "legacyActionReturn": true,
+      "legacyCompletePlanner": {
+        "operation": "workspace.intent.v1",
+        "inputRaw": "{\"compatibility\":\"pwaStorage\",\"replicationMode\":\"centralized\",\"workspace\":{\"base\":{\"canonicalTimer\":{\"anchorAt\":\"2026-08-31T12:25:00Z\",\"elapsedAtAnchorMs\":1500000,\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"lastIntent\":{\"commandId\":\"01a057b0-ce00-7000-8000-000000000015\",\"deviceId\":\"p222-device\",\"occurredAt\":\"2026-08-31T12:00:00Z\",\"type\":\"start\"},\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"startedByDeviceId\":\"p222-device\",\"status\":\"completed\"},\"history\":[{\"completedAt\":\"2026-08-31T12:25:00Z\",\"endedAt\":\"2026-08-31T12:25:00Z\",\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"status\":\"completed\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}],\"tasks\":[],\"durationsMs\":{\"focus\":1500000,\"short_break\":300000,\"long_break\":900000},\"autoStartBreaks\":false,\"selectedTaskId\":null},\"local\":{\"commands\":[],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]},\"canonicalHead\":null,\"neverSent\":{\"commands\":[],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]},\"timerDependencies\":[],\"displayContext\":{\"profile\":\"pwaStorage\",\"projectionPending\":{\"commands\":[],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]}}},\"selection\":{\"phase\":\"focus\",\"generation\":\"0\",\"explicit\":false},\"allocation\":{\"deviceId\":\"p222-device\",\"deviceSequence\":8,\"hlc\":{\"counter\":3,\"wallMs\":1788177600000},\"lastUuid\":\"01a057b0-ce00-7000-8000-000000000015\"},\"observation\":{\"canonicalAnchorAt\":\"2026-08-31T12:25:00Z\",\"commandTimes\":{}},\"clock\":{\"occurredAt\":\"2026-08-31T12:25:00.000Z\",\"physicalNow\":\"2026-08-31T12:25:00.000Z\",\"observedAt\":\"2026-08-31T12:25:00.000Z\",\"continuityId\":\"eb80d110-b3b3-4c2d-92b6-731cc276241f\"},\"identities\":{\"commandUuids\":[\"01a057c7-b160-7ff4-b1e6-a10ba33e454a\",\"01a057c7-b160-7ff4-b1e6-a10ba33e454b\"],\"timerUuid\":\"379d100d-bdd9-4b4d-a172-d3fc85e20585\"},\"calendarIntervals\":[{\"start\":\"2026-08-30T19:00:00.000Z\",\"end\":\"2026-08-31T19:00:00.000Z\"}],\"intent\":{\"kind\":\"selectPhase\",\"phase\":\"long_break\"}}",
+        "input": {
+          "compatibility": "pwaStorage",
+          "replicationMode": "centralized",
+          "workspace": {
+            "base": {
+              "canonicalTimer": {
+                "anchorAt": "2026-08-31T12:25:00Z",
+                "elapsedAtAnchorMs": 1500000,
+                "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                "lastIntent": {
+                  "commandId": "01a057b0-ce00-7000-8000-000000000015",
+                  "deviceId": "p222-device",
+                  "occurredAt": "2026-08-31T12:00:00Z",
+                  "type": "start"
+                },
+                "phase": "focus",
+                "plannedDurationMs": 1500000,
+                "startedByDeviceId": "p222-device",
+                "status": "completed"
+              },
+              "history": [
+                {
+                  "completedAt": "2026-08-31T12:25:00Z",
+                  "endedAt": "2026-08-31T12:25:00Z",
+                  "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                  "phase": "focus",
+                  "plannedDurationMs": 1500000,
+                  "status": "completed",
+                  "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+                }
+              ],
+              "tasks": [],
+              "durationsMs": {
+                "focus": 1500000,
+                "short_break": 300000,
+                "long_break": 900000
+              },
+              "autoStartBreaks": false,
+              "selectedTaskId": null
+            },
+            "local": {
+              "commands": [],
+              "taskOperations": [],
+              "durationOperations": [],
+              "autoStartOperations": [],
+              "selectedTaskOperations": []
+            },
+            "canonicalHead": null,
+            "neverSent": {
+              "commands": [],
+              "taskOperations": [],
+              "durationOperations": [],
+              "autoStartOperations": [],
+              "selectedTaskOperations": []
+            },
+            "timerDependencies": [],
+            "displayContext": {
+              "profile": "pwaStorage",
+              "projectionPending": {
+                "commands": [],
+                "taskOperations": [],
+                "durationOperations": [],
+                "autoStartOperations": [],
+                "selectedTaskOperations": []
+              }
+            }
+          },
+          "selection": {
+            "phase": "focus",
+            "generation": "0",
+            "explicit": false
+          },
+          "allocation": {
+            "deviceId": "p222-device",
+            "deviceSequence": 8,
+            "hlc": {
+              "counter": 3,
+              "wallMs": 1788177600000
+            },
+            "lastUuid": "01a057b0-ce00-7000-8000-000000000015"
+          },
+          "observation": {
+            "canonicalAnchorAt": "2026-08-31T12:25:00Z",
+            "commandTimes": {}
+          },
+          "clock": {
+            "occurredAt": "2026-08-31T12:25:00.000Z",
+            "physicalNow": "2026-08-31T12:25:00.000Z",
+            "observedAt": "2026-08-31T12:25:00.000Z",
+            "continuityId": "eb80d110-b3b3-4c2d-92b6-731cc276241f"
+          },
+          "identities": {
+            "commandUuids": [
+              "01a057c7-b160-7ff4-b1e6-a10ba33e454a",
+              "01a057c7-b160-7ff4-b1e6-a10ba33e454b"
+            ],
+            "timerUuid": "379d100d-bdd9-4b4d-a172-d3fc85e20585"
+          },
+          "calendarIntervals": [
+            {
+              "start": "2026-08-30T19:00:00.000Z",
+              "end": "2026-08-31T19:00:00.000Z"
+            }
+          ],
+          "intent": {
+            "kind": "selectPhase",
+            "phase": "long_break"
+          }
+        },
+        "envelopeRaw": "{\"ok\":true,\"value\":{\"allocation\":{\"deviceId\":\"p222-device\",\"deviceSequence\":8,\"hlc\":{\"counter\":3,\"wallMs\":1788177600000},\"lastUuid\":\"01a057b0-ce00-7000-8000-000000000015\"},\"atomicCommandIds\":[],\"commandOutcomes\":[],\"commands\":[],\"effectsAfterCommit\":[],\"observation\":{\"canonicalAnchorAt\":\"2026-08-31T12:25:00Z\",\"commandTimes\":{}},\"outcome\":\"planned\",\"ownershipWrites\":[],\"projection\":{\"autoStartBreaks\":false,\"canonicalTimer\":{\"anchorAt\":\"2026-08-31T12:25:00Z\",\"elapsedAtAnchorMs\":1500000,\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"lastIntent\":{\"commandId\":\"01a057b0-ce00-7000-8000-000000000015\",\"deviceId\":\"p222-device\",\"occurredAt\":\"2026-08-31T12:00:00Z\",\"type\":\"start\"},\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"startedByDeviceId\":\"p222-device\",\"status\":\"completed\"},\"durationsMs\":{\"focus\":1500000,\"long_break\":900000,\"short_break\":300000},\"history\":[{\"completedAt\":\"2026-08-31T12:25:00Z\",\"endedAt\":\"2026-08-31T12:25:00Z\",\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"status\":\"completed\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}],\"selectedTaskId\":null,\"tasks\":[],\"timerOutcomes\":{},\"winningOperationIds\":{\"autoStart\":null,\"durations\":{},\"selectedTask\":null,\"tasks\":{}}},\"reason\":\"\",\"schemaVersion\":1,\"selection\":{\"explicit\":false,\"generation\":\"0\",\"phase\":\"long_break\"},\"timerObservation\":{\"deadlineAt\":null,\"elapsedMs\":1500000,\"remainingMs\":0,\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"},\"workspace\":{\"base\":{\"autoStartBreaks\":false,\"canonicalTimer\":{\"anchorAt\":\"2026-08-31T12:25:00Z\",\"elapsedAtAnchorMs\":1500000,\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"lastIntent\":{\"commandId\":\"01a057b0-ce00-7000-8000-000000000015\",\"deviceId\":\"p222-device\",\"occurredAt\":\"2026-08-31T12:00:00Z\",\"type\":\"start\"},\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"startedByDeviceId\":\"p222-device\",\"status\":\"completed\"},\"durationsMs\":{\"focus\":1500000,\"long_break\":900000,\"short_break\":300000},\"history\":[{\"completedAt\":\"2026-08-31T12:25:00Z\",\"endedAt\":\"2026-08-31T12:25:00Z\",\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"status\":\"completed\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}],\"selectedTaskId\":null,\"tasks\":[]},\"canonicalHead\":null,\"displayContext\":{\"profile\":\"pwaStorage\",\"projectionPending\":{\"autoStartOperations\":[],\"commands\":[],\"durationOperations\":[],\"selectedTaskOperations\":[],\"taskOperations\":[]}},\"local\":{\"autoStartOperations\":[],\"commands\":[],\"durationOperations\":[],\"selectedTaskOperations\":[],\"taskOperations\":[]},\"neverSent\":{\"autoStartOperations\":[],\"commands\":[],\"durationOperations\":[],\"selectedTaskOperations\":[],\"taskOperations\":[]},\"timerDependencies\":[]}}}",
+        "completeReturn": {
+          "allocation": {
+            "deviceId": "p222-device",
+            "deviceSequence": 8,
+            "hlc": {
+              "counter": 3,
+              "wallMs": 1788177600000
+            },
+            "lastUuid": "01a057b0-ce00-7000-8000-000000000015"
+          },
+          "atomicCommandIds": [],
+          "commandOutcomes": [],
+          "commands": [],
+          "effectsAfterCommit": [],
+          "observation": {
+            "canonicalAnchorAt": "2026-08-31T12:25:00Z",
+            "commandTimes": {}
+          },
+          "outcome": "planned",
+          "ownershipWrites": [],
+          "projection": {
+            "autoStartBreaks": false,
+            "canonicalTimer": {
+              "anchorAt": "2026-08-31T12:25:00Z",
+              "elapsedAtAnchorMs": 1500000,
+              "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+              "lastIntent": {
+                "commandId": "01a057b0-ce00-7000-8000-000000000015",
+                "deviceId": "p222-device",
+                "occurredAt": "2026-08-31T12:00:00Z",
+                "type": "start"
+              },
+              "phase": "focus",
+              "plannedDurationMs": 1500000,
+              "startedByDeviceId": "p222-device",
+              "status": "completed"
+            },
+            "durationsMs": {
+              "focus": 1500000,
+              "long_break": 900000,
+              "short_break": 300000
+            },
+            "history": [
+              {
+                "completedAt": "2026-08-31T12:25:00Z",
+                "endedAt": "2026-08-31T12:25:00Z",
+                "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                "phase": "focus",
+                "plannedDurationMs": 1500000,
+                "status": "completed",
+                "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+              }
+            ],
+            "selectedTaskId": null,
+            "tasks": [],
+            "timerOutcomes": {},
+            "winningOperationIds": {
+              "autoStart": null,
+              "durations": {},
+              "selectedTask": null,
+              "tasks": {}
+            }
+          },
+          "reason": "",
+          "schemaVersion": 1,
+          "selection": {
+            "explicit": false,
+            "generation": "0",
+            "phase": "long_break"
+          },
+          "timerObservation": {
+            "deadlineAt": null,
+            "elapsedMs": 1500000,
+            "remainingMs": 0,
+            "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+          },
+          "workspace": {
+            "base": {
+              "autoStartBreaks": false,
+              "canonicalTimer": {
+                "anchorAt": "2026-08-31T12:25:00Z",
+                "elapsedAtAnchorMs": 1500000,
+                "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                "lastIntent": {
+                  "commandId": "01a057b0-ce00-7000-8000-000000000015",
+                  "deviceId": "p222-device",
+                  "occurredAt": "2026-08-31T12:00:00Z",
+                  "type": "start"
+                },
+                "phase": "focus",
+                "plannedDurationMs": 1500000,
+                "startedByDeviceId": "p222-device",
+                "status": "completed"
+              },
+              "durationsMs": {
+                "focus": 1500000,
+                "long_break": 900000,
+                "short_break": 300000
+              },
+              "history": [
+                {
+                  "completedAt": "2026-08-31T12:25:00Z",
+                  "endedAt": "2026-08-31T12:25:00Z",
+                  "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                  "phase": "focus",
+                  "plannedDurationMs": 1500000,
+                  "status": "completed",
+                  "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+                }
+              ],
+              "selectedTaskId": null,
+              "tasks": []
+            },
+            "canonicalHead": null,
+            "displayContext": {
+              "profile": "pwaStorage",
+              "projectionPending": {
+                "autoStartOperations": [],
+                "commands": [],
+                "durationOperations": [],
+                "selectedTaskOperations": [],
+                "taskOperations": []
+              }
+            },
+            "local": {
+              "autoStartOperations": [],
+              "commands": [],
+              "durationOperations": [],
+              "selectedTaskOperations": [],
+              "taskOperations": []
+            },
+            "neverSent": {
+              "autoStartOperations": [],
+              "commands": [],
+              "durationOperations": [],
+              "selectedTaskOperations": [],
+              "taskOperations": []
+            },
+            "timerDependencies": []
+          }
+        }
+      },
+      "before": {
+        "meta": [
+          {
+            "key": "completionRecords",
+            "value": {}
+          },
+          {
+            "key": "completionState",
+            "value": {
+              "selection": {
+                "phase": "focus",
+                "generation": "7",
+                "explicit": false
+              },
+              "lifecycle": {
+                "consumedCompletions": [],
+                "pendingBreaks": []
+              }
+            }
+          },
+          {
+            "key": "deliveryProof",
+            "value": {
+              "commands": [],
+              "taskOperations": [],
+              "durationOperations": [],
+              "autoStartOperations": [],
+              "selectedTaskOperations": []
+            }
+          },
+          {
+            "key": "deviceId",
+            "value": "p222-device"
+          },
+          {
+            "key": "deviceSequence",
+            "value": 8
+          },
+          {
+            "key": "displayHistory",
+            "value": []
+          },
+          {
+            "key": "hlc",
+            "value": {
+              "counter": 3,
+              "wallMs": 1788177600000
+            }
+          },
+          {
+            "key": "projectionPending",
+            "value": {
+              "commands": [],
+              "taskOperations": [],
+              "durationOperations": [],
+              "autoStartOperations": [],
+              "selectedTaskOperations": []
+            }
+          },
+          {
+            "key": "settings",
+            "value": {
+              "selectedPhase": "focus",
+              "durationSyncBootstrapped": true,
+              "autoStartSyncBootstrapped": true,
+              "selectedTaskSyncBootstrapped": true
+            }
+          },
+          {
+            "key": "snapshot",
+            "value": {
+              "user": {
+                "id": "p222-account",
+                "accountIncarnation": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+              },
+              "revision": 3,
+              "serverTime": "2026-08-31T12:00:00.000Z",
+              "canonicalTimer": {
+                "anchorAt": "2026-08-31T12:25:00Z",
+                "elapsedAtAnchorMs": 1500000,
+                "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                "lastIntent": {
+                  "commandId": "01a057b0-ce00-7000-8000-000000000015",
+                  "deviceId": "p222-device",
+                  "occurredAt": "2026-08-31T12:00:00Z",
+                  "type": "start"
+                },
+                "phase": "focus",
+                "plannedDurationMs": 1500000,
+                "startedByDeviceId": "p222-device",
+                "status": "completed"
+              },
+              "history": [
+                {
+                  "completedAt": "2026-08-31T12:25:00Z",
+                  "endedAt": "2026-08-31T12:25:00Z",
+                  "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                  "phase": "focus",
+                  "plannedDurationMs": 1500000,
+                  "status": "completed",
+                  "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+                }
+              ],
+              "tasks": [],
+              "selectedTaskId": null,
+              "autoStartBreaks": false,
+              "durationsMs": {
+                "focus": 1500000,
+                "short_break": 300000,
+                "long_break": 900000
+              }
+            }
+          },
+          {
+            "key": "timerDependencies",
+            "value": []
+          },
+          {
+            "key": "timerOwner",
+            "value": {
+              "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+              "deviceId": "p222-device",
+              "tabId": "p222-tab-0",
+              "leaseExpiresAtMs": 1788177660000
+            }
+          },
+          {
+            "key": "uuidV7",
+            "value": "01a057b0-ce00-7000-8000-000000000015"
+          },
+          {
+            "key": "workspaceGroups",
+            "value": [
+              {
+                "atomicCommandIds": [
+                  "01a057b0-ce00-7000-8000-000000000015"
+                ],
+                "atomicOperationIds": null,
+                "commandOutcomes": [
+                  {
+                    "id": "01a057b0-ce00-7000-8000-000000000015",
+                    "outcome": "applied"
+                  }
+                ],
+                "groupOutcomes": null
+              }
+            ]
+          },
+          {
+            "key": "workspaceObservation",
+            "value": {
+              "canonicalAnchorAt": "2026-08-31T12:25:00Z",
+              "commandTimes": {}
+            }
+          }
+        ],
+        "pending": [],
+        "pendingTasks": [],
+        "pendingDurations": [],
+        "pendingAutoStarts": [],
+        "pendingSelectedTasks": []
+      },
+      "selected": {
+        "operation": "workspace.intent.v1",
+        "inputRaw": "{\"compatibility\":\"pwaStorage\",\"replicationMode\":\"centralized\",\"workspace\":{\"base\":{\"canonicalTimer\":{\"anchorAt\":\"2026-08-31T12:25:00Z\",\"elapsedAtAnchorMs\":1500000,\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"lastIntent\":{\"commandId\":\"01a057b0-ce00-7000-8000-000000000015\",\"deviceId\":\"p222-device\",\"occurredAt\":\"2026-08-31T12:00:00Z\",\"type\":\"start\"},\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"startedByDeviceId\":\"p222-device\",\"status\":\"completed\"},\"history\":[{\"completedAt\":\"2026-08-31T12:25:00Z\",\"endedAt\":\"2026-08-31T12:25:00Z\",\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"status\":\"completed\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}],\"tasks\":[],\"durationsMs\":{\"focus\":1500000,\"short_break\":300000,\"long_break\":900000},\"autoStartBreaks\":false,\"selectedTaskId\":null},\"local\":{\"commands\":[],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]},\"canonicalHead\":null,\"neverSent\":{\"commands\":[],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]},\"timerDependencies\":[],\"displayContext\":{\"profile\":\"pwaStorage\",\"projectionPending\":{\"commands\":[],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]}}},\"selection\":{\"phase\":\"focus\",\"generation\":\"7\",\"explicit\":false},\"allocation\":{\"deviceId\":\"p222-device\",\"deviceSequence\":8,\"hlc\":{\"counter\":3,\"wallMs\":1788177600000},\"lastUuid\":\"01a057b0-ce00-7000-8000-000000000015\"},\"observation\":{\"canonicalAnchorAt\":\"2026-08-31T12:25:00Z\",\"commandTimes\":{}},\"clock\":{\"occurredAt\":\"2026-08-31T12:25:00.000Z\",\"physicalNow\":\"2026-08-31T12:25:00.000Z\",\"observedAt\":\"2026-08-31T12:25:00.000Z\",\"continuityId\":\"eb80d110-b3b3-4c2d-92b6-731cc276241f\"},\"identities\":{\"commandUuids\":[\"01a057c7-b160-7fe6-8492-0d05e42cfb8f\",\"01a057c7-b160-7fe6-8492-0d05e42cfb90\"],\"timerUuid\":\"b989adc8-b41c-469b-8743-c6925f9a3395\"},\"calendarIntervals\":[{\"start\":\"2026-08-30T19:00:00.000Z\",\"end\":\"2026-08-31T19:00:00.000Z\"}],\"lifecycle\":{\"consumedCompletions\":[],\"pendingBreaks\":[]},\"intent\":{\"kind\":\"selectPhase\",\"phase\":\"long_break\"}}",
+        "input": {
+          "compatibility": "pwaStorage",
+          "replicationMode": "centralized",
+          "workspace": {
+            "base": {
+              "canonicalTimer": {
+                "anchorAt": "2026-08-31T12:25:00Z",
+                "elapsedAtAnchorMs": 1500000,
+                "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                "lastIntent": {
+                  "commandId": "01a057b0-ce00-7000-8000-000000000015",
+                  "deviceId": "p222-device",
+                  "occurredAt": "2026-08-31T12:00:00Z",
+                  "type": "start"
+                },
+                "phase": "focus",
+                "plannedDurationMs": 1500000,
+                "startedByDeviceId": "p222-device",
+                "status": "completed"
+              },
+              "history": [
+                {
+                  "completedAt": "2026-08-31T12:25:00Z",
+                  "endedAt": "2026-08-31T12:25:00Z",
+                  "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                  "phase": "focus",
+                  "plannedDurationMs": 1500000,
+                  "status": "completed",
+                  "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+                }
+              ],
+              "tasks": [],
+              "durationsMs": {
+                "focus": 1500000,
+                "short_break": 300000,
+                "long_break": 900000
+              },
+              "autoStartBreaks": false,
+              "selectedTaskId": null
+            },
+            "local": {
+              "commands": [],
+              "taskOperations": [],
+              "durationOperations": [],
+              "autoStartOperations": [],
+              "selectedTaskOperations": []
+            },
+            "canonicalHead": null,
+            "neverSent": {
+              "commands": [],
+              "taskOperations": [],
+              "durationOperations": [],
+              "autoStartOperations": [],
+              "selectedTaskOperations": []
+            },
+            "timerDependencies": [],
+            "displayContext": {
+              "profile": "pwaStorage",
+              "projectionPending": {
+                "commands": [],
+                "taskOperations": [],
+                "durationOperations": [],
+                "autoStartOperations": [],
+                "selectedTaskOperations": []
+              }
+            }
+          },
+          "selection": {
+            "phase": "focus",
+            "generation": "7",
+            "explicit": false
+          },
+          "allocation": {
+            "deviceId": "p222-device",
+            "deviceSequence": 8,
+            "hlc": {
+              "counter": 3,
+              "wallMs": 1788177600000
+            },
+            "lastUuid": "01a057b0-ce00-7000-8000-000000000015"
+          },
+          "observation": {
+            "canonicalAnchorAt": "2026-08-31T12:25:00Z",
+            "commandTimes": {}
+          },
+          "clock": {
+            "occurredAt": "2026-08-31T12:25:00.000Z",
+            "physicalNow": "2026-08-31T12:25:00.000Z",
+            "observedAt": "2026-08-31T12:25:00.000Z",
+            "continuityId": "eb80d110-b3b3-4c2d-92b6-731cc276241f"
+          },
+          "identities": {
+            "commandUuids": [
+              "01a057c7-b160-7fe6-8492-0d05e42cfb8f",
+              "01a057c7-b160-7fe6-8492-0d05e42cfb90"
+            ],
+            "timerUuid": "b989adc8-b41c-469b-8743-c6925f9a3395"
+          },
+          "calendarIntervals": [
+            {
+              "start": "2026-08-30T19:00:00.000Z",
+              "end": "2026-08-31T19:00:00.000Z"
+            }
+          ],
+          "lifecycle": {
+            "consumedCompletions": [],
+            "pendingBreaks": []
+          },
+          "intent": {
+            "kind": "selectPhase",
+            "phase": "long_break"
+          }
+        },
+        "envelopeRaw": "{\"ok\":true,\"value\":{\"allocation\":{\"deviceId\":\"p222-device\",\"deviceSequence\":8,\"hlc\":{\"counter\":3,\"wallMs\":1788177600000},\"lastUuid\":\"01a057b0-ce00-7000-8000-000000000015\"},\"atomicCommandIds\":[],\"commandOutcomes\":[],\"commands\":[],\"effectsAfterCommit\":[],\"lifecycle\":{\"consumedCompletions\":[{\"commandId\":null,\"phase\":\"focus\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}],\"pendingBreaks\":[]},\"observation\":{\"canonicalAnchorAt\":\"2026-08-31T12:25:00Z\",\"commandTimes\":{}},\"outcome\":\"planned\",\"ownershipWrites\":[],\"projection\":{\"autoStartBreaks\":false,\"canonicalTimer\":{\"anchorAt\":\"2026-08-31T12:25:00Z\",\"elapsedAtAnchorMs\":1500000,\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"lastIntent\":{\"commandId\":\"01a057b0-ce00-7000-8000-000000000015\",\"deviceId\":\"p222-device\",\"occurredAt\":\"2026-08-31T12:00:00Z\",\"type\":\"start\"},\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"startedByDeviceId\":\"p222-device\",\"status\":\"completed\"},\"durationsMs\":{\"focus\":1500000,\"long_break\":900000,\"short_break\":300000},\"history\":[{\"completedAt\":\"2026-08-31T12:25:00Z\",\"endedAt\":\"2026-08-31T12:25:00Z\",\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"status\":\"completed\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}],\"selectedTaskId\":null,\"tasks\":[],\"timerOutcomes\":{},\"winningOperationIds\":{\"autoStart\":null,\"durations\":{},\"selectedTask\":null,\"tasks\":{}}},\"reason\":\"\",\"schemaVersion\":1,\"selection\":{\"explicit\":true,\"generation\":\"8\",\"phase\":\"long_break\"},\"timerObservation\":{\"deadlineAt\":null,\"elapsedMs\":1500000,\"remainingMs\":0,\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"},\"workspace\":{\"base\":{\"autoStartBreaks\":false,\"canonicalTimer\":{\"anchorAt\":\"2026-08-31T12:25:00Z\",\"elapsedAtAnchorMs\":1500000,\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"lastIntent\":{\"commandId\":\"01a057b0-ce00-7000-8000-000000000015\",\"deviceId\":\"p222-device\",\"occurredAt\":\"2026-08-31T12:00:00Z\",\"type\":\"start\"},\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"startedByDeviceId\":\"p222-device\",\"status\":\"completed\"},\"durationsMs\":{\"focus\":1500000,\"long_break\":900000,\"short_break\":300000},\"history\":[{\"completedAt\":\"2026-08-31T12:25:00Z\",\"endedAt\":\"2026-08-31T12:25:00Z\",\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"status\":\"completed\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}],\"selectedTaskId\":null,\"tasks\":[]},\"canonicalHead\":null,\"displayContext\":{\"profile\":\"pwaStorage\",\"projectionPending\":{\"autoStartOperations\":[],\"commands\":[],\"durationOperations\":[],\"selectedTaskOperations\":[],\"taskOperations\":[]}},\"local\":{\"autoStartOperations\":[],\"commands\":[],\"durationOperations\":[],\"selectedTaskOperations\":[],\"taskOperations\":[]},\"neverSent\":{\"autoStartOperations\":[],\"commands\":[],\"durationOperations\":[],\"selectedTaskOperations\":[],\"taskOperations\":[]},\"timerDependencies\":[]}}}",
+        "completeReturn": {
+          "allocation": {
+            "deviceId": "p222-device",
+            "deviceSequence": 8,
+            "hlc": {
+              "counter": 3,
+              "wallMs": 1788177600000
+            },
+            "lastUuid": "01a057b0-ce00-7000-8000-000000000015"
+          },
+          "atomicCommandIds": [],
+          "commandOutcomes": [],
+          "commands": [],
+          "effectsAfterCommit": [],
+          "lifecycle": {
+            "consumedCompletions": [
+              {
+                "commandId": null,
+                "phase": "focus",
+                "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+              }
+            ],
+            "pendingBreaks": []
+          },
+          "observation": {
+            "canonicalAnchorAt": "2026-08-31T12:25:00Z",
+            "commandTimes": {}
+          },
+          "outcome": "planned",
+          "ownershipWrites": [],
+          "projection": {
+            "autoStartBreaks": false,
+            "canonicalTimer": {
+              "anchorAt": "2026-08-31T12:25:00Z",
+              "elapsedAtAnchorMs": 1500000,
+              "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+              "lastIntent": {
+                "commandId": "01a057b0-ce00-7000-8000-000000000015",
+                "deviceId": "p222-device",
+                "occurredAt": "2026-08-31T12:00:00Z",
+                "type": "start"
+              },
+              "phase": "focus",
+              "plannedDurationMs": 1500000,
+              "startedByDeviceId": "p222-device",
+              "status": "completed"
+            },
+            "durationsMs": {
+              "focus": 1500000,
+              "long_break": 900000,
+              "short_break": 300000
+            },
+            "history": [
+              {
+                "completedAt": "2026-08-31T12:25:00Z",
+                "endedAt": "2026-08-31T12:25:00Z",
+                "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                "phase": "focus",
+                "plannedDurationMs": 1500000,
+                "status": "completed",
+                "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+              }
+            ],
+            "selectedTaskId": null,
+            "tasks": [],
+            "timerOutcomes": {},
+            "winningOperationIds": {
+              "autoStart": null,
+              "durations": {},
+              "selectedTask": null,
+              "tasks": {}
+            }
+          },
+          "reason": "",
+          "schemaVersion": 1,
+          "selection": {
+            "explicit": true,
+            "generation": "8",
+            "phase": "long_break"
+          },
+          "timerObservation": {
+            "deadlineAt": null,
+            "elapsedMs": 1500000,
+            "remainingMs": 0,
+            "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+          },
+          "workspace": {
+            "base": {
+              "autoStartBreaks": false,
+              "canonicalTimer": {
+                "anchorAt": "2026-08-31T12:25:00Z",
+                "elapsedAtAnchorMs": 1500000,
+                "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                "lastIntent": {
+                  "commandId": "01a057b0-ce00-7000-8000-000000000015",
+                  "deviceId": "p222-device",
+                  "occurredAt": "2026-08-31T12:00:00Z",
+                  "type": "start"
+                },
+                "phase": "focus",
+                "plannedDurationMs": 1500000,
+                "startedByDeviceId": "p222-device",
+                "status": "completed"
+              },
+              "durationsMs": {
+                "focus": 1500000,
+                "long_break": 900000,
+                "short_break": 300000
+              },
+              "history": [
+                {
+                  "completedAt": "2026-08-31T12:25:00Z",
+                  "endedAt": "2026-08-31T12:25:00Z",
+                  "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                  "phase": "focus",
+                  "plannedDurationMs": 1500000,
+                  "status": "completed",
+                  "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+                }
+              ],
+              "selectedTaskId": null,
+              "tasks": []
+            },
+            "canonicalHead": null,
+            "displayContext": {
+              "profile": "pwaStorage",
+              "projectionPending": {
+                "autoStartOperations": [],
+                "commands": [],
+                "durationOperations": [],
+                "selectedTaskOperations": [],
+                "taskOperations": []
+              }
+            },
+            "local": {
+              "autoStartOperations": [],
+              "commands": [],
+              "durationOperations": [],
+              "selectedTaskOperations": [],
+              "taskOperations": []
+            },
+            "neverSent": {
+              "autoStartOperations": [],
+              "commands": [],
+              "durationOperations": [],
+              "selectedTaskOperations": [],
+              "taskOperations": []
+            },
+            "timerDependencies": []
+          }
+        }
+      },
+      "after": {
+        "meta": [
+          {
+            "key": "completionRecords",
+            "value": {}
+          },
+          {
+            "key": "completionState",
+            "value": {
+              "selection": {
+                "explicit": true,
+                "generation": "8",
+                "phase": "long_break"
+              },
+              "lifecycle": {
+                "consumedCompletions": [
+                  {
+                    "commandId": null,
+                    "phase": "focus",
+                    "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+                  }
+                ],
+                "pendingBreaks": []
+              }
+            }
+          },
+          {
+            "key": "deliveryProof",
+            "value": {
+              "autoStartOperations": [],
+              "commands": [],
+              "durationOperations": [],
+              "selectedTaskOperations": [],
+              "taskOperations": []
+            }
+          },
+          {
+            "key": "deviceId",
+            "value": "p222-device"
+          },
+          {
+            "key": "deviceSequence",
+            "value": 8
+          },
+          {
+            "key": "displayHistory",
+            "value": [
+              {
+                "completedAt": "2026-08-31T12:25:00Z",
+                "endedAt": "2026-08-31T12:25:00Z",
+                "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                "phase": "focus",
+                "plannedDurationMs": 1500000,
+                "status": "completed",
+                "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+              }
+            ]
+          },
+          {
+            "key": "hlc",
+            "value": {
+              "counter": 3,
+              "wallMs": 1788177600000
+            }
+          },
+          {
+            "key": "projectionPending",
+            "value": {
+              "autoStartOperations": [],
+              "commands": [],
+              "durationOperations": [],
+              "selectedTaskOperations": [],
+              "taskOperations": []
+            }
+          },
+          {
+            "key": "settings",
+            "value": {
+              "selectedPhase": "long_break",
+              "durationSyncBootstrapped": true,
+              "autoStartSyncBootstrapped": true,
+              "selectedTaskSyncBootstrapped": true
+            }
+          },
+          {
+            "key": "snapshot",
+            "value": {
+              "user": {
+                "id": "p222-account",
+                "accountIncarnation": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+              },
+              "revision": 3,
+              "serverTime": "2026-08-31T12:00:00.000Z",
+              "canonicalTimer": {
+                "anchorAt": "2026-08-31T12:25:00Z",
+                "elapsedAtAnchorMs": 1500000,
+                "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                "lastIntent": {
+                  "commandId": "01a057b0-ce00-7000-8000-000000000015",
+                  "deviceId": "p222-device",
+                  "occurredAt": "2026-08-31T12:00:00Z",
+                  "type": "start"
+                },
+                "phase": "focus",
+                "plannedDurationMs": 1500000,
+                "startedByDeviceId": "p222-device",
+                "status": "completed"
+              },
+              "history": [
+                {
+                  "completedAt": "2026-08-31T12:25:00Z",
+                  "endedAt": "2026-08-31T12:25:00Z",
+                  "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                  "phase": "focus",
+                  "plannedDurationMs": 1500000,
+                  "status": "completed",
+                  "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+                }
+              ],
+              "tasks": [],
+              "selectedTaskId": null,
+              "autoStartBreaks": false,
+              "durationsMs": {
+                "focus": 1500000,
+                "short_break": 300000,
+                "long_break": 900000
+              }
+            }
+          },
+          {
+            "key": "timerDependencies",
+            "value": []
+          },
+          {
+            "key": "timerOwner",
+            "value": {
+              "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+              "deviceId": "p222-device",
+              "tabId": "p222-tab-0",
+              "leaseExpiresAtMs": 1788177660000
+            }
+          },
+          {
+            "key": "uuidV7",
+            "value": "01a057b0-ce00-7000-8000-000000000015"
+          },
+          {
+            "key": "workspaceGroups",
+            "value": [
+              {
+                "atomicCommandIds": [
+                  "01a057b0-ce00-7000-8000-000000000015"
+                ],
+                "atomicOperationIds": null,
+                "commandOutcomes": [
+                  {
+                    "id": "01a057b0-ce00-7000-8000-000000000015",
+                    "outcome": "applied"
+                  }
+                ],
+                "groupOutcomes": null
+              },
+              {
+                "atomicCommandIds": [],
+                "atomicOperationIds": null,
+                "commandOutcomes": [],
+                "groupOutcomes": null
+              }
+            ]
+          },
+          {
+            "key": "workspaceObservation",
+            "value": {
+              "canonicalAnchorAt": "2026-08-31T12:25:00Z",
+              "commandTimes": {}
+            }
+          }
+        ],
+        "pending": [],
+        "pendingTasks": [],
+        "pendingDurations": [],
+        "pendingAutoStarts": [],
+        "pendingSelectedTasks": []
+      },
+      "completeCurrentReturn": {
+        "allocation": {
+          "deviceId": "p222-device",
+          "deviceSequence": 8,
+          "hlc": {
+            "counter": 3,
+            "wallMs": 1788177600000
+          },
+          "lastUuid": "01a057b0-ce00-7000-8000-000000000015"
+        },
+        "atomicCommandIds": [],
+        "commandOutcomes": [],
+        "commands": [],
+        "effectsAfterCommit": [],
+        "lifecycle": {
+          "consumedCompletions": [
+            {
+              "commandId": null,
+              "phase": "focus",
+              "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+            }
+          ],
+          "pendingBreaks": []
+        },
+        "observation": {
+          "canonicalAnchorAt": "2026-08-31T12:25:00Z",
+          "commandTimes": {}
+        },
+        "outcome": "planned",
+        "ownershipWrites": [],
+        "projection": {
+          "autoStartBreaks": false,
+          "canonicalTimer": {
+            "anchorAt": "2026-08-31T12:25:00Z",
+            "elapsedAtAnchorMs": 1500000,
+            "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+            "lastIntent": {
+              "commandId": "01a057b0-ce00-7000-8000-000000000015",
+              "deviceId": "p222-device",
+              "occurredAt": "2026-08-31T12:00:00Z",
+              "type": "start"
+            },
+            "phase": "focus",
+            "plannedDurationMs": 1500000,
+            "startedByDeviceId": "p222-device",
+            "status": "completed"
+          },
+          "durationsMs": {
+            "focus": 1500000,
+            "long_break": 900000,
+            "short_break": 300000
+          },
+          "history": [
+            {
+              "completedAt": "2026-08-31T12:25:00Z",
+              "endedAt": "2026-08-31T12:25:00Z",
+              "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+              "phase": "focus",
+              "plannedDurationMs": 1500000,
+              "status": "completed",
+              "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+            }
+          ],
+          "selectedTaskId": null,
+          "tasks": [],
+          "timerOutcomes": {},
+          "winningOperationIds": {
+            "autoStart": null,
+            "durations": {},
+            "selectedTask": null,
+            "tasks": {}
+          }
+        },
+        "reason": "",
+        "schemaVersion": 1,
+        "selection": {
+          "explicit": true,
+          "generation": "8",
+          "phase": "long_break"
+        },
+        "timerObservation": {
+          "deadlineAt": null,
+          "elapsedMs": 1500000,
+          "remainingMs": 0,
+          "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+        },
+        "workspace": {
+          "base": {
+            "autoStartBreaks": false,
+            "canonicalTimer": {
+              "anchorAt": "2026-08-31T12:25:00Z",
+              "elapsedAtAnchorMs": 1500000,
+              "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+              "lastIntent": {
+                "commandId": "01a057b0-ce00-7000-8000-000000000015",
+                "deviceId": "p222-device",
+                "occurredAt": "2026-08-31T12:00:00Z",
+                "type": "start"
+              },
+              "phase": "focus",
+              "plannedDurationMs": 1500000,
+              "startedByDeviceId": "p222-device",
+              "status": "completed"
+            },
+            "durationsMs": {
+              "focus": 1500000,
+              "long_break": 900000,
+              "short_break": 300000
+            },
+            "history": [
+              {
+                "completedAt": "2026-08-31T12:25:00Z",
+                "endedAt": "2026-08-31T12:25:00Z",
+                "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                "phase": "focus",
+                "plannedDurationMs": 1500000,
+                "status": "completed",
+                "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+              }
+            ],
+            "selectedTaskId": null,
+            "tasks": []
+          },
+          "canonicalHead": null,
+          "displayContext": {
+            "profile": "pwaStorage",
+            "projectionPending": {
+              "autoStartOperations": [],
+              "commands": [],
+              "durationOperations": [],
+              "selectedTaskOperations": [],
+              "taskOperations": []
+            }
+          },
+          "local": {
+            "autoStartOperations": [],
+            "commands": [],
+            "durationOperations": [],
+            "selectedTaskOperations": [],
+            "taskOperations": []
+          },
+          "neverSent": {
+            "autoStartOperations": [],
+            "commands": [],
+            "durationOperations": [],
+            "selectedTaskOperations": [],
+            "taskOperations": []
+          },
+          "timerDependencies": []
+        }
+      },
+      "completeFrozenReturn": {
+        "allocation": {
+          "deviceId": "p222-device",
+          "deviceSequence": 8,
+          "hlc": {
+            "counter": 3,
+            "wallMs": 1788177600000
+          },
+          "lastUuid": "01a057b0-ce00-7000-8000-000000000015"
+        },
+        "atomicCommandIds": [],
+        "commandOutcomes": [],
+        "commands": [],
+        "effectsAfterCommit": [],
+        "lifecycle": {
+          "consumedCompletions": [
+            {
+              "commandId": null,
+              "phase": "focus",
+              "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+            }
+          ],
+          "pendingBreaks": []
+        },
+        "observation": {
+          "canonicalAnchorAt": "2026-08-31T12:25:00Z",
+          "commandTimes": {}
+        },
+        "outcome": "planned",
+        "ownershipWrites": [],
+        "projection": {
+          "autoStartBreaks": false,
+          "canonicalTimer": {
+            "anchorAt": "2026-08-31T12:25:00Z",
+            "elapsedAtAnchorMs": 1500000,
+            "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+            "lastIntent": {
+              "commandId": "01a057b0-ce00-7000-8000-000000000015",
+              "deviceId": "p222-device",
+              "occurredAt": "2026-08-31T12:00:00Z",
+              "type": "start"
+            },
+            "phase": "focus",
+            "plannedDurationMs": 1500000,
+            "startedByDeviceId": "p222-device",
+            "status": "completed"
+          },
+          "durationsMs": {
+            "focus": 1500000,
+            "long_break": 900000,
+            "short_break": 300000
+          },
+          "history": [
+            {
+              "completedAt": "2026-08-31T12:25:00Z",
+              "endedAt": "2026-08-31T12:25:00Z",
+              "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+              "phase": "focus",
+              "plannedDurationMs": 1500000,
+              "status": "completed",
+              "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+            }
+          ],
+          "selectedTaskId": null,
+          "tasks": [],
+          "timerOutcomes": {},
+          "winningOperationIds": {
+            "autoStart": null,
+            "durations": {},
+            "selectedTask": null,
+            "tasks": {}
+          }
+        },
+        "reason": "",
+        "schemaVersion": 1,
+        "selection": {
+          "explicit": true,
+          "generation": "8",
+          "phase": "long_break"
+        },
+        "timerObservation": {
+          "deadlineAt": null,
+          "elapsedMs": 1500000,
+          "remainingMs": 0,
+          "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+        },
+        "workspace": {
+          "base": {
+            "autoStartBreaks": false,
+            "canonicalTimer": {
+              "anchorAt": "2026-08-31T12:25:00Z",
+              "elapsedAtAnchorMs": 1500000,
+              "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+              "lastIntent": {
+                "commandId": "01a057b0-ce00-7000-8000-000000000015",
+                "deviceId": "p222-device",
+                "occurredAt": "2026-08-31T12:00:00Z",
+                "type": "start"
+              },
+              "phase": "focus",
+              "plannedDurationMs": 1500000,
+              "startedByDeviceId": "p222-device",
+              "status": "completed"
+            },
+            "durationsMs": {
+              "focus": 1500000,
+              "long_break": 900000,
+              "short_break": 300000
+            },
+            "history": [
+              {
+                "completedAt": "2026-08-31T12:25:00Z",
+                "endedAt": "2026-08-31T12:25:00Z",
+                "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                "phase": "focus",
+                "plannedDurationMs": 1500000,
+                "status": "completed",
+                "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+              }
+            ],
+            "selectedTaskId": null,
+            "tasks": []
+          },
+          "canonicalHead": null,
+          "displayContext": {
+            "profile": "pwaStorage",
+            "projectionPending": {
+              "autoStartOperations": [],
+              "commands": [],
+              "durationOperations": [],
+              "selectedTaskOperations": [],
+              "taskOperations": []
+            }
+          },
+          "local": {
+            "autoStartOperations": [],
+            "commands": [],
+            "durationOperations": [],
+            "selectedTaskOperations": [],
+            "taskOperations": []
+          },
+          "neverSent": {
+            "autoStartOperations": [],
+            "commands": [],
+            "durationOperations": [],
+            "selectedTaskOperations": [],
+            "taskOperations": []
+          },
+          "timerDependencies": []
+        }
+      },
+      "currentCall": {
+        "operation": "workspace.intent.v1",
+        "inputRaw": "{\"compatibility\":\"pwaStorage\",\"replicationMode\":\"centralized\",\"workspace\":{\"base\":{\"canonicalTimer\":{\"anchorAt\":\"2026-08-31T12:25:00Z\",\"elapsedAtAnchorMs\":1500000,\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"lastIntent\":{\"commandId\":\"01a057b0-ce00-7000-8000-000000000015\",\"deviceId\":\"p222-device\",\"occurredAt\":\"2026-08-31T12:00:00Z\",\"type\":\"start\"},\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"startedByDeviceId\":\"p222-device\",\"status\":\"completed\"},\"history\":[{\"completedAt\":\"2026-08-31T12:25:00Z\",\"endedAt\":\"2026-08-31T12:25:00Z\",\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"status\":\"completed\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}],\"tasks\":[],\"durationsMs\":{\"focus\":1500000,\"short_break\":300000,\"long_break\":900000},\"autoStartBreaks\":false,\"selectedTaskId\":null},\"local\":{\"commands\":[],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]},\"canonicalHead\":null,\"neverSent\":{\"commands\":[],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]},\"timerDependencies\":[],\"displayContext\":{\"profile\":\"pwaStorage\",\"projectionPending\":{\"commands\":[],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]}}},\"selection\":{\"phase\":\"focus\",\"generation\":\"7\",\"explicit\":false},\"allocation\":{\"deviceId\":\"p222-device\",\"deviceSequence\":8,\"hlc\":{\"counter\":3,\"wallMs\":1788177600000},\"lastUuid\":\"01a057b0-ce00-7000-8000-000000000015\"},\"observation\":{\"canonicalAnchorAt\":\"2026-08-31T12:25:00Z\",\"commandTimes\":{}},\"clock\":{\"occurredAt\":\"2026-08-31T12:25:00.000Z\",\"physicalNow\":\"2026-08-31T12:25:00.000Z\",\"observedAt\":\"2026-08-31T12:25:00.000Z\"},\"identities\":{\"commandUuids\":[\"01a057c7-b160-7000-8000-000000000000\",\"01a057c7-b160-7000-8000-000000000001\"],\"timerUuid\":\"b989adc8-b41c-469b-8743-c6925f9a3395\"},\"calendarIntervals\":[{\"start\":\"2026-08-30T19:00:00.000Z\",\"end\":\"2026-08-31T19:00:00.000Z\"}],\"lifecycle\":{\"consumedCompletions\":[],\"pendingBreaks\":[]},\"intent\":{\"kind\":\"selectPhase\",\"phase\":\"long_break\"}}",
+        "input": {
+          "compatibility": "pwaStorage",
+          "replicationMode": "centralized",
+          "workspace": {
+            "base": {
+              "canonicalTimer": {
+                "anchorAt": "2026-08-31T12:25:00Z",
+                "elapsedAtAnchorMs": 1500000,
+                "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                "lastIntent": {
+                  "commandId": "01a057b0-ce00-7000-8000-000000000015",
+                  "deviceId": "p222-device",
+                  "occurredAt": "2026-08-31T12:00:00Z",
+                  "type": "start"
+                },
+                "phase": "focus",
+                "plannedDurationMs": 1500000,
+                "startedByDeviceId": "p222-device",
+                "status": "completed"
+              },
+              "history": [
+                {
+                  "completedAt": "2026-08-31T12:25:00Z",
+                  "endedAt": "2026-08-31T12:25:00Z",
+                  "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                  "phase": "focus",
+                  "plannedDurationMs": 1500000,
+                  "status": "completed",
+                  "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+                }
+              ],
+              "tasks": [],
+              "durationsMs": {
+                "focus": 1500000,
+                "short_break": 300000,
+                "long_break": 900000
+              },
+              "autoStartBreaks": false,
+              "selectedTaskId": null
+            },
+            "local": {
+              "commands": [],
+              "taskOperations": [],
+              "durationOperations": [],
+              "autoStartOperations": [],
+              "selectedTaskOperations": []
+            },
+            "canonicalHead": null,
+            "neverSent": {
+              "commands": [],
+              "taskOperations": [],
+              "durationOperations": [],
+              "autoStartOperations": [],
+              "selectedTaskOperations": []
+            },
+            "timerDependencies": [],
+            "displayContext": {
+              "profile": "pwaStorage",
+              "projectionPending": {
+                "commands": [],
+                "taskOperations": [],
+                "durationOperations": [],
+                "autoStartOperations": [],
+                "selectedTaskOperations": []
+              }
+            }
+          },
+          "selection": {
+            "phase": "focus",
+            "generation": "7",
+            "explicit": false
+          },
+          "allocation": {
+            "deviceId": "p222-device",
+            "deviceSequence": 8,
+            "hlc": {
+              "counter": 3,
+              "wallMs": 1788177600000
+            },
+            "lastUuid": "01a057b0-ce00-7000-8000-000000000015"
+          },
+          "observation": {
+            "canonicalAnchorAt": "2026-08-31T12:25:00Z",
+            "commandTimes": {}
+          },
+          "clock": {
+            "occurredAt": "2026-08-31T12:25:00.000Z",
+            "physicalNow": "2026-08-31T12:25:00.000Z",
+            "observedAt": "2026-08-31T12:25:00.000Z"
+          },
+          "identities": {
+            "commandUuids": [
+              "01a057c7-b160-7000-8000-000000000000",
+              "01a057c7-b160-7000-8000-000000000001"
+            ],
+            "timerUuid": "b989adc8-b41c-469b-8743-c6925f9a3395"
+          },
+          "calendarIntervals": [
+            {
+              "start": "2026-08-30T19:00:00.000Z",
+              "end": "2026-08-31T19:00:00.000Z"
+            }
+          ],
+          "lifecycle": {
+            "consumedCompletions": [],
+            "pendingBreaks": []
+          },
+          "intent": {
+            "kind": "selectPhase",
+            "phase": "long_break"
+          }
+        },
+        "envelopeRaw": "{\"ok\":true,\"value\":{\"allocation\":{\"deviceId\":\"p222-device\",\"deviceSequence\":8,\"hlc\":{\"counter\":3,\"wallMs\":1788177600000},\"lastUuid\":\"01a057b0-ce00-7000-8000-000000000015\"},\"atomicCommandIds\":[],\"commandOutcomes\":[],\"commands\":[],\"effectsAfterCommit\":[],\"lifecycle\":{\"consumedCompletions\":[{\"commandId\":null,\"phase\":\"focus\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}],\"pendingBreaks\":[]},\"observation\":{\"canonicalAnchorAt\":\"2026-08-31T12:25:00Z\",\"commandTimes\":{}},\"outcome\":\"planned\",\"ownershipWrites\":[],\"projection\":{\"autoStartBreaks\":false,\"canonicalTimer\":{\"anchorAt\":\"2026-08-31T12:25:00Z\",\"elapsedAtAnchorMs\":1500000,\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"lastIntent\":{\"commandId\":\"01a057b0-ce00-7000-8000-000000000015\",\"deviceId\":\"p222-device\",\"occurredAt\":\"2026-08-31T12:00:00Z\",\"type\":\"start\"},\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"startedByDeviceId\":\"p222-device\",\"status\":\"completed\"},\"durationsMs\":{\"focus\":1500000,\"long_break\":900000,\"short_break\":300000},\"history\":[{\"completedAt\":\"2026-08-31T12:25:00Z\",\"endedAt\":\"2026-08-31T12:25:00Z\",\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"status\":\"completed\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}],\"selectedTaskId\":null,\"tasks\":[],\"timerOutcomes\":{},\"winningOperationIds\":{\"autoStart\":null,\"durations\":{},\"selectedTask\":null,\"tasks\":{}}},\"reason\":\"\",\"schemaVersion\":1,\"selection\":{\"explicit\":true,\"generation\":\"8\",\"phase\":\"long_break\"},\"timerObservation\":{\"deadlineAt\":null,\"elapsedMs\":1500000,\"remainingMs\":0,\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"},\"workspace\":{\"base\":{\"autoStartBreaks\":false,\"canonicalTimer\":{\"anchorAt\":\"2026-08-31T12:25:00Z\",\"elapsedAtAnchorMs\":1500000,\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"lastIntent\":{\"commandId\":\"01a057b0-ce00-7000-8000-000000000015\",\"deviceId\":\"p222-device\",\"occurredAt\":\"2026-08-31T12:00:00Z\",\"type\":\"start\"},\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"startedByDeviceId\":\"p222-device\",\"status\":\"completed\"},\"durationsMs\":{\"focus\":1500000,\"long_break\":900000,\"short_break\":300000},\"history\":[{\"completedAt\":\"2026-08-31T12:25:00Z\",\"endedAt\":\"2026-08-31T12:25:00Z\",\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"status\":\"completed\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}],\"selectedTaskId\":null,\"tasks\":[]},\"canonicalHead\":null,\"displayContext\":{\"profile\":\"pwaStorage\",\"projectionPending\":{\"autoStartOperations\":[],\"commands\":[],\"durationOperations\":[],\"selectedTaskOperations\":[],\"taskOperations\":[]}},\"local\":{\"autoStartOperations\":[],\"commands\":[],\"durationOperations\":[],\"selectedTaskOperations\":[],\"taskOperations\":[]},\"neverSent\":{\"autoStartOperations\":[],\"commands\":[],\"durationOperations\":[],\"selectedTaskOperations\":[],\"taskOperations\":[]},\"timerDependencies\":[]}}}",
+        "completeReturn": {
+          "allocation": {
+            "deviceId": "p222-device",
+            "deviceSequence": 8,
+            "hlc": {
+              "counter": 3,
+              "wallMs": 1788177600000
+            },
+            "lastUuid": "01a057b0-ce00-7000-8000-000000000015"
+          },
+          "atomicCommandIds": [],
+          "commandOutcomes": [],
+          "commands": [],
+          "effectsAfterCommit": [],
+          "lifecycle": {
+            "consumedCompletions": [
+              {
+                "commandId": null,
+                "phase": "focus",
+                "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+              }
+            ],
+            "pendingBreaks": []
+          },
+          "observation": {
+            "canonicalAnchorAt": "2026-08-31T12:25:00Z",
+            "commandTimes": {}
+          },
+          "outcome": "planned",
+          "ownershipWrites": [],
+          "projection": {
+            "autoStartBreaks": false,
+            "canonicalTimer": {
+              "anchorAt": "2026-08-31T12:25:00Z",
+              "elapsedAtAnchorMs": 1500000,
+              "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+              "lastIntent": {
+                "commandId": "01a057b0-ce00-7000-8000-000000000015",
+                "deviceId": "p222-device",
+                "occurredAt": "2026-08-31T12:00:00Z",
+                "type": "start"
+              },
+              "phase": "focus",
+              "plannedDurationMs": 1500000,
+              "startedByDeviceId": "p222-device",
+              "status": "completed"
+            },
+            "durationsMs": {
+              "focus": 1500000,
+              "long_break": 900000,
+              "short_break": 300000
+            },
+            "history": [
+              {
+                "completedAt": "2026-08-31T12:25:00Z",
+                "endedAt": "2026-08-31T12:25:00Z",
+                "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                "phase": "focus",
+                "plannedDurationMs": 1500000,
+                "status": "completed",
+                "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+              }
+            ],
+            "selectedTaskId": null,
+            "tasks": [],
+            "timerOutcomes": {},
+            "winningOperationIds": {
+              "autoStart": null,
+              "durations": {},
+              "selectedTask": null,
+              "tasks": {}
+            }
+          },
+          "reason": "",
+          "schemaVersion": 1,
+          "selection": {
+            "explicit": true,
+            "generation": "8",
+            "phase": "long_break"
+          },
+          "timerObservation": {
+            "deadlineAt": null,
+            "elapsedMs": 1500000,
+            "remainingMs": 0,
+            "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+          },
+          "workspace": {
+            "base": {
+              "autoStartBreaks": false,
+              "canonicalTimer": {
+                "anchorAt": "2026-08-31T12:25:00Z",
+                "elapsedAtAnchorMs": 1500000,
+                "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                "lastIntent": {
+                  "commandId": "01a057b0-ce00-7000-8000-000000000015",
+                  "deviceId": "p222-device",
+                  "occurredAt": "2026-08-31T12:00:00Z",
+                  "type": "start"
+                },
+                "phase": "focus",
+                "plannedDurationMs": 1500000,
+                "startedByDeviceId": "p222-device",
+                "status": "completed"
+              },
+              "durationsMs": {
+                "focus": 1500000,
+                "long_break": 900000,
+                "short_break": 300000
+              },
+              "history": [
+                {
+                  "completedAt": "2026-08-31T12:25:00Z",
+                  "endedAt": "2026-08-31T12:25:00Z",
+                  "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                  "phase": "focus",
+                  "plannedDurationMs": 1500000,
+                  "status": "completed",
+                  "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+                }
+              ],
+              "selectedTaskId": null,
+              "tasks": []
+            },
+            "canonicalHead": null,
+            "displayContext": {
+              "profile": "pwaStorage",
+              "projectionPending": {
+                "autoStartOperations": [],
+                "commands": [],
+                "durationOperations": [],
+                "selectedTaskOperations": [],
+                "taskOperations": []
+              }
+            },
+            "local": {
+              "autoStartOperations": [],
+              "commands": [],
+              "durationOperations": [],
+              "selectedTaskOperations": [],
+              "taskOperations": []
+            },
+            "neverSent": {
+              "autoStartOperations": [],
+              "commands": [],
+              "durationOperations": [],
+              "selectedTaskOperations": [],
+              "taskOperations": []
+            },
+            "timerDependencies": []
+          }
+        }
+      },
+      "frozenCall": {
+        "operation": "workspace.intent.v1",
+        "inputRaw": "{\"compatibility\":\"pwaStorage\",\"replicationMode\":\"centralized\",\"workspace\":{\"base\":{\"canonicalTimer\":{\"anchorAt\":\"2026-08-31T12:25:00Z\",\"elapsedAtAnchorMs\":1500000,\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"lastIntent\":{\"commandId\":\"01a057b0-ce00-7000-8000-000000000015\",\"deviceId\":\"p222-device\",\"occurredAt\":\"2026-08-31T12:00:00Z\",\"type\":\"start\"},\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"startedByDeviceId\":\"p222-device\",\"status\":\"completed\"},\"history\":[{\"completedAt\":\"2026-08-31T12:25:00Z\",\"endedAt\":\"2026-08-31T12:25:00Z\",\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"status\":\"completed\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}],\"tasks\":[],\"durationsMs\":{\"focus\":1500000,\"short_break\":300000,\"long_break\":900000},\"autoStartBreaks\":false,\"selectedTaskId\":null},\"local\":{\"commands\":[],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]},\"canonicalHead\":null,\"neverSent\":{\"commands\":[],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]},\"timerDependencies\":[],\"displayContext\":{\"profile\":\"pwaStorage\",\"projectionPending\":{\"commands\":[],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]}}},\"selection\":{\"phase\":\"focus\",\"generation\":\"7\",\"explicit\":false},\"allocation\":{\"deviceId\":\"p222-device\",\"deviceSequence\":8,\"hlc\":{\"counter\":3,\"wallMs\":1788177600000},\"lastUuid\":\"01a057b0-ce00-7000-8000-000000000015\"},\"observation\":{\"canonicalAnchorAt\":\"2026-08-31T12:25:00Z\",\"commandTimes\":{}},\"clock\":{\"occurredAt\":\"2026-08-31T12:25:00.000Z\",\"physicalNow\":\"2026-08-31T12:25:00.000Z\",\"observedAt\":\"2026-08-31T12:25:00.000Z\"},\"identities\":{\"commandUuids\":[\"01a057c7-b160-7000-8000-000000000000\",\"01a057c7-b160-7000-8000-000000000001\"],\"timerUuid\":\"b989adc8-b41c-469b-8743-c6925f9a3395\"},\"calendarIntervals\":[{\"start\":\"2026-08-30T19:00:00.000Z\",\"end\":\"2026-08-31T19:00:00.000Z\"}],\"lifecycle\":{\"consumedCompletions\":[],\"pendingBreaks\":[]},\"intent\":{\"kind\":\"selectPhase\",\"phase\":\"long_break\"}}",
+        "input": {
+          "compatibility": "pwaStorage",
+          "replicationMode": "centralized",
+          "workspace": {
+            "base": {
+              "canonicalTimer": {
+                "anchorAt": "2026-08-31T12:25:00Z",
+                "elapsedAtAnchorMs": 1500000,
+                "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                "lastIntent": {
+                  "commandId": "01a057b0-ce00-7000-8000-000000000015",
+                  "deviceId": "p222-device",
+                  "occurredAt": "2026-08-31T12:00:00Z",
+                  "type": "start"
+                },
+                "phase": "focus",
+                "plannedDurationMs": 1500000,
+                "startedByDeviceId": "p222-device",
+                "status": "completed"
+              },
+              "history": [
+                {
+                  "completedAt": "2026-08-31T12:25:00Z",
+                  "endedAt": "2026-08-31T12:25:00Z",
+                  "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                  "phase": "focus",
+                  "plannedDurationMs": 1500000,
+                  "status": "completed",
+                  "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+                }
+              ],
+              "tasks": [],
+              "durationsMs": {
+                "focus": 1500000,
+                "short_break": 300000,
+                "long_break": 900000
+              },
+              "autoStartBreaks": false,
+              "selectedTaskId": null
+            },
+            "local": {
+              "commands": [],
+              "taskOperations": [],
+              "durationOperations": [],
+              "autoStartOperations": [],
+              "selectedTaskOperations": []
+            },
+            "canonicalHead": null,
+            "neverSent": {
+              "commands": [],
+              "taskOperations": [],
+              "durationOperations": [],
+              "autoStartOperations": [],
+              "selectedTaskOperations": []
+            },
+            "timerDependencies": [],
+            "displayContext": {
+              "profile": "pwaStorage",
+              "projectionPending": {
+                "commands": [],
+                "taskOperations": [],
+                "durationOperations": [],
+                "autoStartOperations": [],
+                "selectedTaskOperations": []
+              }
+            }
+          },
+          "selection": {
+            "phase": "focus",
+            "generation": "7",
+            "explicit": false
+          },
+          "allocation": {
+            "deviceId": "p222-device",
+            "deviceSequence": 8,
+            "hlc": {
+              "counter": 3,
+              "wallMs": 1788177600000
+            },
+            "lastUuid": "01a057b0-ce00-7000-8000-000000000015"
+          },
+          "observation": {
+            "canonicalAnchorAt": "2026-08-31T12:25:00Z",
+            "commandTimes": {}
+          },
+          "clock": {
+            "occurredAt": "2026-08-31T12:25:00.000Z",
+            "physicalNow": "2026-08-31T12:25:00.000Z",
+            "observedAt": "2026-08-31T12:25:00.000Z"
+          },
+          "identities": {
+            "commandUuids": [
+              "01a057c7-b160-7000-8000-000000000000",
+              "01a057c7-b160-7000-8000-000000000001"
+            ],
+            "timerUuid": "b989adc8-b41c-469b-8743-c6925f9a3395"
+          },
+          "calendarIntervals": [
+            {
+              "start": "2026-08-30T19:00:00.000Z",
+              "end": "2026-08-31T19:00:00.000Z"
+            }
+          ],
+          "lifecycle": {
+            "consumedCompletions": [],
+            "pendingBreaks": []
+          },
+          "intent": {
+            "kind": "selectPhase",
+            "phase": "long_break"
+          }
+        },
+        "envelopeRaw": "{\"ok\":true,\"value\":{\"allocation\":{\"deviceId\":\"p222-device\",\"deviceSequence\":8,\"hlc\":{\"counter\":3,\"wallMs\":1788177600000},\"lastUuid\":\"01a057b0-ce00-7000-8000-000000000015\"},\"atomicCommandIds\":[],\"commandOutcomes\":[],\"commands\":[],\"effectsAfterCommit\":[],\"lifecycle\":{\"consumedCompletions\":[{\"commandId\":null,\"phase\":\"focus\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}],\"pendingBreaks\":[]},\"observation\":{\"canonicalAnchorAt\":\"2026-08-31T12:25:00Z\",\"commandTimes\":{}},\"outcome\":\"planned\",\"ownershipWrites\":[],\"projection\":{\"autoStartBreaks\":false,\"canonicalTimer\":{\"anchorAt\":\"2026-08-31T12:25:00Z\",\"elapsedAtAnchorMs\":1500000,\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"lastIntent\":{\"commandId\":\"01a057b0-ce00-7000-8000-000000000015\",\"deviceId\":\"p222-device\",\"occurredAt\":\"2026-08-31T12:00:00Z\",\"type\":\"start\"},\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"startedByDeviceId\":\"p222-device\",\"status\":\"completed\"},\"durationsMs\":{\"focus\":1500000,\"long_break\":900000,\"short_break\":300000},\"history\":[{\"completedAt\":\"2026-08-31T12:25:00Z\",\"endedAt\":\"2026-08-31T12:25:00Z\",\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"status\":\"completed\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}],\"selectedTaskId\":null,\"tasks\":[],\"timerOutcomes\":{},\"winningOperationIds\":{\"autoStart\":null,\"durations\":{},\"selectedTask\":null,\"tasks\":{}}},\"reason\":\"\",\"schemaVersion\":1,\"selection\":{\"explicit\":true,\"generation\":\"8\",\"phase\":\"long_break\"},\"timerObservation\":{\"deadlineAt\":null,\"elapsedMs\":1500000,\"remainingMs\":0,\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"},\"workspace\":{\"base\":{\"autoStartBreaks\":false,\"canonicalTimer\":{\"anchorAt\":\"2026-08-31T12:25:00Z\",\"elapsedAtAnchorMs\":1500000,\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"lastIntent\":{\"commandId\":\"01a057b0-ce00-7000-8000-000000000015\",\"deviceId\":\"p222-device\",\"occurredAt\":\"2026-08-31T12:00:00Z\",\"type\":\"start\"},\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"startedByDeviceId\":\"p222-device\",\"status\":\"completed\"},\"durationsMs\":{\"focus\":1500000,\"long_break\":900000,\"short_break\":300000},\"history\":[{\"completedAt\":\"2026-08-31T12:25:00Z\",\"endedAt\":\"2026-08-31T12:25:00Z\",\"id\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"status\":\"completed\",\"timerId\":\"2a6985a7-4922-4c04-86dd-0024cf84b5cd\"}],\"selectedTaskId\":null,\"tasks\":[]},\"canonicalHead\":null,\"displayContext\":{\"profile\":\"pwaStorage\",\"projectionPending\":{\"autoStartOperations\":[],\"commands\":[],\"durationOperations\":[],\"selectedTaskOperations\":[],\"taskOperations\":[]}},\"local\":{\"autoStartOperations\":[],\"commands\":[],\"durationOperations\":[],\"selectedTaskOperations\":[],\"taskOperations\":[]},\"neverSent\":{\"autoStartOperations\":[],\"commands\":[],\"durationOperations\":[],\"selectedTaskOperations\":[],\"taskOperations\":[]},\"timerDependencies\":[]}}}",
+        "completeReturn": {
+          "allocation": {
+            "deviceId": "p222-device",
+            "deviceSequence": 8,
+            "hlc": {
+              "counter": 3,
+              "wallMs": 1788177600000
+            },
+            "lastUuid": "01a057b0-ce00-7000-8000-000000000015"
+          },
+          "atomicCommandIds": [],
+          "commandOutcomes": [],
+          "commands": [],
+          "effectsAfterCommit": [],
+          "lifecycle": {
+            "consumedCompletions": [
+              {
+                "commandId": null,
+                "phase": "focus",
+                "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+              }
+            ],
+            "pendingBreaks": []
+          },
+          "observation": {
+            "canonicalAnchorAt": "2026-08-31T12:25:00Z",
+            "commandTimes": {}
+          },
+          "outcome": "planned",
+          "ownershipWrites": [],
+          "projection": {
+            "autoStartBreaks": false,
+            "canonicalTimer": {
+              "anchorAt": "2026-08-31T12:25:00Z",
+              "elapsedAtAnchorMs": 1500000,
+              "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+              "lastIntent": {
+                "commandId": "01a057b0-ce00-7000-8000-000000000015",
+                "deviceId": "p222-device",
+                "occurredAt": "2026-08-31T12:00:00Z",
+                "type": "start"
+              },
+              "phase": "focus",
+              "plannedDurationMs": 1500000,
+              "startedByDeviceId": "p222-device",
+              "status": "completed"
+            },
+            "durationsMs": {
+              "focus": 1500000,
+              "long_break": 900000,
+              "short_break": 300000
+            },
+            "history": [
+              {
+                "completedAt": "2026-08-31T12:25:00Z",
+                "endedAt": "2026-08-31T12:25:00Z",
+                "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                "phase": "focus",
+                "plannedDurationMs": 1500000,
+                "status": "completed",
+                "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+              }
+            ],
+            "selectedTaskId": null,
+            "tasks": [],
+            "timerOutcomes": {},
+            "winningOperationIds": {
+              "autoStart": null,
+              "durations": {},
+              "selectedTask": null,
+              "tasks": {}
+            }
+          },
+          "reason": "",
+          "schemaVersion": 1,
+          "selection": {
+            "explicit": true,
+            "generation": "8",
+            "phase": "long_break"
+          },
+          "timerObservation": {
+            "deadlineAt": null,
+            "elapsedMs": 1500000,
+            "remainingMs": 0,
+            "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+          },
+          "workspace": {
+            "base": {
+              "autoStartBreaks": false,
+              "canonicalTimer": {
+                "anchorAt": "2026-08-31T12:25:00Z",
+                "elapsedAtAnchorMs": 1500000,
+                "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                "lastIntent": {
+                  "commandId": "01a057b0-ce00-7000-8000-000000000015",
+                  "deviceId": "p222-device",
+                  "occurredAt": "2026-08-31T12:00:00Z",
+                  "type": "start"
+                },
+                "phase": "focus",
+                "plannedDurationMs": 1500000,
+                "startedByDeviceId": "p222-device",
+                "status": "completed"
+              },
+              "durationsMs": {
+                "focus": 1500000,
+                "long_break": 900000,
+                "short_break": 300000
+              },
+              "history": [
+                {
+                  "completedAt": "2026-08-31T12:25:00Z",
+                  "endedAt": "2026-08-31T12:25:00Z",
+                  "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+                  "phase": "focus",
+                  "plannedDurationMs": 1500000,
+                  "status": "completed",
+                  "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+                }
+              ],
+              "selectedTaskId": null,
+              "tasks": []
+            },
+            "canonicalHead": null,
+            "displayContext": {
+              "profile": "pwaStorage",
+              "projectionPending": {
+                "autoStartOperations": [],
+                "commands": [],
+                "durationOperations": [],
+                "selectedTaskOperations": [],
+                "taskOperations": []
+              }
+            },
+            "local": {
+              "autoStartOperations": [],
+              "commands": [],
+              "durationOperations": [],
+              "selectedTaskOperations": [],
+              "taskOperations": []
+            },
+            "neverSent": {
+              "autoStartOperations": [],
+              "commands": [],
+              "durationOperations": [],
+              "selectedTaskOperations": [],
+              "taskOperations": []
+            },
+            "timerDependencies": []
+          }
+        }
+      },
+      "rawRecordRead": {
+        "snapshot": {
+          "user": {
+            "id": "p222-account",
+            "accountIncarnation": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          },
+          "revision": 3,
+          "serverTime": "2026-08-31T12:00:00.000Z",
+          "canonicalTimer": {
+            "anchorAt": "2026-08-31T12:25:00Z",
+            "elapsedAtAnchorMs": 1500000,
+            "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+            "lastIntent": {
+              "commandId": "01a057b0-ce00-7000-8000-000000000015",
+              "deviceId": "p222-device",
+              "occurredAt": "2026-08-31T12:00:00Z",
+              "type": "start"
+            },
+            "phase": "focus",
+            "plannedDurationMs": 1500000,
+            "startedByDeviceId": "p222-device",
+            "status": "completed"
+          },
+          "history": [
+            {
+              "completedAt": "2026-08-31T12:25:00Z",
+              "endedAt": "2026-08-31T12:25:00Z",
+              "id": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+              "phase": "focus",
+              "plannedDurationMs": 1500000,
+              "status": "completed",
+              "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+            }
+          ],
+          "tasks": [],
+          "selectedTaskId": null,
+          "autoStartBreaks": false,
+          "durationsMs": {
+            "focus": 1500000,
+            "short_break": 300000,
+            "long_break": 900000
+          }
+        },
+        "settings": {
+          "selectedPhase": "focus",
+          "durationSyncBootstrapped": true,
+          "autoStartSyncBootstrapped": true,
+          "selectedTaskSyncBootstrapped": true
+        },
+        "deviceId": "p222-device",
+        "deviceSequence": 8,
+        "hlc": {
+          "counter": 3,
+          "wallMs": 1788177600000
+        },
+        "uuidV7": "01a057b0-ce00-7000-8000-000000000015",
+        "deliveryProof": {
+          "commands": [],
+          "taskOperations": [],
+          "durationOperations": [],
+          "autoStartOperations": [],
+          "selectedTaskOperations": []
+        },
+        "projectionPending": {
+          "commands": [],
+          "taskOperations": [],
+          "durationOperations": [],
+          "autoStartOperations": [],
+          "selectedTaskOperations": []
+        },
+        "timerDependencies": [],
+        "completionState": {
+          "selection": {
+            "phase": "focus",
+            "generation": "7",
+            "explicit": false
+          },
+          "lifecycle": {
+            "consumedCompletions": [],
+            "pendingBreaks": []
+          }
+        },
+        "workspaceObservation": {
+          "canonicalAnchorAt": "2026-08-31T12:25:00Z",
+          "commandTimes": {}
+        },
+        "workspaceGroups": [
+          {
+            "atomicCommandIds": [
+              "01a057b0-ce00-7000-8000-000000000015"
+            ],
+            "atomicOperationIds": null,
+            "commandOutcomes": [
+              {
+                "id": "01a057b0-ce00-7000-8000-000000000015",
+                "outcome": "applied"
+              }
+            ],
+            "groupOutcomes": null
+          }
+        ],
+        "completionRecords": {},
+        "displayHistory": [],
+        "timerOwner": {
+          "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd",
+          "deviceId": "p222-device",
+          "tabId": "p222-tab-0",
+          "leaseExpiresAtMs": 1788177660000
+        },
+        "commands": [],
+        "taskOperations": [],
+        "durationOperations": [],
+        "autoStartOperations": [],
+        "selectedTaskOperations": []
+      },
+      "read": {
+        "availableIntents": [
+          "start",
+          "selectPhase",
+          "finish"
+        ],
+        "cadence": {
+          "completedFocusToday": 1,
+          "completedFocusTodayPlannedDurationMs": 1500000,
+          "completedFocusTotal": 1,
+          "longBreakProgress": 1,
+          "nextCompletedFocusBreakPhase": "short_break",
+          "skipDestination": "focus"
+        },
+        "canonical": {
+          "deadlineAt": null,
+          "elapsedMs": 1500000,
+          "observedElapsedMs": 1500000,
+          "phase": "focus",
+          "plannedDurationMs": 1500000,
+          "progress": 1,
+          "remainingMs": 0,
+          "status": "completed",
+          "timerId": "2a6985a7-4922-4c04-86dd-0024cf84b5cd"
+        },
+        "display": {
+          "elapsedMs": 0,
+          "phase": "long_break",
+          "plannedDurationMs": 900000,
+          "progress": 0,
+          "remainingMs": 900000,
+          "remainingSecondsCeil": 900,
+          "status": "completed"
+        },
+        "schemaVersion": 1,
+        "tasks": {
+          "completedFocusTodayByTask": {},
+          "selectedTaskId": null,
+          "total": 0
+        }
+      }
+    }
+  ]
+}

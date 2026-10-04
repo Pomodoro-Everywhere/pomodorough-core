@@ -17,6 +17,7 @@ enum Profile {
 #[serde(tag = "kind", rename_all = "camelCase", deny_unknown_fields)]
 enum Action {
     Install {},
+    Release {},
     Renew {
         #[serde(rename = "timerId")]
         timer_id: String,
@@ -27,7 +28,7 @@ enum Action {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct Clock {
     now_ms: i64,
-    lease_duration_ms: i64,
+    lease_duration_ms: Option<i64>,
 }
 
 #[derive(Deserialize)]
@@ -47,17 +48,29 @@ fn invalid(reason: &str) -> CoreError {
 }
 
 pub(crate) fn plan_json(raw: &str) -> Result<String, CoreError> {
-    let raw = strict_json::parse(raw)?;
-    strict_json::shape::validate(&raw, &schema::REQUEST, "")?;
+    let parsed = strict_json::parse(raw)?;
+    let raw = if parsed["action"]["kind"] == "release" {
+        // Release must return raw retained numbers without changing shipped renewals.
+        crate::legacy_preferences::json::parse(raw)?
+    } else {
+        parsed
+    };
+    schema::validate(&raw)?;
     let request: Request = serde_json::from_value(raw.clone())?;
     let at = validate(&request)?;
+    let mut result = json!({"schemaVersion": 1, "ownership": raw["ownership"],
+        "workspace": request.workspace, "renewed": false, "reason": "",
+        "ownershipWrites": [], "effectsAfterCommit": []});
+    if matches!(request.action, Action::Release {}) {
+        // Release validates the workspace but never prunes or claims by timer state.
+        project(&request.workspace, "1970-01-01T00:00:00Z")?;
+        release(&request, &mut result);
+        return Ok(result.to_string());
+    }
     let projected = project(&request.workspace, &at)?;
     // Natural deadline expiry is not an explicit Finish. Keep the peer lease
     // until completion commits, even when the observed timer reads completed.
     let unexpired = project(&request.workspace, "1970-01-01T00:00:00Z")?;
-    let mut result = json!({"schemaVersion": 1, "ownership": raw["ownership"],
-        "workspace": request.workspace, "renewed": false, "reason": "",
-        "ownershipWrites": [], "effectsAfterCommit": []});
     plan(
         &request,
         &projected["canonicalTimer"],
@@ -76,7 +89,11 @@ fn validate(request: &Request) -> Result<String, CoreError> {
         return Err(invalid("missing renewal timer identity"));
     }
     if !(0..=MAX_SAFE_MS).contains(&request.clock.now_ms)
-        || !(1..=MAX_SAFE_MS).contains(&request.clock.lease_duration_ms)
+        || (!matches!(request.action, Action::Release {})
+            && !request
+                .clock
+                .lease_duration_ms
+                .is_some_and(|ms| (1..=MAX_SAFE_MS).contains(&ms)))
     {
         return Err(invalid("invalid ownership clock"));
     }
@@ -114,6 +131,25 @@ fn project(workspace: &Value, at: &str) -> Result<Value, CoreError> {
 
 fn active(timer: &Value) -> bool {
     matches!(timer["status"].as_str(), Some("running" | "paused"))
+}
+
+fn release(request: &Request, result: &mut Value) {
+    let Some(owner) = &request.ownership else {
+        result["reason"] = json!("missingOwner");
+        return;
+    };
+    if owner.device_id != request.local_device_id
+        || owner.tab_id.as_deref() != Some(&request.local_tab_id)
+    {
+        result["reason"] = json!("notOwner");
+        return;
+    }
+    // Match pagehide: stamp now even for an expired, absent, or null own lease.
+    // This expires the record immediately; it grants no claim or renewal.
+    result["ownership"]["leaseExpiresAtMs"] = json!(request.clock.now_ms);
+    let mut write = result["ownership"].clone();
+    write["kind"] = json!("recordTimerOwner");
+    result["ownershipWrites"] = json!([write]);
 }
 
 fn plan(
@@ -191,7 +227,7 @@ fn write_owner(request: &Request, timer_id: &Value, result: &mut Value) -> Resul
         &request.local_device_id,
         Some(&request.local_tab_id),
         request.clock.now_ms,
-        request.clock.lease_duration_ms,
+        request.clock.lease_duration_ms.unwrap(),
     )?;
     let mut owner = write.clone();
     owner.as_object_mut().unwrap().remove("kind");

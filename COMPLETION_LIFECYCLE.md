@@ -1,5 +1,7 @@
 # Staged completion lifecycle v1
 
+[PWA natural-completion admission](PWA_NATURAL_COMPLETION.md) reuses the lifecycle state in the existing centralized Finish stages, read model, and canonical installation profile. PWA Iroh stages remain unsupported.
+
 `workspace.completionMutation.v1` now owns the remaining bounded completion decisions across the original client transaction boundaries. [Completion mutation v1](COMPLETION_MUTATION.md) describes the existing centralized batches. This reference describes the added lifecycle stages and expanded finish profiles.
 
 ## Implemented scope

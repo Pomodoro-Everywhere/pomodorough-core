@@ -1,6 +1,7 @@
 # PWA raw ownership plan
 
 `workspace.ownershipPlan.v1` implements CORE-PWA09 for the `pwaStorage` profile.
+The CORE-PWA10 extension adds [pagehide lease release](PWA_LEASE_RELEASE.md).
 The operation accepts raw workspace records and an existing owner observation.
 Core returns the complete owner state and ordered storage writes.
 
@@ -10,11 +11,11 @@ Core returns the complete owner state and ordered storage writes.
 The request has these required fields:
 
 - `profile`: exactly `pwaStorage`.
-- `action`: either `{ "kind": "install" }` or `{ "kind": "renew", "timerId": "..." }`.
+- `action`: `{ "kind": "install" }`, `{ "kind": "renew", "timerId": "..." }`, or `{ "kind": "release" }`.
 - `workspace`: the raw `workspace.project.v1` input without `now`. All five retained queues, the canonical base, the head, proof, dependencies, and `displayContext` are present.
 - `ownership`: an exact stored owner object or explicit `null`. Omission fails.
 - `localDeviceId` and `localTabId`: nonempty raw identities.
-- `clock`: `{ "nowMs": ..., "leaseDurationMs": ... }`.
+- `clock`: `{ "nowMs": ..., "leaseDurationMs": ... }` for install and renew. Release accepts only `{ "nowMs": ... }`.
 
 An owner object requires nonempty `timerId` and `deviceId`. Its legacy `tabId`
 and `leaseExpiresAtMs` fields may be absent or null. A present tab must be
@@ -25,7 +26,7 @@ keys fail closed. Unknown request, action, and clock controls also fail.
 `strict_json::shape` validates concrete JSON records, scalar string enums,
 required fields, nullable fields, and tagged objects before typed deserialization.
 `ownership_plan/schema.rs` declares the ownership request with that shared helper.
-An install is an explicit empty-struct variant. Only its `kind` key is valid.
+Install and release are explicit empty-struct variants. Only their `kind` key is valid.
 `workspace.neverSent` is required and must be an object, including when empty.
 The helper is applied only to the new ownership boundary. Existing operation
 decoders, absent-context behavior, and the shared display selector stay unchanged.
@@ -34,6 +35,7 @@ decoders, absent-context behavior, and the shared display selector stay unchange
 timestamp and projection boundary. `leaseDurationMs` is a positive
 JavaScript-safe integer. A requested write rejects an unsafe expiry sum.
 A retained owner does not require an expiry addition.
+Release does not add a duration and rejects a supplied `leaseDurationMs` field.
 
 The PWA supplies local wall time from `Date.now()` for heartbeat, sync install,
 and bootstrap install. This operation does not substitute a trusted server
@@ -54,6 +56,7 @@ Every successful return contains `schemaVersion: 1`, the unchanged raw
 `workspace`, `ownership`, `renewed`, `reason`, `ownershipWrites`, and
 `effectsAfterCommit: []`. A denied live peer renewal also contains `retryAtMs`.
 Other returns omit `retryAtMs`.
+Release keeps this result shape, always returns `renewed: false`, and has no retry time.
 
 `ownershipWrites` contains only these instructions, in execution order:
 
@@ -99,6 +102,10 @@ an explicitly finished timer's orphan owner. It also removes an owner after a
 real outgoing Start claim is rejected and removed by V3 acceptance. The original
 installer retains that orphan. Native, artifact, and original production-source
 comparisons identify these requested differences explicitly.
+Release does not apply this cleanup. It matches the stored device and tab even
+when the owner's timer is absent, terminal, or replaced. It stamps the matching
+owner's expiry with `nowMs` and otherwise retains the exact owner, including
+expired peers. A missing or null own expiry is stamped as in the original PWA.
 
 A natural deadline does not act as an explicit Finish. Core retains its peer
 lease until completion commits, using the existing non-expiring replay to
@@ -216,4 +223,6 @@ not certify browser IDB, the whole PWA migration, or a client release.
 The next official Core artifact must pass the expanded hosted gate before any
 adapter adopts this operation. Native evidence and downloaded baseline
 rejections do not establish parity for those future WASM bytes. This stage
-builds no local WASM artifact and makes no release or backlog change.
+builds no local WASM artifact and makes no release. The counts above describe
+the earlier CORE-PWA09 milestone. Current release-policy evidence and the
+remaining adapter scope are in [PWA lease release](PWA_LEASE_RELEASE.md).

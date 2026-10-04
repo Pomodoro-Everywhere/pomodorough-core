@@ -9,6 +9,13 @@ import { terminalScenarios } from "./terminal_scenarios.mjs";
 import { displayScenarios } from "./pwa_display_scenarios.mjs";
 import { admissionScenarios } from "./pwa_display_admission.mjs";
 import { ownershipScenarios } from "./pwa_ownership_cases.mjs";
+import { legacyScenarios } from "./legacy_preferences_cases.mjs";
+import { naturalScenarios } from "./pwa_natural_cases.mjs";
+import { dependencyScenarios } from "./legacy_dependencies_cases.mjs";
+import { releaseScenarios } from "./pwa_release_cases.mjs";
+import { selectionScenarios } from "./pwa_selection_cases.mjs";
+import { assertSelectionPreservation } from "./pwa_selection_preservation.mjs";
+import { cycleScenarios } from "./pwa_cycle_cases.mjs";
 
 export function runCorpus(staticCases, dispatch) {
   const cases = [];
@@ -30,8 +37,15 @@ export function runCorpus(staticCases, dispatch) {
   displayScenarios(call);
   admissionScenarios(call);
   ownershipScenarios(call);
+  legacyScenarios(call);
+  naturalScenarios(call);
+  dependencyScenarios(call);
+  releaseScenarios(call);
+  selectionScenarios(call);
+  cycleScenarios(call);
   validateEnvelopes(cases, expected.join("\n"));
   const hits = assertCoverage(cases);
+  assertSelectionPreservation(cases, expected);
   return { staticCases, cases, expected, hits };
 }
 

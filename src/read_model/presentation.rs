@@ -52,8 +52,16 @@ pub(super) fn render(
     cadence: Cadence,
 ) -> Result<Value, CoreError> {
     let status = canonical.status.as_str();
-    let display = display(input, workspace, canonical)?;
-    let selected = input.selected_phase.as_str();
+    let source = natural_source(input, workspace, history)?;
+    let selected_phase = natural_phase(input, source, history, cadence.day)?;
+    let display = display(input, workspace, canonical, &selected_phase)?;
+    let mut available = intents(input.profile, status);
+    if source.is_some_and(|row| !input.lifecycle.finished(&row.timer_id, &row.phase))
+        && !retained_finish(input, source.unwrap())
+    {
+        available.push("finish");
+    }
+    let selected = selected_phase.as_str();
     let skip = if selected == "focus" {
         if cadence.today % 4 == 3 {
             "long_break"
@@ -71,7 +79,7 @@ pub(super) fn render(
     let task_counts = task_counts(workspace, history, cadence.day)?;
     Ok(
         json!({"schemaVersion": 1, "canonical": canonical, "display": display,
-        "availableIntents": intents(input.profile, status),
+        "availableIntents": available,
         "cadence": {"completedFocusToday": cadence.today,
             "completedFocusTodayPlannedDurationMs": cadence.planned_duration_today_ms,
             "completedFocusTotal": cadence.total,
@@ -82,8 +90,12 @@ pub(super) fn render(
     )
 }
 
-fn display(input: &Input, workspace: &Value, canonical: &TimerView) -> Result<Value, CoreError> {
-    let selected = input.selected_phase.as_str();
+fn display(
+    input: &Input,
+    workspace: &Value,
+    canonical: &TimerView,
+    selected: &str,
+) -> Result<Value, CoreError> {
     let duration = workspace["durationsMs"][selected]
         .as_i64()
         .ok_or_else(|| invalid("missing selected phase duration"))?;
@@ -115,6 +127,51 @@ fn display(input: &Input, workspace: &Value, canonical: &TimerView) -> Result<Va
             "remainingMs": remaining, "progress": elapsed / canonical.planned_duration_ms as f64,
             "remainingSecondsCeil": (remaining / 1000.0).ceil() as i64})
     })
+}
+
+fn natural_source<'a>(
+    input: &Input,
+    workspace: &Value,
+    history: &'a [HistoryItem],
+) -> Result<Option<&'a HistoryItem>, CoreError> {
+    if input.profile != Profile::PwaStorage {
+        return Ok(None);
+    }
+    let super::Source::Workspace(raw) = &input.source;
+    if crate::timer::workspace::missing_natural_history(raw, &workspace["canonicalTimer"]) {
+        return Ok(None);
+    }
+    let timer: Option<crate::timer::CanonicalTimer> =
+        serde_json::from_value(workspace["canonicalTimer"].clone())?;
+    crate::timer::workspace::natural_completion(timer.as_ref(), history)
+}
+
+fn retained_finish(input: &Input, row: &HistoryItem) -> bool {
+    let super::Source::Workspace(workspace) = &input.source;
+    workspace["local"]["commands"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .any(|command| command["type"] == "finish" && command["timerId"] == row.timer_id)
+}
+
+fn natural_phase(
+    input: &Input,
+    source: Option<&HistoryItem>,
+    history: &[HistoryItem],
+    day: (DateTime<Utc>, DateTime<Utc>),
+) -> Result<String, CoreError> {
+    let Some(source) = source.filter(|row| {
+        row.phase == input.selected_phase
+            && !input
+                .selection
+                .as_ref()
+                .is_some_and(|selection| selection.explicit)
+            && !input.lifecycle.consumed(&row.timer_id, &row.phase)
+    }) else {
+        return Ok(input.selected_phase.clone());
+    };
+    crate::completion_plan::phase_after(&source.phase, history, day)
 }
 
 fn task_counts(

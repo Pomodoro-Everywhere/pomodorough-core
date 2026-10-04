@@ -290,7 +290,7 @@ fn owns(timer_id: &str, local_device_id: &str, ownership: Option<&Ownership>) ->
         .is_some_and(|value| value.timer_id == timer_id && value.owner_device_id == local_device_id)
 }
 
-fn phase_after(
+pub(crate) fn phase_after(
     phase: &str,
     history: &[HistoryItem],
     bounds: (DateTime<Utc>, DateTime<Utc>),

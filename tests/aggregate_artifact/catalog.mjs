@@ -13,8 +13,18 @@ import { displayCases } from "./pwa_display_cases.mjs";
 import { displayMatrix } from "./pwa_display_matrix.mjs";
 import { admissionCases } from "./pwa_display_admission.mjs";
 import { ownershipCases } from "./pwa_ownership_cases.mjs";
+import { legacyCases } from "./legacy_preferences_cases.mjs";
+import { legacyNumericCases } from "./legacy_preferences_numeric_cases.mjs";
+import { naturalCases } from "./pwa_natural_cases.mjs";
+import { checkerCases, shapeCases, provenanceCases } from "./pwa_checker_cases.mjs";
+import { dependencyCases } from "./legacy_dependencies_cases.mjs";
+import { releaseCases } from "./pwa_release_cases.mjs";
+import { selectionCases, selectionShapeCases } from "./pwa_selection_cases.mjs";
+import { repairCases } from "./pwa_cycle_cases.mjs";
 
 const overflowPaths = {
+  "workspace.legacyDependencyPlan.v1": "workspace.local.commands.0.hlcCounter",
+  "workspace.legacyPreferences.v1": "workspace.canonicalHead.counter",
   "workspace.ownershipPlan.v1": "clock.nowMs",
   "workspace.project.v1": "canonicalHead.counter",
   "workspace.readModel.v1": "source.value.base.durationsMs.focus",
@@ -32,7 +42,9 @@ export function aggregateCases() {
     ...completionMutationCases(), ...bootstrapCases(), ...batchCases(),
     ...completionStateCases(), ...sentCases(), ...clockCases(), ...queuedCases(),
     ...fractionalReadCases(), missingReadingCase(), ...taskTotalCases(), ...savedCases(), ...terminalCases(),
-    ...retainedIntentCases(), ...retainedIntentCases("workspace.project.v1"), ...displayCases(), ...displayMatrix(), ...admissionCases(), ...ownershipCases()];
+    ...retainedIntentCases(), ...retainedIntentCases("workspace.project.v1"), ...displayCases(), ...displayMatrix(), ...admissionCases(), ...ownershipCases(), ...legacyCases(), ...legacyNumericCases(), ...naturalCases(),
+    ...checkerCases(), ...shapeCases(), ...provenanceCases(), ...dependencyCases(), ...releaseCases(),
+    ...selectionCases(), ...selectionShapeCases(), ...repairCases()];
   for (const [operation, path] of Object.entries(overflowPaths)) {
     cases.push(...invalidCases(cases.find((item) => item.operation === operation && item.ok), path));
   }

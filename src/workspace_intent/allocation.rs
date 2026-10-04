@@ -32,7 +32,7 @@ pub(super) fn validate(input: &Input) -> Result<(), CoreError> {
     Ok(())
 }
 
-pub(super) fn validate_uuid(uuid: &str, version: Option<u8>) -> Result<(), CoreError> {
+pub(crate) fn validate_uuid(uuid: &str, version: Option<u8>) -> Result<(), CoreError> {
     let bytes = uuid.as_bytes();
     if bytes.len() != 36 {
         return Err(invalid("invalid allocated UUID"));

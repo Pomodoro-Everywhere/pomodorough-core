@@ -1,0 +1,37 @@
+{
+  "fields": {
+    "compatibility": {"required": true, "shape": "enum:pwaStorage"},
+    "replicationMode": {"required": true, "shape": "enum:centralized"},
+    "intent": {"required": true, "shape": "tagged:kind"},
+    "workspace": {"required": true, "shape": "object"},
+    "requestedTimer": {"required": false, "shape": "nullable:object"},
+    "selection": {"required": true, "shape": "object"},
+    "allocation": {"required": true, "shape": "object"},
+    "observation": {"required": true, "shape": "object"},
+    "clock": {"required": true, "shape": "object"},
+    "identities": {"required": true, "shape": "object"},
+    "calendarIntervals": {"required": true, "shape": "array:object"},
+    "ownership": {"required": false, "shape": "nullable:object"},
+    "durability": {"required": false, "shape": "nullable:object"},
+    "localDurationsMs": {"required": false, "shape": "nullable:object"},
+    "knownTasks": {"required": false, "shape": "nullable:array:object"},
+    "lifecycle": {"required": true, "shape": "object"}
+  },
+  "selectionFields": {
+    "phase": {"required": true, "shape": "enum:focus,short_break,long_break"},
+    "generation": {"required": true, "shape": "string"},
+    "explicit": {"required": true, "shape": "boolean"}
+  },
+  "actions": {
+    "start": {}, "pause": {}, "resume": {}, "cancel": {}, "cancelAndClear": {}, "clear": {}, "restart": {},
+    "selectPhase": {"phase": {"required": true, "shape": "enum:focus,short_break,long_break"}},
+    "skip": {},
+    "upsertTask": {"title": {"required": true, "shape": "string"}},
+    "addAndSelectTask": {"title": {"required": true, "shape": "string"}},
+    "deleteTask": {"taskId": {"required": true, "shape": "string"}},
+    "selectTask": {"taskId": {"required": true, "shape": "nullable:string"}},
+    "setDuration": {"phase": {"required": true, "shape": "enum:focus,short_break,long_break"}, "minutes": {"required": true, "shape": "integer"}},
+    "changeDuration": {"phase": {"required": true, "shape": "enum:focus,short_break,long_break"}, "delta": {"required": true, "shape": "integer"}},
+    "setAutoStart": {"enabled": {"required": true, "shape": "boolean"}}
+  }
+}

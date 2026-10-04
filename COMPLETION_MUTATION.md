@@ -1,5 +1,7 @@
 # Completion mutation v1
 
+[PWA natural-completion admission](PWA_NATURAL_COMPLETION.md) extends centralized PWA Finish admission to exact completed timers whose last intent is Start or Resume. It defines once-only lifecycle consumption, explicit selection, and the required history evidence.
+
 `workspace.completionMutation.v1` plans completion mutations without persisting state. Apple, Android, and PWA centralized finish stages retain their Finish and optional generated Start batch. Apple Iroh manual Finish and Desktop centralized Finish now produce a separate break opportunity. [Staged completion lifecycle v1](COMPLETION_LIFECYCLE.md) defines `expiryObservation`, `deferredBreakOpportunity`, their complete schema, and their transaction boundaries. No client calls this operation yet.
 
 ## Request

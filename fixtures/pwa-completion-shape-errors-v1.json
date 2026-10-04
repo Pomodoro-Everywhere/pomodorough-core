@@ -1,0 +1,82 @@
+[
+  {
+    "case": "pwa-display-boolean",
+    "operation": "workspace.readModel.v1",
+    "inputRaw": "{\"profile\":\"pwaStorage\",\"source\":{\"kind\":\"workspace\",\"value\":{\"base\":{\"canonicalTimer\":null,\"history\":[],\"tasks\":[],\"durationsMs\":{\"focus\":1500000,\"short_break\":300000,\"long_break\":900000},\"autoStartBreaks\":false,\"selectedTaskId\":null},\"local\":{\"commands\":[{\"deviceId\":\"p222-device\",\"deviceSequence\":8,\"hlcCounter\":3,\"hlcWallMs\":1788177600000,\"id\":\"01a057b0-ce00-7000-8000-000000000015\",\"observedElapsedMs\":0,\"occurredAt\":\"2026-08-31T12:00:00.000Z\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"timerId\":\"d68d2324-d368-4ce8-9700-d6c7218faeb5\",\"type\":\"start\"}],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]},\"neverSent\":{\"commands\":[],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]},\"canonicalHead\":{\"wallMs\":1788177600000,\"counter\":3},\"timerDependencies\":[],\"displayContext\":true}},\"selectedPhase\":\"focus\",\"observedAt\":\"2026-08-31T12:00:01Z\",\"calendarIntervals\":[{\"start\":\"2026-08-31T00:00:00Z\",\"end\":\"2026-09-01T00:00:00Z\"}]}",
+    "priorEnvelope": "{\"error\":\"invalid shared-core input: displayContext must be a JSON object\",\"ok\":false}",
+    "correctedEnvelope": "{\"error\":\"invalid shared-core input: source.value.displayContext must be a JSON object\",\"ok\":false}",
+    "reason": "Concrete representation admission now rejects malformed JSON before Serde can accept positional records or enum objects."
+  },
+  {
+    "case": "pwa-display-boolean",
+    "operation": "workspace.completionMutation.v1",
+    "inputRaw": "{\"compatibility\":\"pwaStorage\",\"replicationMode\":\"centralized\",\"workspace\":{\"base\":{\"canonicalTimer\":null,\"history\":[],\"tasks\":[],\"durationsMs\":{\"focus\":1500000,\"short_break\":300000,\"long_break\":900000},\"autoStartBreaks\":false,\"selectedTaskId\":null},\"local\":{\"commands\":[{\"deviceId\":\"p222-device\",\"deviceSequence\":8,\"hlcCounter\":3,\"hlcWallMs\":1788177600000,\"id\":\"01a057b0-ce00-7000-8000-000000000015\",\"observedElapsedMs\":0,\"occurredAt\":\"2026-08-31T12:00:00.000Z\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"timerId\":\"d68d2324-d368-4ce8-9700-d6c7218faeb5\",\"type\":\"start\"}],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]},\"neverSent\":{\"commands\":[],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]},\"canonicalHead\":{\"wallMs\":1788177600000,\"counter\":3},\"timerDependencies\":[],\"displayContext\":true},\"selection\":{\"phase\":\"focus\",\"generation\":\"0\",\"explicit\":false},\"allocation\":{\"deviceId\":\"p222-device\",\"deviceSequence\":8,\"hlc\":{\"counter\":3,\"wallMs\":1788177600000},\"lastUuid\":\"01a057b0-ce00-7000-8000-000000000015\"},\"observation\":{\"canonicalAnchorAt\":null,\"commandTimes\":{\"01a057b0-ce00-7000-8000-000000000015\":\"2026-08-31T12:00:00.000Z\"}},\"clock\":{\"occurredAt\":\"2026-08-31T12:00:03Z\",\"physicalNow\":\"2026-08-31T12:00:03Z\",\"observedAt\":\"2026-08-31T12:00:03Z\"},\"identities\":{\"commandUuids\":[\"01a057b0-d9b8-7000-8000-000000000001\"],\"timerUuid\":\"12345678-1234-4234-8234-123456789012\"},\"calendarIntervals\":[{\"start\":\"2026-08-31T00:00:00Z\",\"end\":\"2026-09-01T00:00:00Z\"}],\"requestedTimer\":{\"id\":\"existing-timer\",\"phase\":\"focus\",\"status\":\"running\",\"plannedDurationMs\":60000,\"elapsedAtAnchorMs\":5000,\"anchorAt\":\"2026-07-20T12:00:00Z\",\"startedByDeviceId\":\"device-local\"},\"stage\":\"finishCommit\",\"ownership\":null}",
+    "priorEnvelope": "{\"error\":\"invalid shared-core input: displayContext must be a JSON object\",\"ok\":false}",
+    "correctedEnvelope": "{\"error\":\"invalid shared-core input: workspace.displayContext must be a JSON object\",\"ok\":false}",
+    "reason": "Concrete representation admission now rejects malformed JSON before Serde can accept positional records or enum objects."
+  },
+  {
+    "case": "pwa-display-false-wrapper",
+    "operation": "workspace.readModel.v1",
+    "inputRaw": "{\"profile\":\"pwaStorage\",\"source\":{\"kind\":\"workspace\",\"value\":{\"base\":{\"canonicalTimer\":null,\"history\":[],\"tasks\":[],\"durationsMs\":{\"focus\":1500000,\"short_break\":300000,\"long_break\":900000},\"autoStartBreaks\":false,\"selectedTaskId\":null},\"local\":{\"commands\":[{\"deviceId\":\"p222-device\",\"deviceSequence\":8,\"hlcCounter\":3,\"hlcWallMs\":1788177600000,\"id\":\"01a057b0-ce00-7000-8000-000000000015\",\"observedElapsedMs\":0,\"occurredAt\":\"2026-08-31T12:00:00.000Z\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"timerId\":\"d68d2324-d368-4ce8-9700-d6c7218faeb5\",\"type\":\"start\"}],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]},\"neverSent\":{\"commands\":[],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]},\"canonicalHead\":{\"wallMs\":1788177600000,\"counter\":3},\"timerDependencies\":[],\"displayContext\":false}},\"selectedPhase\":\"focus\",\"observedAt\":\"2026-08-31T12:00:01Z\",\"calendarIntervals\":[{\"start\":\"2026-08-31T00:00:00Z\",\"end\":\"2026-09-01T00:00:00Z\"}]}",
+    "priorEnvelope": "{\"error\":\"invalid shared-core input: displayContext must be a JSON object\",\"ok\":false}",
+    "correctedEnvelope": "{\"error\":\"invalid shared-core input: source.value.displayContext must be a JSON object\",\"ok\":false}",
+    "reason": "Concrete representation admission now rejects malformed JSON before Serde can accept positional records or enum objects."
+  },
+  {
+    "case": "pwa-display-false-wrapper",
+    "operation": "workspace.completionMutation.v1",
+    "inputRaw": "{\"compatibility\":\"pwaStorage\",\"replicationMode\":\"centralized\",\"workspace\":{\"base\":{\"canonicalTimer\":null,\"history\":[],\"tasks\":[],\"durationsMs\":{\"focus\":1500000,\"short_break\":300000,\"long_break\":900000},\"autoStartBreaks\":false,\"selectedTaskId\":null},\"local\":{\"commands\":[{\"deviceId\":\"p222-device\",\"deviceSequence\":8,\"hlcCounter\":3,\"hlcWallMs\":1788177600000,\"id\":\"01a057b0-ce00-7000-8000-000000000015\",\"observedElapsedMs\":0,\"occurredAt\":\"2026-08-31T12:00:00.000Z\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"timerId\":\"d68d2324-d368-4ce8-9700-d6c7218faeb5\",\"type\":\"start\"}],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]},\"neverSent\":{\"commands\":[],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]},\"canonicalHead\":{\"wallMs\":1788177600000,\"counter\":3},\"timerDependencies\":[],\"displayContext\":false},\"selection\":{\"phase\":\"focus\",\"generation\":\"0\",\"explicit\":false},\"allocation\":{\"deviceId\":\"p222-device\",\"deviceSequence\":8,\"hlc\":{\"counter\":3,\"wallMs\":1788177600000},\"lastUuid\":\"01a057b0-ce00-7000-8000-000000000015\"},\"observation\":{\"canonicalAnchorAt\":null,\"commandTimes\":{\"01a057b0-ce00-7000-8000-000000000015\":\"2026-08-31T12:00:00.000Z\"}},\"clock\":{\"occurredAt\":\"2026-08-31T12:00:03Z\",\"physicalNow\":\"2026-08-31T12:00:03Z\",\"observedAt\":\"2026-08-31T12:00:03Z\"},\"identities\":{\"commandUuids\":[\"01a057b0-d9b8-7000-8000-000000000001\"],\"timerUuid\":\"12345678-1234-4234-8234-123456789012\"},\"calendarIntervals\":[{\"start\":\"2026-08-31T00:00:00Z\",\"end\":\"2026-09-01T00:00:00Z\"}],\"requestedTimer\":{\"id\":\"existing-timer\",\"phase\":\"focus\",\"status\":\"running\",\"plannedDurationMs\":60000,\"elapsedAtAnchorMs\":5000,\"anchorAt\":\"2026-07-20T12:00:00Z\",\"startedByDeviceId\":\"device-local\"},\"stage\":\"finishCommit\",\"ownership\":null}",
+    "priorEnvelope": "{\"error\":\"invalid shared-core input: displayContext must be a JSON object\",\"ok\":false}",
+    "correctedEnvelope": "{\"error\":\"invalid shared-core input: workspace.displayContext must be a JSON object\",\"ok\":false}",
+    "reason": "Concrete representation admission now rejects malformed JSON before Serde can accept positional records or enum objects."
+  },
+  {
+    "case": "pwa-display-malformed-array",
+    "operation": "workspace.readModel.v1",
+    "inputRaw": "{\"profile\":\"pwaStorage\",\"source\":{\"kind\":\"workspace\",\"value\":{\"base\":{\"canonicalTimer\":null,\"history\":[],\"tasks\":[],\"durationsMs\":{\"focus\":1500000,\"short_break\":300000,\"long_break\":900000},\"autoStartBreaks\":false,\"selectedTaskId\":null},\"local\":{\"commands\":[{\"deviceId\":\"p222-device\",\"deviceSequence\":8,\"hlcCounter\":3,\"hlcWallMs\":1788177600000,\"id\":\"01a057b0-ce00-7000-8000-000000000015\",\"observedElapsedMs\":0,\"occurredAt\":\"2026-08-31T12:00:00.000Z\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"timerId\":\"d68d2324-d368-4ce8-9700-d6c7218faeb5\",\"type\":\"start\"}],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]},\"neverSent\":{\"commands\":[],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]},\"canonicalHead\":{\"wallMs\":1788177600000,\"counter\":3},\"timerDependencies\":[],\"displayContext\":{\"profile\":\"pwaStorage\",\"projectionPending\":{\"autoStartOperations\":[],\"commands\":\"corrupt\",\"durationOperations\":[],\"selectedTaskOperations\":[],\"taskOperations\":[]}}}},\"selectedPhase\":\"focus\",\"observedAt\":\"2026-08-31T12:00:01Z\",\"calendarIntervals\":[{\"start\":\"2026-08-31T00:00:00Z\",\"end\":\"2026-09-01T00:00:00Z\"}]}",
+    "priorEnvelope": "{\"error\":\"invalid shared-core input: commands must be a JSON array\",\"ok\":false}",
+    "correctedEnvelope": "{\"error\":\"invalid shared-core input: source.value.displayContext.projectionPending.commands must be a JSON array\",\"ok\":false}",
+    "reason": "Concrete representation admission now rejects malformed JSON before Serde can accept positional records or enum objects."
+  },
+  {
+    "case": "pwa-display-malformed-array",
+    "operation": "workspace.completionMutation.v1",
+    "inputRaw": "{\"compatibility\":\"pwaStorage\",\"replicationMode\":\"centralized\",\"workspace\":{\"base\":{\"canonicalTimer\":null,\"history\":[],\"tasks\":[],\"durationsMs\":{\"focus\":1500000,\"short_break\":300000,\"long_break\":900000},\"autoStartBreaks\":false,\"selectedTaskId\":null},\"local\":{\"commands\":[{\"deviceId\":\"p222-device\",\"deviceSequence\":8,\"hlcCounter\":3,\"hlcWallMs\":1788177600000,\"id\":\"01a057b0-ce00-7000-8000-000000000015\",\"observedElapsedMs\":0,\"occurredAt\":\"2026-08-31T12:00:00.000Z\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"timerId\":\"d68d2324-d368-4ce8-9700-d6c7218faeb5\",\"type\":\"start\"}],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]},\"neverSent\":{\"commands\":[],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]},\"canonicalHead\":{\"wallMs\":1788177600000,\"counter\":3},\"timerDependencies\":[],\"displayContext\":{\"profile\":\"pwaStorage\",\"projectionPending\":{\"autoStartOperations\":[],\"commands\":\"corrupt\",\"durationOperations\":[],\"selectedTaskOperations\":[],\"taskOperations\":[]}}},\"selection\":{\"phase\":\"focus\",\"generation\":\"0\",\"explicit\":false},\"allocation\":{\"deviceId\":\"p222-device\",\"deviceSequence\":8,\"hlc\":{\"counter\":3,\"wallMs\":1788177600000},\"lastUuid\":\"01a057b0-ce00-7000-8000-000000000015\"},\"observation\":{\"canonicalAnchorAt\":null,\"commandTimes\":{\"01a057b0-ce00-7000-8000-000000000015\":\"2026-08-31T12:00:00.000Z\"}},\"clock\":{\"occurredAt\":\"2026-08-31T12:00:03Z\",\"physicalNow\":\"2026-08-31T12:00:03Z\",\"observedAt\":\"2026-08-31T12:00:03Z\"},\"identities\":{\"commandUuids\":[\"01a057b0-d9b8-7000-8000-000000000001\"],\"timerUuid\":\"12345678-1234-4234-8234-123456789012\"},\"calendarIntervals\":[{\"start\":\"2026-08-31T00:00:00Z\",\"end\":\"2026-09-01T00:00:00Z\"}],\"requestedTimer\":{\"id\":\"existing-timer\",\"phase\":\"focus\",\"status\":\"running\",\"plannedDurationMs\":60000,\"elapsedAtAnchorMs\":5000,\"anchorAt\":\"2026-07-20T12:00:00Z\",\"startedByDeviceId\":\"device-local\"},\"stage\":\"finishCommit\",\"ownership\":null}",
+    "priorEnvelope": "{\"error\":\"invalid shared-core input: commands must be a JSON array\",\"ok\":false}",
+    "correctedEnvelope": "{\"error\":\"invalid shared-core input: workspace.displayContext.projectionPending.commands must be a JSON array\",\"ok\":false}",
+    "reason": "Concrete representation admission now rejects malformed JSON before Serde can accept positional records or enum objects."
+  },
+  {
+    "case": "malformed-null",
+    "operation": "workspace.readModel.v1",
+    "inputRaw": "null",
+    "priorEnvelope": "{\"error\":\"invalid shared-core JSON: invalid type: null, expected struct Input\",\"ok\":false}",
+    "correctedEnvelope": "{\"error\":\"invalid shared-core input:  must be a JSON object\",\"ok\":false}",
+    "reason": "Concrete representation admission now rejects malformed JSON before Serde can accept positional records or enum objects."
+  },
+  {
+    "case": "malformed-[]",
+    "operation": "workspace.readModel.v1",
+    "inputRaw": "[]",
+    "priorEnvelope": "{\"error\":\"invalid shared-core JSON: invalid length 0, expected struct Input with 6 elements\",\"ok\":false}",
+    "correctedEnvelope": "{\"error\":\"invalid shared-core input:  must be a JSON object\",\"ok\":false}",
+    "reason": "Concrete representation admission now rejects malformed JSON before Serde can accept positional records or enum objects."
+  },
+  {
+    "case": "malformed-null",
+    "operation": "workspace.completionMutation.v1",
+    "inputRaw": "null",
+    "priorEnvelope": "{\"error\":\"invalid shared-core input: missing completion ownership\",\"ok\":false}",
+    "correctedEnvelope": "{\"error\":\"invalid shared-core input:  must be a JSON object\",\"ok\":false}",
+    "reason": "Concrete representation admission now rejects malformed JSON before Serde can accept positional records or enum objects."
+  },
+  {
+    "case": "malformed-[]",
+    "operation": "workspace.completionMutation.v1",
+    "inputRaw": "[]",
+    "priorEnvelope": "{\"error\":\"invalid shared-core input: missing completion ownership\",\"ok\":false}",
+    "correctedEnvelope": "{\"error\":\"invalid shared-core input:  must be a JSON object\",\"ok\":false}",
+    "reason": "Concrete representation admission now rejects malformed JSON before Serde can accept positional records or enum objects."
+  }
+]

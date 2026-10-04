@@ -21,6 +21,10 @@ const ACTIONS: &[Variant] = &[
         name: "renew",
         fields: &[Field::required("timerId", Shape::String)],
     },
+    Variant {
+        name: "release",
+        fields: &[],
+    },
 ];
 
 const QUEUES: &[Field] = &[
@@ -67,21 +71,39 @@ const WORKSPACE: &[Field] = &[
     Field::required("displayContext", Shape::Record(DISPLAY)),
 ];
 
-pub(super) const REQUEST: Shape = Shape::Record(&[
-    Field::required("profile", Shape::StringEnum(&["pwaStorage"])),
-    Field::required(
-        "action",
-        Shape::TaggedObject {
-            tag: "kind",
-            variants: ACTIONS,
-        },
-    ),
-    Field::required("workspace", Shape::Record(WORKSPACE)),
-    Field::required("ownership", Shape::Nullable(&Shape::Record(OWNER))),
-    Field::required("localDeviceId", Shape::String),
-    Field::required("localTabId", Shape::String),
-    Field::required("clock", Shape::Record(CLOCK)),
-]);
+const fn request(clock: Shape) -> [Field; 7] {
+    [
+        Field::required("profile", Shape::StringEnum(&["pwaStorage"])),
+        Field::required(
+            "action",
+            Shape::TaggedObject {
+                tag: "kind",
+                variants: ACTIONS,
+            },
+        ),
+        Field::required("workspace", Shape::Record(WORKSPACE)),
+        Field::required("ownership", Shape::Nullable(&Shape::Record(OWNER))),
+        Field::required("localDeviceId", Shape::String),
+        Field::required("localTabId", Shape::String),
+        Field::required("clock", clock),
+    ]
+}
+
+pub(super) const REQUEST: Shape = Shape::Record(&request(Shape::Record(CLOCK)));
+pub(super) const RELEASE_REQUEST: Shape =
+    Shape::Record(&request(Shape::Record(&[Field::required(
+        "nowMs",
+        Shape::Integer,
+    )])));
+
+pub(super) fn validate(raw: &serde_json::Value) -> Result<(), crate::CoreError> {
+    let shape = if raw["action"]["kind"] == "release" {
+        &RELEASE_REQUEST
+    } else {
+        &REQUEST
+    };
+    crate::strict_json::shape::validate(raw, shape, "")
+}
 
 #[cfg(test)]
 mod tests;

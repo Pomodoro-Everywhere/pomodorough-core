@@ -47,7 +47,7 @@ function replace(raw, path, value) {
   return path ? changed(raw, path, value) : value;
 }
 
-function fieldCases(shapeFixture) {
+function fieldCases(shapeFixture, populate = populatedRequest) {
   const cases = [];
   for (const field of shapeFixture.fieldShapes) {
     const name = field.path || "root";
@@ -57,9 +57,9 @@ function fieldCases(shapeFixture) {
       : ["ownership-timer", "device-local", "tab-local", 1784548831000];
     const values = [["populated-array", tuple], ["enum-object", { pwaStorage: null }]];
     if (!field.shape.startsWith("nullable")) values.push(["null", null]);
-    for (const [kind, value] of values) cases.push(rejected(`field-${name}-${kind}`, replace(populatedRequest(), field.path, value)));
+    for (const [kind, value] of values) cases.push(rejected(`field-${name}-${kind}`, replace(populate(), field.path, value)));
     if (field.required && field.path) {
-      const raw = populatedRequest(), keys = field.path.split(".");
+      const raw = populate(), keys = field.path.split(".");
       const parent = keys.slice(0, -1).reduce((value, key) => value[key], raw);
       delete parent[keys.at(-1)];
       cases.push(rejected(`field-${name}-omitted`, raw));
@@ -68,20 +68,32 @@ function fieldCases(shapeFixture) {
   return cases;
 }
 
-function controlCases(shapeFixture) {
+function controlCases(shapeFixture, populate = populatedRequest, action = "install") {
   const cases = [];
   for (const path of shapeFixture.closedObjects) {
     for (const value of [false, true, null]) {
-      cases.push(rejected(`control-${path || "root"}-${value}`, changed(populatedRequest(),
+      cases.push(rejected(`control-${path || "root"}-${value}`, changed(populate(),
         path ? `${path}.unknownPolicyControl` : "unknownPolicyControl", value)));
     }
   }
   for (const key of ["claimable", "owns", "manual"]) {
     for (const value of [false, true, null]) {
-      cases.push(rejected(`install-${key}-${value}`, changed(populatedRequest(), "action", { kind: "install", [key]: value })));
+      cases.push(rejected(`${action}-${key}-${value}`, changed(populate(), "action", { kind: action, [key]: value })));
     }
   }
   return cases;
+}
+
+export function releaseShapeCases() {
+  const shapeFixture = fixture("pwa-ownership-shapes-v1");
+  requireShapeFixtures(shapeFixture);
+  shapeFixture.fieldShapes = shapeFixture.fieldShapes.filter(({ path }) => !["action.timerId", "clock.leaseDurationMs"].includes(path));
+  const populate = () => {
+    const raw = populatedRequest(); raw.action = { kind: "release" }; delete raw.clock.leaseDurationMs;
+    return raw;
+  };
+  return [...fieldCases(shapeFixture, populate), ...controlCases(shapeFixture, populate, "release")].map((item) => ({
+    ...item, name: item.name.replace("pwa-owner-shape-", "pwa-release-shape-"), rejectionHit: "pwaReleaseShape" }));
 }
 
 export function shapeLegacyControls() {

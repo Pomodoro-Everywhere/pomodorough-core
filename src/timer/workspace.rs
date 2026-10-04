@@ -104,6 +104,35 @@ fn conflict() -> CoreError {
     CoreError::InvalidInput("conflicting workspace terminal timer/history".into())
 }
 
+pub(crate) fn missing_natural_history(raw: &serde_json::Value, timer: &serde_json::Value) -> bool {
+    let base = &raw["base"]["canonicalTimer"];
+    base["status"] == "completed"
+        && base["id"] == timer["id"]
+        && base["phase"] == timer["phase"]
+        && !raw["base"]["history"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|row| row["timerId"] == timer["id"])
+}
+
+pub(crate) fn natural_completion<'a>(
+    timer: Option<&CanonicalTimer>,
+    history: &'a [HistoryItem],
+) -> Result<Option<&'a HistoryItem>, CoreError> {
+    let row = validate_pair(timer, history)?;
+    Ok(row.filter(|row| {
+        row.status == "completed"
+            && row.command_id.is_none()
+            && timer.is_some_and(|timer| {
+                timer
+                    .last_intent
+                    .as_ref()
+                    .is_some_and(|intent| matches!(intent.kind.as_str(), "start" | "resume"))
+            })
+    }))
+}
+
 pub(crate) fn validate_pair<'a>(
     timer: Option<&CanonicalTimer>,
     history: &'a [HistoryItem],
