@@ -6,7 +6,11 @@ mod validation;
 use schema::{DOMAINS, Dependency, Domain, IdQueues, Limits, Mode, Plan, Queues, Request, Status};
 
 pub(crate) fn plan_json(input: &str) -> Result<String, CoreError> {
-    let request: Request = serde_json::from_value(crate::strict_json::parse(input)?)?;
+    let raw = crate::strict_json::parse(input)?;
+    // Serde decodes structs positionally and unit enums from single-key
+    // objects, so require concrete object/string shapes before decoding.
+    schema::validate_shape(&raw)?;
+    let request: Request = serde_json::from_value(raw)?;
     let plan = match request {
         Request::New {
             mode,

@@ -301,6 +301,9 @@ fn validate_completion_observation(request: &Request, input: &Input) -> Result<(
     }
     validate_boundary_retry(request)?;
     validate_lease(request)?;
+    // Observation overlays require complete raw containers. Keep independent
+    // clock and lease errors first, and payload validation after observation.
+    crate::reconciliation::workspace::validate_shape(&input.workspace)?;
     super::validate_observation(input)
 }
 

@@ -53,7 +53,7 @@ pub(super) fn render(
 ) -> Result<Value, CoreError> {
     let status = canonical.status.as_str();
     let source = natural_source(input, workspace, history)?;
-    let selected_phase = natural_phase(input, source, history, cadence.day)?;
+    let selected_phase = natural_phase(input, source, history)?;
     let display = display(input, workspace, canonical, &selected_phase)?;
     let mut available = intents(input.profile, status);
     if source.is_some_and(|row| !input.lifecycle.finished(&row.timer_id, &row.phase))
@@ -159,7 +159,6 @@ fn natural_phase(
     input: &Input,
     source: Option<&HistoryItem>,
     history: &[HistoryItem],
-    day: (DateTime<Utc>, DateTime<Utc>),
 ) -> Result<String, CoreError> {
     let Some(source) = source.filter(|row| {
         row.phase == input.selected_phase
@@ -171,6 +170,22 @@ fn natural_phase(
     }) else {
         return Ok(input.selected_phase.clone());
     };
+    let at = source
+        .completed_at
+        .as_deref()
+        .or(source.ended_at.as_deref())
+        .ok_or_else(|| invalid("missing focus completion time"))?;
+    let at = crate::timer::parse_time(at)?;
+    let mut day = None;
+    for interval in &input.calendar_intervals {
+        let start = crate::timer::parse_time(&interval.start)?;
+        let end = crate::timer::parse_time(&interval.end)?;
+        if at >= start && at < end {
+            day = Some((start, end));
+            break;
+        }
+    }
+    let day = day.ok_or_else(|| invalid("missing read model calendar interval"))?;
     crate::completion_plan::phase_after(&source.phase, history, day)
 }
 

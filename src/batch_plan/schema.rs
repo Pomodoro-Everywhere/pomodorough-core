@@ -1,6 +1,10 @@
 use std::collections::BTreeMap;
 
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
+
+use crate::CoreError;
+use crate::strict_json::shape::{Field, Shape, Variant, validate};
 
 #[derive(Clone, Copy, Debug, Deserialize, Serialize, PartialEq, Eq, PartialOrd, Ord)]
 #[serde(rename_all = "camelCase")]
@@ -133,4 +137,73 @@ impl Plan {
             counts,
         }
     }
+}
+
+// Concrete representations checked before Serde positional/object-enum decoding.
+const MODE: Shape = Shape::StringEnum(&["sync", "merge", "replace_remote", "keep_remote"]);
+const DOMAIN_NAME: Shape = Shape::StringEnum(&[
+    "commands",
+    "taskOperations",
+    "durationOperations",
+    "autoStartOperations",
+    "selectedTaskOperations",
+]);
+const LIMITS_SHAPE: Shape = Shape::Fields(&[
+    Field::optional("perDomain", Shape::Scalar),
+    Field::optional("total", Shape::Scalar),
+]);
+const DESCRIPTOR: Shape = Shape::Fields(&[
+    Field::optional("id", Shape::Scalar),
+    Field::optional("deviceId", Shape::Scalar),
+    Field::optional("hlcWallMs", Shape::Scalar),
+    Field::optional("hlcCounter", Shape::Scalar),
+    Field::optional("deviceSequence", Shape::Scalar),
+]);
+const DEPENDENCY_SHAPE: Shape = Shape::Fields(&[
+    Field::optional("operationId", Shape::Scalar),
+    Field::optional("dependsOnOperationId", Shape::Scalar),
+]);
+const QUEUES_NEW: Shape = Shape::Fields(&[
+    Field::optional("commands", Shape::Array(&DESCRIPTOR)),
+    Field::optional("taskOperations", Shape::Array(&DESCRIPTOR)),
+    Field::optional("durationOperations", Shape::Array(&DESCRIPTOR)),
+    Field::optional("autoStartOperations", Shape::Array(&DESCRIPTOR)),
+    Field::optional("selectedTaskOperations", Shape::Array(&DESCRIPTOR)),
+]);
+const QUEUES_SAVED: Shape = Shape::Fields(&[
+    Field::optional("commands", Shape::Array(&Shape::String)),
+    Field::optional("taskOperations", Shape::Array(&Shape::String)),
+    Field::optional("durationOperations", Shape::Array(&Shape::String)),
+    Field::optional("autoStartOperations", Shape::Array(&Shape::String)),
+    Field::optional("selectedTaskOperations", Shape::Array(&Shape::String)),
+]);
+const NEW_FIELDS: &[Field] = &[
+    Field::optional("mode", MODE),
+    Field::optional("limits", LIMITS_SHAPE),
+    Field::optional("nextDomain", DOMAIN_NAME),
+    Field::optional("queues", QUEUES_NEW),
+    Field::optional("timerDependencies", Shape::Array(&DEPENDENCY_SHAPE)),
+];
+const SAVED_FIELDS: &[Field] = &[
+    Field::optional("mode", MODE),
+    Field::optional("limits", LIMITS_SHAPE),
+    Field::optional("queues", QUEUES_SAVED),
+];
+const VARIANTS: &[Variant] = &[
+    Variant {
+        name: "new",
+        fields: NEW_FIELDS,
+    },
+    Variant {
+        name: "saved",
+        fields: SAVED_FIELDS,
+    },
+];
+pub(super) const REQUEST_SHAPE: Shape = Shape::TaggedObject {
+    tag: "kind",
+    variants: VARIANTS,
+};
+
+pub(super) fn validate_shape(raw: &Value) -> Result<(), CoreError> {
+    validate(raw, &REQUEST_SHAPE, "")
 }

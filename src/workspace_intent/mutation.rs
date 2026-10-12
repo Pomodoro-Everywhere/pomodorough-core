@@ -447,13 +447,7 @@ impl Plan<'_> {
             return Ok(before.clone());
         }
         let commands = self.operations["commands"].as_array().unwrap();
-        let now = if commands.is_empty() && self.input.compatibility == C::PwaStorage {
-            self.input.clock.occurred_at.clone()
-        } else if commands.is_empty() {
-            self.input.clock.physical_now.clone()
-        } else {
-            projection::after_time(self.input, commands)
-        };
+        let now = self.display_now(before, commands)?;
         Ok(projection::observed(
             &self.workspace,
             &self.observation,
@@ -462,6 +456,26 @@ impl Plan<'_> {
             &now,
         )?["workspace"]
             .clone())
+    }
+
+    fn display_now(&self, before: &Value, commands: &[Value]) -> Result<String, CoreError> {
+        if !commands.is_empty() {
+            return Ok(projection::after_time(self.input, commands));
+        }
+        if self.input.compatibility == C::PwaStorage
+            && self.input.clock.monotonic_now_ms.is_some()
+            && before["canonicalTimer"]["status"] == "running"
+        {
+            return monotonic::entrypoint_time(
+                self.input,
+                &before["canonicalTimer"],
+                &self.observation,
+            );
+        }
+        if self.input.compatibility == C::PwaStorage {
+            return Ok(self.input.clock.occurred_at.clone());
+        }
+        Ok(self.input.clock.physical_now.clone())
     }
 
     fn effects_after_commit(&self) -> Vec<Value> {
