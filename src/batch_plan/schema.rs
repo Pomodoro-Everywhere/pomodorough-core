@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize, de::Error as _};
 use serde_json::Value;
 
 use crate::CoreError;
@@ -204,6 +204,53 @@ pub(super) const REQUEST_SHAPE: Shape = Shape::TaggedObject {
     variants: VARIANTS,
 };
 
+fn json_error(message: String) -> CoreError {
+    CoreError::Json(serde_json::Error::custom(message))
+}
+
 pub(super) fn validate_shape(raw: &Value) -> Result<(), CoreError> {
+    // Repeat Serde's internally-tagged-enum and deny_unknown_fields envelopes
+    // for the request root exactly: the preservation baseline pins them
+    // byte-for-byte. Nested shapes keep the generic messages; they have no
+    // previously accepted baseline.
+    // Wrap as Serde JSON errors so the envelope prefix stays
+    // `invalid shared-core JSON:`, exactly as before.
+    if !raw.is_object() {
+        // Serde reports a missing tag for sequences; keep its exact envelope.
+        if raw.is_array() {
+            return Err(json_error("missing field `kind`".into()));
+        }
+        return Err(json_error(format!(
+            "invalid type: {}, expected internally tagged enum Request",
+            match raw {
+                Value::Null => "null",
+                Value::Bool(_) => "boolean",
+                Value::Number(_) => "number",
+                Value::String(_) => "string",
+                Value::Array(_) => "sequence",
+                Value::Object(_) => "map",
+            }
+        )));
+    }
+    let root = raw.as_object().expect("checked object");
+    match root.get("kind").and_then(Value::as_str) {
+        None => return Err(json_error("missing field `kind`".into())),
+        Some("new") | Some("saved") => {}
+        Some(other) => {
+            return Err(json_error(format!(
+                "unknown variant `{other}`, expected `new` or `saved`"
+            )));
+        }
+    }
+    for key in root.keys() {
+        if key != "kind"
+            && !NEW_FIELDS.iter().any(|field| field.name == key.as_str())
+            && !SAVED_FIELDS.iter().any(|field| field.name == key.as_str())
+        {
+            return Err(json_error(format!(
+                "unknown field `{key}`, expected one of `mode`, `limits`, `nextDomain`, `queues`, `timerDependencies`"
+            )));
+        }
+    }
     validate(raw, &REQUEST_SHAPE, "")
 }

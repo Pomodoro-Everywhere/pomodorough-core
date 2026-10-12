@@ -77,7 +77,7 @@ function replacements(state) {
       return { error: null, status: 0, stdout: output.join("\n"), stderr: "" };
     } },
     "aggregate_artifact/cases.mjs": { operations, fixture: (name) => {
-      assert.equal(name, "pwa-selection-preservation-v1"); receipt.preserved += 1;
+      assert.equal(name, "pwa-selection-preservation-v2"); receipt.preserved += 1;
       return preservationMetadata(cases, envelopes);
     }, vector: (operation, name, input, ok = true) =>
       ({ operation, name, input: JSON.stringify(input), ok }) },

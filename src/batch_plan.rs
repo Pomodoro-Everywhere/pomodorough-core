@@ -9,6 +9,8 @@ pub(crate) fn plan_json(input: &str) -> Result<String, CoreError> {
     let raw = crate::strict_json::parse(input)?;
     // Serde decodes structs positionally and unit enums from single-key
     // objects, so require concrete object/string shapes before decoding.
+    // The shape errors below repeat Serde's exact envelopes for inputs Serde
+    // also rejects, keeping the preservation baseline byte-identical.
     schema::validate_shape(&raw)?;
     let request: Request = serde_json::from_value(raw)?;
     let plan = match request {

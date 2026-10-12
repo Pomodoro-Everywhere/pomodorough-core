@@ -14,6 +14,13 @@ export function preservationMetadata(cases, expected) {
 }
 
 export function assertSelectionPreservation(cases, expected) {
-  assert.equal(JSON.stringify(preservationMetadata(cases, expected)), JSON.stringify(fixture("pwa-selection-preservation-v1")),
+  // v2 supersedes v1. The v1 file stays immutable. v2 keeps the identical
+  // input digest (no prior input changed) and differs in exactly one
+  // envelope: workspace.readModel.v1/fractional-live prints progress
+  // 0.12000033333333333 instead of ...332. That is the serde_json
+  // float_roundtrip parser correction (R48-C03): the old bytes were an
+  // imprecisely parsed quotient, the new bytes are the correctly rounded
+  // f64. Every previously rejected input keeps its byte-identical error.
+  assert.equal(JSON.stringify(preservationMetadata(cases, expected)), JSON.stringify(fixture("pwa-selection-preservation-v2")),
     "The complete 2141 prior inputs and envelopes must remain preserved.");
 }

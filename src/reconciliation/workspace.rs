@@ -136,6 +136,8 @@ pub(crate) fn validate_shape(raw: &Value) -> Result<(), CoreError> {
     crate::strict_json::object_array_field(root, "timerDependencies", "timerDependencies", true)?;
     // Serde decodes structs positionally, so a populated array would authorize
     // optimistic projection with malformed ordering evidence. Require object/null first.
-    crate::strict_json::nullable_object_field(root, "canonicalHead", "canonicalHead")?;
+    // Path keeps the established `workspace.` prefix so the error envelope stays
+    // byte-identical for previously rejected inputs.
+    crate::strict_json::nullable_object_field(root, "canonicalHead", "workspace.canonicalHead")?;
     Ok(())
 }
