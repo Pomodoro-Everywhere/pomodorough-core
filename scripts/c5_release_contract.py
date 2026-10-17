@@ -56,7 +56,7 @@ RELEASE_REQUIRED = (
     "validate-source",
     "cargo +1.97.1 test --all-targets --locked",
     "cargo +1.97.1 clippy --all-targets --all-features --locked -- -D warnings",
-    'node "$test" "$wasm"',
+    'python3 scripts/wasm_test_suite.py "$wasm"',
     "dist/pomodorough_core.wasm\n            dist/SHA256SUMS",
     "actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be",
     '--signer-workflow "$GITHUB_REPOSITORY/.github/workflows/release.yml"',
@@ -97,7 +97,7 @@ RELEASE_ORDER = (
     "cargo +1.97.1 test --all-targets --locked",
     "cargo +1.97.1 build --release --target wasm32-unknown-unknown --locked",
     "python3 scripts/canonicalize_wasm_artifact.py",
-    'node "$test" "$wasm"',
+    'python3 scripts/wasm_test_suite.py "$wasm"',
     "create-manifest",
     "actions/attest-build-provenance@",
     "actions/upload-artifact@",
@@ -199,6 +199,11 @@ CI_STEPS = (
             "rustup target add wasm32-unknown-unknown --toolchain 1.97.1",
         ),
     ),
+    (
+        "Set up pinned Node.js",
+        "uses",
+        ("actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",),
+    ),
     ("Check formatting", "run", ("cargo +1.97.1 fmt --all -- --check",)),
     ("Test all targets", "run", ("cargo +1.97.1 test --all-targets --locked",)),
     (
@@ -217,12 +222,26 @@ CI_STEPS = (
         ("python3 -m unittest scripts/test_c5_release_contract.py -v",),
     ),
     (
+        "Test WASM discovery contract",
+        "run",
+        ("python3 -m unittest scripts/test_wasm_test_suite.py -v",),
+    ),
+    (
         "Build portable WebAssembly core",
         "run",
         (
             "cargo +1.97.1 build --release --target wasm32-unknown-unknown --locked",
             "python3 scripts/canonicalize_wasm_artifact.py target/wasm32-unknown-unknown/release/pomodorough_core.wasm",
             "python3 scripts/verify_wasm_artifact.py target/wasm32-unknown-unknown/release/pomodorough_core.wasm",
+        ),
+    ),
+    (
+        "Exercise exact canonical WASM",
+        "run",
+        (
+            "set -euo pipefail",
+            "wasm=target/wasm32-unknown-unknown/release/pomodorough_core.wasm",
+            "python3 scripts/wasm_test_suite.py \"$wasm\"",
         ),
     ),
     (
@@ -300,6 +319,7 @@ RELEASE_STEPS = {
                 "python3 -m unittest scripts/test_canonicalize_wasm_artifact.py -v",
                 "python3 -m unittest scripts/test_c5_release_contract.py -v",
                 "python3 -m unittest scripts/test_aggregate_artifact_workflow.py -v",
+                "python3 -m unittest scripts/test_wasm_test_suite.py -v",
                 "node --experimental-vm-modules --test scripts/test_aggregate_artifact_gate.mjs",
             ),
         ),
@@ -320,9 +340,7 @@ RELEASE_STEPS = {
             (
                 "set -euo pipefail",
                 "wasm=target/wasm32-unknown-unknown/release/pomodorough_core.wasm",
-                "for test in tests/*.mjs; do",
-                "node \"$test\" \"$wasm\"",
-                "done",
+                "python3 scripts/wasm_test_suite.py \"$wasm\"",
             ),
         ),
         (
@@ -438,6 +456,7 @@ RELEASE_STEPS = {
 }
 STEP_WITH = {
     ("rust", "Check out repository"): {"persist-credentials": "false"},
+    ("rust", "Set up pinned Node.js"): {"node-version": "22"},
     ("rust", "Upload canonical WebAssembly core"): {
         "name": "pomodorough-core-wasm-${{ github.sha }}",
         "path": "target/wasm32-unknown-unknown/release/pomodorough_core.wasm",
@@ -753,8 +772,8 @@ def _require_run_commands(step: WorkflowStep, commands: Sequence[str]) -> None:
     )
     if disabled:
         raise ReleaseContractError(f"required step {step.name} contains a disabled command gate")
-    # The artifact loop must execute every host before sealing. A subsequence
-    # check permits standalone continue, break, or exit commands to skip it.
+    # Candidate discovery must finish before sealing or upload. A subsequence
+    # check permits standalone exit commands or artifact reassignment to bypass it.
     if step.name == "Exercise exact canonical WASM" and lines != tuple(commands):
         raise ReleaseContractError(f"required step {step.name} complete shell sequence changed")
 

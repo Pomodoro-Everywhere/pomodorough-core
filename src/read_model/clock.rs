@@ -85,6 +85,23 @@ pub(super) fn replay_time(
     Ok(Some(effective.to_rfc3339_opts(SecondsFormat::Millis, true)))
 }
 
+pub(super) fn running_timer(
+    monotonic: Option<&Monotonic>,
+) -> Result<Option<crate::timer::workspace::retarget_observation::RunningTimer>, CoreError> {
+    let Some(m) = monotonic.filter(|m| {
+        m.continuity_id == m.anchor.continuity_id && m.now_ms >= m.anchor.sampled_monotonic_ms
+    }) else {
+        return Ok(None);
+    };
+    Ok(Some(
+        crate::timer::workspace::retarget_observation::RunningTimer::new(
+            &m.anchor.timer_id,
+            &m.anchor.anchor_at,
+            m.anchor.elapsed_at_anchor_ms,
+        )?,
+    ))
+}
+
 fn valid(value: f64) -> bool {
     value.is_finite() && (0.0..=MAX_SAFE_MS).contains(&value)
 }

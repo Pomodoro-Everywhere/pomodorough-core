@@ -6,6 +6,7 @@ use super::{
 };
 
 pub(crate) mod observation;
+pub(crate) mod retarget_observation;
 
 struct Prepared {
     commands: Vec<Command>,

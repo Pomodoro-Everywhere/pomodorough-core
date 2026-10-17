@@ -629,32 +629,11 @@ fn completed_focus_count(
     day_start: DateTime<Utc>,
     day_end: DateTime<Utc>,
 ) -> Result<usize, CoreError> {
-    let mut focuses = response
-        .history
-        .iter()
-        .filter(|item| item.phase == "focus" && item.status == "completed")
-        .map(|item| {
-            let completed_at = item
-                .completed_at
-                .as_deref()
-                .or(item.ended_at.as_deref())
-                .ok_or_else(|| CoreError::InvalidInput("invalid timer history".into()))?;
-            Ok((
-                parse_dependency_time(completed_at)?,
-                item.command_id
-                    .clone()
-                    .unwrap_or_else(|| item.timer_id.clone()),
-                item,
-            ))
-        })
-        .collect::<Result<Vec<_>, CoreError>>()?;
-    focuses.retain(|(completed_at, _, _)| *completed_at >= day_start && *completed_at < day_end);
-    focuses.sort_by(|left, right| left.0.cmp(&right.0).then_with(|| left.1.cmp(&right.1)));
-    Ok(focuses
-        .iter()
-        .position(|(_, _, item)| {
-            item.command_id.as_deref() == Some(source.id.as_str())
-                || item.timer_id == source.timer_id
-        })
-        .map_or(focuses.len() + 1, |index| index + 1))
+    let completed = crate::completion_plan::causal::focus_count(
+        &response.history,
+        &source.id,
+        &source.timer_id,
+        (day_start, day_end),
+    )?;
+    Ok(completed.through_source.unwrap_or(completed.total + 1))
 }

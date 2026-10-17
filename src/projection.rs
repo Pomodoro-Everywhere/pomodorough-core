@@ -91,6 +91,18 @@ pub(crate) fn apply_observed_workspace_json(
     })
 }
 
+pub(crate) fn apply_monotonic_workspace_json(
+    input: &str,
+    observed: &crate::timer::workspace::retarget_observation::RunningTimer,
+) -> Result<String, CoreError> {
+    crate::timer::workspace::validate_native_device(&crate::strict_json::parse(input)?)?;
+    apply_json(input, |timer, history, commands, now| {
+        crate::timer::workspace::retarget_observation::replay(
+            timer, history, commands, now, observed,
+        )
+    })
+}
+
 fn apply_json(
     input: &str,
     replay_timer: impl FnOnce(

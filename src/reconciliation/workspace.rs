@@ -36,6 +36,13 @@ fn empty_proof() -> Value {
 }
 
 pub(crate) fn project_json(input: &str) -> Result<String, CoreError> {
+    project_observed_json(input, None)
+}
+
+pub(crate) fn project_observed_json(
+    input: &str,
+    observed: Option<&crate::timer::workspace::retarget_observation::RunningTimer>,
+) -> Result<String, CoreError> {
     let raw = crate::strict_json::parse(input)?;
     validate_shape(&raw)?;
     let input: Input = serde_json::from_value(raw.clone())?;
@@ -53,14 +60,20 @@ pub(crate) fn project_json(input: &str) -> Result<String, CoreError> {
     let pending = pending_queues(input.local);
     let projected = policy.project_queues(&pending, head)?;
     let safe = raw_projection_queues(&raw["local"], &projected)?;
-    project_display(&raw, &input.base, &input.now, safe)
+    project_display(&raw, &input.base, &input.now, safe, observed)
 }
 
-fn project_display(raw: &Value, base: &Value, now: &str, safe: Value) -> Result<String, CoreError> {
+fn project_display(
+    raw: &Value,
+    base: &Value,
+    now: &str,
+    safe: Value,
+    observed: Option<&crate::timer::workspace::retarget_observation::RunningTimer>,
+) -> Result<String, CoreError> {
     let mut projection = json!({"base": base, "pending": raw["local"], "now": now});
     // Validate every retained payload through the existing production reducers,
     // including domains excluded from display. Filtering must not hide corruption.
-    let complete = crate::projection::apply_workspace_json(&projection.to_string())?;
+    let complete = apply_projection(&projection, observed)?;
     let stored = display::stored(raw)?;
     let selected = if stored.is_some() {
         display::queues(raw, stored.as_ref())?
@@ -71,7 +84,7 @@ fn project_display(raw: &Value, base: &Value, now: &str, safe: Value) -> Result<
         complete
     } else {
         projection["pending"] = selected.clone();
-        crate::projection::apply_workspace_json(&projection.to_string())?
+        apply_projection(&projection, observed)?
     };
     let mut result = json!({
         "projectionPending": safe,
@@ -81,6 +94,18 @@ fn project_display(raw: &Value, base: &Value, now: &str, safe: Value) -> Result<
         result["displayContext"] = display::context(selected);
     }
     Ok(result.to_string())
+}
+
+fn apply_projection(
+    projection: &Value,
+    observed: Option<&crate::timer::workspace::retarget_observation::RunningTimer>,
+) -> Result<String, CoreError> {
+    match observed {
+        Some(observed) => {
+            crate::projection::apply_monotonic_workspace_json(&projection.to_string(), observed)
+        }
+        None => crate::projection::apply_workspace_json(&projection.to_string()),
+    }
 }
 
 fn pending_queues(local: LocalQueues) -> PendingQueues {

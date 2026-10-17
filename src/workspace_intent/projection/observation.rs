@@ -29,7 +29,12 @@ pub(in crate::workspace_intent) fn observed(
     };
     let input = json!({"base": workspace["base"], "pending": pending, "now": now});
     let projected = if profile == Compatibility::PwaStorage {
-        crate::projection::apply_workspace_json(&input.to_string())?
+        match &observation.running_timer {
+            Some(timer) => {
+                crate::projection::apply_monotonic_workspace_json(&input.to_string(), timer)?
+            }
+            None => crate::projection::apply_workspace_json(&input.to_string())?,
+        }
     } else {
         let observation = crate::timer::workspace::observation::Observation {
             canonical_anchor_at: observation.canonical_anchor_at.as_deref(),

@@ -116,6 +116,8 @@ pub(super) struct Observation {
     pub command_times: BTreeMap<String, String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub monotonic_anchor: Option<MonotonicAnchor>,
+    #[serde(skip)]
+    pub running_timer: Option<crate::timer::workspace::retarget_observation::RunningTimer>,
 }
 
 #[derive(Clone, Deserialize, Serialize)]

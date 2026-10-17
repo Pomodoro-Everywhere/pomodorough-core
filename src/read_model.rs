@@ -183,7 +183,11 @@ fn workspace(input: &Input) -> Result<Value, CoreError> {
             let mut request = value.clone();
             request["now"] =
                 json!(projection_time(value, input)?.unwrap_or_else(|| input.observed_at.clone()));
-            let projected = crate::reconciliation::workspace::project_json(&request.to_string())?;
+            let observed = clock::running_timer(input.monotonic.as_ref())?;
+            let projected = crate::reconciliation::workspace::project_observed_json(
+                &request.to_string(),
+                observed.as_ref(),
+            )?;
             let projected: Value = serde_json::from_str(&projected)?;
             Ok(projected["workspace"].clone())
         }
@@ -196,7 +200,11 @@ fn projection_time(value: &Value, input: &Input) -> Result<Option<String>, CoreE
     };
     let mut request = value.clone();
     request["now"] = json!("1970-01-01T00:00:00Z");
-    let unexpired = crate::reconciliation::workspace::project_json(&request.to_string())?;
+    let observed = clock::running_timer(input.monotonic.as_ref())?;
+    let unexpired = crate::reconciliation::workspace::project_observed_json(
+        &request.to_string(),
+        observed.as_ref(),
+    )?;
     let unexpired: Value = serde_json::from_str(&unexpired)?;
     let timer = &unexpired["workspace"]["canonicalTimer"];
     if timer.is_null() {

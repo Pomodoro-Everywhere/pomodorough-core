@@ -66,6 +66,7 @@ jobs:
           python3 -m unittest scripts/test_canonicalize_wasm_artifact.py -v
           python3 -m unittest scripts/test_c5_release_contract.py -v
           python3 -m unittest scripts/test_aggregate_artifact_workflow.py -v
+          python3 -m unittest scripts/test_wasm_test_suite.py -v
           node --experimental-vm-modules --test scripts/test_aggregate_artifact_gate.mjs
 
       - name: Build and canonicalize release WASM
@@ -80,9 +81,7 @@ jobs:
         run: |
           set -euo pipefail
           wasm=target/wasm32-unknown-unknown/release/pomodorough_core.wasm
-          for test in tests/*.mjs; do
-            node "$test" "$wasm"
-          done
+          python3 scripts/wasm_test_suite.py "$wasm"
 
       - name: Seal exact tested release candidate
         run: |

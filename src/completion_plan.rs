@@ -2,6 +2,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use crate::CoreError;
+pub(crate) mod causal;
 pub(crate) mod state;
 use crate::timer::{
     CanonicalTimer, HistoryItem, parse_time, validate_canonical_timer, validate_history,
@@ -250,7 +251,17 @@ fn generated_break_plan(input: GeneratedBreakInput) -> Result<CompletionPlan, Co
     let eligible = projection_has_source(projection, &input.source);
     let bounds = parse_bounds(&input.day_start, &input.day_end)?;
     let phase = eligible
-        .then(|| break_phase(&projection.history, bounds))
+        .then(|| {
+            let completed = causal::focus_count(
+                &projection.history,
+                &input.source.command_id,
+                &input.source.timer_id,
+                bounds,
+            )?;
+            Ok::<_, CoreError>(break_phase_for_count(
+                completed.through_source.unwrap_or(completed.total),
+            ))
+        })
         .transpose()?;
     Ok(CompletionPlan {
         generated_break_eligible: eligible,
@@ -308,12 +319,16 @@ fn break_phase(
     bounds: (DateTime<Utc>, DateTime<Utc>),
 ) -> Result<String, CoreError> {
     let completed = completed_focus_count(history, bounds)?;
-    Ok(if completed > 0 && completed % 4 == 0 {
+    Ok(break_phase_for_count(completed))
+}
+
+fn break_phase_for_count(completed: usize) -> String {
+    if completed > 0 && completed % 4 == 0 {
         "long_break"
     } else {
         "short_break"
     }
-    .into())
+    .into()
 }
 
 fn completed_focus_count(

@@ -13,7 +13,11 @@ pub(super) fn project(workspace: &Value, now: &str) -> Result<Value, CoreError> 
     Ok(serde_json::from_str(&output)?)
 }
 
-pub(super) fn before(input: &Input, replay_at: Option<&str>) -> Result<Value, CoreError> {
+pub(super) fn before(
+    input: &Input,
+    replay_at: Option<&str>,
+    observation: &Observation,
+) -> Result<Value, CoreError> {
     let wire = project(&input.workspace, &input.clock.occurred_at)?;
     // Manual Apple mutations use the centralized non-expiring presentation path.
     // Other adapters refresh their workspace at the supplied observation time.
@@ -30,7 +34,7 @@ pub(super) fn before(input: &Input, replay_at: Option<&str>) -> Result<Value, Co
     };
     Ok(observed(
         &input.workspace,
-        &input.observation,
+        observation,
         input.compatibility,
         ReplayDomains::Safe,
         &replay,

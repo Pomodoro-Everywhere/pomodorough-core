@@ -1,0 +1,51 @@
+{
+  "candidate": [
+    "tests/aggregate_wasm_parity.mjs",
+    "tests/c2_round5_wasm_parity.mjs",
+    "tests/c3_wasm_parity.mjs",
+    "tests/c4_wasm_allocation_contract.mjs",
+    "tests/wasm_abi_host.mjs"
+  ],
+  "historical": [
+    "tests/r49_c01_official_baseline.mjs",
+    "tests/r49_c01_standalone_parity.mjs",
+    "tests/r49_c02_official_baseline.mjs"
+  ],
+  "support": [
+    "tests/aggregate_artifact/abi_host.mjs",
+    "tests/aggregate_artifact/batch_scenarios.mjs",
+    "tests/aggregate_artifact/cases.mjs",
+    "tests/aggregate_artifact/catalog.mjs",
+    "tests/aggregate_artifact/clock_cases.mjs",
+    "tests/aggregate_artifact/completion_cases.mjs",
+    "tests/aggregate_artifact/corpus.mjs",
+    "tests/aggregate_artifact/deferred_scenarios.mjs",
+    "tests/aggregate_artifact/generated_scenarios.mjs",
+    "tests/aggregate_artifact/legacy_dependencies_cases.mjs",
+    "tests/aggregate_artifact/legacy_preferences_cases.mjs",
+    "tests/aggregate_artifact/legacy_preferences_numeric_cases.mjs",
+    "tests/aggregate_artifact/native_oracle.mjs",
+    "tests/aggregate_artifact/planning_cases.mjs",
+    "tests/aggregate_artifact/pwa_checker_cases.mjs",
+    "tests/aggregate_artifact/pwa_cycle_cases.mjs",
+    "tests/aggregate_artifact/pwa_display_admission.mjs",
+    "tests/aggregate_artifact/pwa_display_cases.mjs",
+    "tests/aggregate_artifact/pwa_display_matrix.mjs",
+    "tests/aggregate_artifact/pwa_display_scenarios.mjs",
+    "tests/aggregate_artifact/pwa_natural_cases.mjs",
+    "tests/aggregate_artifact/pwa_ownership_cases.mjs",
+    "tests/aggregate_artifact/pwa_ownership_shapes.mjs",
+    "tests/aggregate_artifact/pwa_release_cases.mjs",
+    "tests/aggregate_artifact/pwa_selection_cases.mjs",
+    "tests/aggregate_artifact/pwa_selection_preservation.mjs",
+    "tests/aggregate_artifact/queued_cases.mjs",
+    "tests/aggregate_artifact/read_cases.mjs",
+    "tests/aggregate_artifact/reconciliation_scenarios.mjs",
+    "tests/aggregate_artifact/semantics.mjs",
+    "tests/aggregate_artifact/sent_cases.mjs",
+    "tests/aggregate_artifact/terminal_cases.mjs",
+    "tests/aggregate_artifact/terminal_provenance_cases.mjs",
+    "tests/aggregate_artifact/terminal_scenarios.mjs",
+    "tests/aggregate_artifact/workspace_cases.mjs"
+  ]
+}

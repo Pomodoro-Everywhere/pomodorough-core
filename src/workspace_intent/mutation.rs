@@ -417,12 +417,20 @@ impl Plan<'_> {
     fn output(mut self, before: &Value) -> Result<String, CoreError> {
         let changed = self.index != 0;
         let after = self.display_after(before)?;
+        let admission_now = if self.input.compatibility == C::PwaStorage
+            && self.input.clock.monotonic_now_ms.is_some()
+            && before["canonicalTimer"]["status"] == "running"
+        {
+            self.display_now(before, self.operations["commands"].as_array().unwrap())?
+        } else {
+            self.input.clock.physical_now.clone()
+        };
         admission::group(
             self.input,
             &self.workspace,
             &self.operations,
             &self.observation,
-            &self.input.clock.physical_now,
+            &admission_now,
         )?;
         let outcomes = self.group_outcomes(&after);
         monotonic::after(self.input, &after, &mut self.observation)?;
@@ -459,9 +467,6 @@ impl Plan<'_> {
     }
 
     fn display_now(&self, before: &Value, commands: &[Value]) -> Result<String, CoreError> {
-        if !commands.is_empty() {
-            return Ok(projection::after_time(self.input, commands));
-        }
         if self.input.compatibility == C::PwaStorage
             && self.input.clock.monotonic_now_ms.is_some()
             && before["canonicalTimer"]["status"] == "running"
@@ -471,6 +476,9 @@ impl Plan<'_> {
                 &before["canonicalTimer"],
                 &self.observation,
             );
+        }
+        if !commands.is_empty() {
+            return Ok(projection::after_time(self.input, commands));
         }
         if self.input.compatibility == C::PwaStorage {
             return Ok(self.input.clock.occurred_at.clone());

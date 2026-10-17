@@ -62,7 +62,9 @@ fn matches_timer(anchor: &MonotonicAnchor, timer: &Value) -> bool {
 
 fn sample(input: &Input, timer: &Value, observation: &mut Observation) -> Result<(), CoreError> {
     if timer["status"] != "running" {
-        observation.monotonic_anchor = None;
+        if !retarget_needs_anchor(input, timer, observation)? {
+            observation.monotonic_anchor = None;
+        }
         return Ok(());
     }
     let Some(now) = input.clock.monotonic_now_ms else {
@@ -105,6 +107,25 @@ fn sample(input: &Input, timer: &Value, observation: &mut Observation) -> Result
     Ok(())
 }
 
+fn retarget_needs_anchor(
+    input: &Input,
+    timer: &Value,
+    observation: &Observation,
+) -> Result<bool, CoreError> {
+    if observation.running_timer.is_none()
+        || !observation
+            .monotonic_anchor
+            .as_ref()
+            .is_some_and(|anchor| timer["id"] == anchor.timer_id)
+    {
+        return Ok(false);
+    }
+    let raw = projection::project(&input.workspace, &input.clock.physical_now)?;
+    // Keep replay evidence, not an active elapsed clock, when dropping it would
+    // discard an already observed retarget. Ordinary lifecycle returns stay unchanged.
+    Ok(raw["workspace"]["canonicalTimer"]["taskId"] != timer["taskId"])
+}
+
 pub(super) fn elapsed(
     input: &Input,
     timer: &Value,
@@ -142,13 +163,20 @@ fn effective_now(timer: &Value, elapsed: f64) -> Result<String, CoreError> {
 
 pub(super) fn before(input: &Input) -> Result<(Value, Observation), CoreError> {
     let mut observation = input.observation.clone();
+    observation.running_timer = running_timer(input, &observation)?;
     if input.clock.monotonic_now_ms.is_none() {
-        let before = projection::before(input, None)?;
+        let before = projection::before(input, None, &observation)?;
         sample(input, &before["canonicalTimer"], &mut observation)?;
         return Ok((before, observation));
     }
     // Replay before expiry so a wall jump cannot discard an anchored running timer.
-    let unexpired = projection::project(&input.workspace, "1970-01-01T00:00:00Z")?;
+    let unexpired = projection::observed(
+        &input.workspace,
+        &observation,
+        input.compatibility,
+        projection::ReplayDomains::Safe,
+        "1970-01-01T00:00:00Z",
+    )?;
     let decision = projection::entrypoint(
         input,
         &unexpired["workspace"],
@@ -157,12 +185,39 @@ pub(super) fn before(input: &Input) -> Result<(Value, Observation), CoreError> {
     )?;
     let timer = &decision["canonicalTimer"];
     sample(input, timer, &mut observation)?;
+    observation.running_timer = running_timer(input, &observation)?;
     let now = if timer["status"] == "running" {
         Some(effective_now(timer, elapsed(input, timer, &observation)?)?)
     } else {
         None
     };
-    Ok((projection::before(input, now.as_deref())?, observation))
+    Ok((
+        projection::before(input, now.as_deref(), &observation)?,
+        observation,
+    ))
+}
+
+fn running_timer(
+    input: &Input,
+    observation: &Observation,
+) -> Result<Option<crate::timer::workspace::retarget_observation::RunningTimer>, CoreError> {
+    let Some(anchor) = observation.monotonic_anchor.as_ref().filter(|anchor| {
+        input.compatibility == Compatibility::PwaStorage
+            && input.clock.continuity_id.as_deref() == Some(&anchor.continuity_id)
+            && input
+                .clock
+                .monotonic_now_ms
+                .is_some_and(|now| now >= anchor.sampled_monotonic_ms)
+    }) else {
+        return Ok(None);
+    };
+    Ok(Some(
+        crate::timer::workspace::retarget_observation::RunningTimer::new(
+            &anchor.timer_id,
+            &anchor.anchor_at,
+            anchor.elapsed_at_anchor_ms,
+        )?,
+    ))
 }
 
 pub(super) fn entrypoint_time(
