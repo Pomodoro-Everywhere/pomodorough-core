@@ -168,7 +168,7 @@ assert.deepEqual(unpack(dispatch(
   capOperation.length,
   capInput.pointer,
   capInput.length,
-)), { ok: true, value: { schemaVersion: 1, coreVersion: "0.49.0" } });
+)), { ok: true, value: { schemaVersion: 1, coreVersion: "0.50.0" } });
 releaseBuffer(capInput);
 releaseBuffer(capOperation);
 
