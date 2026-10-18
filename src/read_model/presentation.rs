@@ -185,7 +185,13 @@ fn natural_phase(
             break;
         }
     }
-    let day = day.ok_or_else(|| invalid("missing read model calendar interval"))?;
+    // Compatible fallback: the platform owns civil calendar/DST and may send
+    // only the observed day on overnight reopen. Core keeps UTC arithmetic
+    // and must not synthesize the source day, so keep the selected phase and
+    // still render the overdue timer instead of throwing.
+    let Some(day) = day else {
+        return Ok(input.selected_phase.clone());
+    };
     crate::completion_plan::phase_after(&source.phase, history, day)
 }
 

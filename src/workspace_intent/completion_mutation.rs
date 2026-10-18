@@ -388,14 +388,18 @@ fn effective_auto_start(input: &Input) -> Result<bool, CoreError> {
 }
 
 fn unexpired(input: &Input) -> Result<Value, CoreError> {
+    // Replay with the same validated private running-timer evidence the
+    // admission path uses, so a genuine jumped-wall Retarget compares as
+    // current instead of stale. Genuinely stale timers still mismatch.
+    let observation = monotonic::private_observation(input)?;
     let safe = lifecycle::observe(
         input,
         &input.workspace,
-        &input.observation,
+        &observation,
         "1970-01-01T00:00:00Z",
     )?["workspace"]
         .clone();
-    projection::entrypoint(input, &safe, &input.observation, "1970-01-01T00:00:00Z")
+    projection::entrypoint(input, &safe, &observation, "1970-01-01T00:00:00Z")
 }
 
 fn stale(request: &Request, timer: &Value) -> Result<bool, CoreError> {

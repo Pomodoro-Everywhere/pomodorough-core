@@ -161,9 +161,18 @@ fn effective_now(timer: &Value, elapsed: f64) -> Result<String, CoreError> {
         .to_rfc3339_opts(SecondsFormat::Millis, true))
 }
 
-pub(super) fn before(input: &Input) -> Result<(Value, Observation), CoreError> {
+pub(super) fn private_observation(input: &Input) -> Result<Observation, CoreError> {
+    // Validated private replay evidence shared by admission and completion.
+    // Derive the running-timer witness from the live monotonic anchor before
+    // any wall-clock replay, so a jumped-wall Retarget admits and completes
+    // while a genuinely stale timer still mismatches.
     let mut observation = input.observation.clone();
     observation.running_timer = running_timer(input, &observation)?;
+    Ok(observation)
+}
+
+pub(super) fn before(input: &Input) -> Result<(Value, Observation), CoreError> {
+    let mut observation = private_observation(input)?;
     if input.clock.monotonic_now_ms.is_none() {
         let before = projection::before(input, None, &observation)?;
         sample(input, &before["canonicalTimer"], &mut observation)?;

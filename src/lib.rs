@@ -112,12 +112,14 @@ pub fn classify_selected_task_field_json(input: &str) -> Result<String, CoreErro
 /// Matches the WASM ABI buffer cap so native and WASM reject the same class.
 pub(crate) const MAX_INPUT_BYTES: usize = 16 * 1024 * 1024;
 /// Maximum timer commands accepted in one reduction.
+/// History stays unbounded so a valid account never blocks on row count;
+/// the 16 MiB JSON input cap still bounds request memory.
 pub(crate) const MAX_COMMANDS: usize = 10_000;
-/// Maximum timer history items accepted in one reduction.
-pub(crate) const MAX_HISTORY_ITEMS: usize = 10_000;
 /// Maximum HLC clocks accepted in one head computation.
 pub(crate) const MAX_OBSERVED_CLOCKS: usize = 10_000;
-/// Maximum bootstrap history entries accepted per side.
+/// Maximum bootstrap task and queue entries accepted per side.
+/// History arrays are intentionally unbounded; this still bounds tasks,
+/// known tasks, and pending queues.
 pub(crate) const MAX_BOOTSTRAP_HISTORY: usize = 10_000;
 /// Maximum operation name bytes accepted by native dispatch.
 /// Matches the WASM ABI operation cap.

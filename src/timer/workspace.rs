@@ -33,7 +33,8 @@ fn prepare(
     history: Vec<HistoryItem>,
     commands: Vec<WireCommand>,
 ) -> Result<Prepared, CoreError> {
-    check_command_counts(commands.len(), history.len())?;
+    // History stays unbounded here as well; commands keep the batch cap.
+    check_command_counts(commands.len())?;
     check_unique_command_ids(commands.iter().map(|command| command.id.as_str()))?;
     let matching = validate_pair(timer.as_ref(), &history)?;
     // Canonical intent remains evidence when its history row is not installed.

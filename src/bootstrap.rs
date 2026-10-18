@@ -3,7 +3,7 @@ use std::collections::BTreeSet;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::{CoreError, MAX_BOOTSTRAP_HISTORY, check_input_len};
+use crate::{CoreError, check_input_len};
 
 pub(crate) mod workspace;
 
@@ -41,13 +41,8 @@ struct BootstrapPlanOutput {
 pub(crate) fn plan_v1_json(input: &str) -> Result<String, CoreError> {
     check_input_len(input)?;
     let input: BootstrapPlanInput = serde_json::from_value(crate::strict_json::parse(input)?)?;
-    if input.local_history.len() > MAX_BOOTSTRAP_HISTORY
-        || input.remote_history.len() > MAX_BOOTSTRAP_HISTORY
-    {
-        return Err(CoreError::InvalidInput(format!(
-            "history exceeds {MAX_BOOTSTRAP_HISTORY}"
-        )));
-    }
+    // History stays unbounded so bootstrap never rejects a valid account on
+    // row count; the 16 MiB JSON input cap still bounds request memory.
     let output = plan(input)?;
     Ok(serde_json::to_string(&output)?)
 }

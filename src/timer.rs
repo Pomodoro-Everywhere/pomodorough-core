@@ -3,7 +3,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use chrono::{DateTime, Duration, Timelike, Utc};
 use serde::{Deserialize, Serialize};
 
-use crate::{CoreError, MAX_COMMANDS, MAX_HISTORY_ITEMS, check_input_len};
+use crate::{CoreError, MAX_COMMANDS, check_input_len};
 
 pub(crate) mod replay_page;
 pub(crate) mod workspace;
@@ -236,7 +236,7 @@ struct WireSession {
 pub(crate) fn reduce_timer_v1_json(input: &str) -> Result<String, CoreError> {
     check_input_len(input)?;
     let input: TimerReductionInput = serde_json::from_str(input)?;
-    check_command_counts(input.commands.len(), input.history.len())?;
+    check_command_counts(input.commands.len())?;
     check_unique_command_ids(input.commands.iter().map(|command| command.id.as_str()))?;
     validate_replay_state(&input.canonical_timer, &input.history)?;
     let now = parse_time(&input.now)?;
@@ -253,15 +253,13 @@ pub(crate) fn reduce_timer_v1_json(input: &str) -> Result<String, CoreError> {
     )?)?)
 }
 
-fn check_command_counts(commands: usize, history: usize) -> Result<(), CoreError> {
+fn check_command_counts(commands: usize) -> Result<(), CoreError> {
+    // History is intentionally unbounded: a valid ordered account history
+    // must project, read, reconcile, bootstrap, and reopen at any row count.
+    // The 16 MiB JSON input cap still bounds request memory.
     if commands > MAX_COMMANDS {
         return Err(CoreError::InvalidInput(format!(
             "commands exceed {MAX_COMMANDS}"
-        )));
-    }
-    if history > MAX_HISTORY_ITEMS {
-        return Err(CoreError::InvalidInput(format!(
-            "history exceeds {MAX_HISTORY_ITEMS}"
         )));
     }
     Ok(())
@@ -945,7 +943,7 @@ struct FixtureHistory {
 pub fn reduce_timer_fixture_case_json(input: &str) -> Result<String, CoreError> {
     check_input_len(input)?;
     let input: FixtureInput = serde_json::from_str(input)?;
-    check_command_counts(input.commands.len(), 0)?;
+    check_command_counts(input.commands.len())?;
     let epoch = parse_time(&input.epoch)?;
     let now = epoch + Duration::milliseconds(input.now_ms);
     let reduction = reduce(fixture_commands(input.commands, epoch)?, now)?;

@@ -85,9 +85,11 @@ fn snapshot(value: &Value, path: &str) -> Result<(), CoreError> {
     strict_json::nullable_object_field(object, "canonicalTimer", "canonicalTimer")?;
     for field in ["history", "tasks"] {
         strict_json::object_array_field(object, field, field, true)?;
-        if value[field].as_array().unwrap().len() > crate::MAX_BOOTSTRAP_HISTORY {
-            return Err(invalid(&format!("{field} exceeds bootstrap limit")));
-        }
+    }
+    // History stays unbounded so bootstrap accepts a valid account at any row
+    // count; tasks keep the bootstrap batch cap and JSON still bounds memory.
+    if value["tasks"].as_array().unwrap().len() > crate::MAX_BOOTSTRAP_HISTORY {
+        return Err(invalid("tasks exceeds bootstrap limit"));
     }
     for row in value["history"].as_array().unwrap() {
         for field in ["id", "timerId", "status"] {

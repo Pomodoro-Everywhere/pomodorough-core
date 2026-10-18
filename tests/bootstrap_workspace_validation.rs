@@ -96,7 +96,7 @@ fn malformed_shapes_limits_and_owner_identity_are_rejected() {
         rejects(&input, "missing remote");
     }
     let mut input = request();
-    input["remote"]["history"] = json!(vec![json!({}); 10_001]);
+    input["remote"]["tasks"] = json!(vec![json!({}); 10_001]);
     rejects(&input, "exceeds bootstrap limit");
     input = request();
     input["local"]["preferences"]["durationsMs"]["focus"] = json!(true);

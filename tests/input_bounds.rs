@@ -54,12 +54,18 @@ fn timer_reduce_v1_rejects_too_many_commands() {
 }
 
 #[test]
-fn timer_reduce_v1_rejects_too_many_history_items() {
+fn timer_reduce_v1_accepts_full_history_above_command_cap() {
+    // R50-C02: history stays unbounded so Core accepts its own expiry output.
+    // Commands keep the batch cap; JSON input still bounds request memory.
     let history: Vec<_> = (0..MAX_COMMANDS + 1).map(history_item).collect();
     let input =
         json!({"commands": [], "history": history, "now": "2026-07-15T10:00:00Z"}).to_string();
-    let error = dispatch_json("timer.reduce.v1", &input).unwrap_err();
-    assert!(error.to_string().contains("history exceeds"), "{error}");
+    let output: serde_json::Value =
+        serde_json::from_str(&dispatch_json("timer.reduce.v1", &input).unwrap()).unwrap();
+    assert_eq!(
+        output["history"].as_array().unwrap().len(),
+        MAX_COMMANDS + 1
+    );
 }
 
 #[test]
@@ -98,13 +104,15 @@ fn hlc_head_rejects_too_many_observed_clocks() {
 }
 
 #[test]
-fn bootstrap_rejects_too_many_history_entries() {
+fn bootstrap_accepts_full_history_above_command_cap() {
+    // R50-C02: bootstrap history stays unbounded; JSON input bounds memory.
     let history: Vec<_> = (0..MAX_COMMANDS + 1)
         .map(|i| json!({"status": "completed", "timerId": format!("t-{i}")}))
         .collect();
     let input = json!({"localHistory": history, "remoteHistory": []}).to_string();
-    let error = dispatch_json("bootstrap.plan.v1", &input).unwrap_err();
-    assert!(error.to_string().contains("history exceeds"), "{error}");
+    let output: serde_json::Value =
+        serde_json::from_str(&dispatch_json("bootstrap.plan.v1", &input).unwrap()).unwrap();
+    assert_eq!(output["mode"], "auto");
 }
 
 #[test]
