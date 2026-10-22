@@ -20,7 +20,7 @@ pub(super) enum ReplicationMode {
     Iroh,
 }
 
-#[derive(Deserialize)]
+#[derive(Clone, Deserialize)]
 #[serde(
     tag = "kind",
     rename_all = "camelCase",
@@ -61,7 +61,7 @@ impl Intent {
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Clone, Deserialize)]
 #[serde(transparent)]
 pub(super) struct RequiredNullable<T>(pub Option<T>);
 

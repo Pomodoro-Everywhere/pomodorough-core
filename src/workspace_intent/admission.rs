@@ -26,14 +26,30 @@ pub(super) fn group(
 ) -> Result<Value, CoreError> {
     // Admission replays the complete ledger, including possibly delivered work.
     // It neither restores delivery proof nor supplies the safe display result.
-    let projected = projection::observed(
+    let mut observed = projection::observed(
         workspace,
         observation,
         input.compatibility,
         projection::ReplayDomains::Retained,
         now,
-    )?["workspace"]
-        .clone();
+    )?;
+    let projected = crate::take_projection_workspace(
+        &mut observed,
+        "workspace.intent.v1",
+        workspace["base"]["history"]
+            .as_array()
+            .map(Vec::len)
+            .unwrap_or(0),
+        operations
+            .as_object()
+            .map(|queues| {
+                queues
+                    .values()
+                    .map(|queue| queue.as_array().map(Vec::len).unwrap_or(0))
+                    .sum()
+            })
+            .unwrap_or(0),
+    )?;
     for (domain, queue) in operations.as_object().unwrap() {
         for operation in queue.as_array().unwrap() {
             if !applied(&projected, domain, operation)
@@ -43,7 +59,9 @@ pub(super) fn group(
             }
         }
     }
-    Ok(json!({"workspace": projected}))
+    let mut output = serde_json::Map::with_capacity(1);
+    output.insert("workspace".into(), projected);
+    Ok(serde_json::Value::Object(output))
 }
 
 pub(super) fn commands(

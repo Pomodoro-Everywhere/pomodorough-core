@@ -434,7 +434,8 @@ fn checker_civil_day_lengths_and_forged_projection_rejected() {
     let mut request = fixture["request"].clone();
     for end in [
         "2026-03-08T07:30:01Z",
-        "2026-03-09T08:30:01Z",
+        "2026-03-09T05:29:59Z",
+        "2026-03-09T09:30:01Z",
         "2026-03-10T05:00:00Z",
     ] {
         request["calendarIntervals"] = json!([{"start": "2026-03-08T07:30:00Z", "end": end}]);
@@ -477,6 +478,46 @@ fn checker_civil_day_lengths_and_forged_projection_rejected() {
     request["source"]["value"]["local"]["commands"] = json!([]);
     request["source"]["value"]["base"]["history"] = json!([{"id":"bad"}]);
     assert!(dispatch_json("workspace.readModel.v1", &request.to_string()).is_err());
+}
+
+#[test]
+fn checker_civil_day_rejects_carry_index_and_duration_context() {
+    let fixture = fixture();
+    let mut request = fixture["request"].clone();
+    for (end, duration_ms) in [
+        ("2026-03-08T07:30:01Z", "duration_ms=1000"),
+        ("2026-03-09T05:29:59Z", "duration_ms=79199000"),
+        ("2026-03-09T09:30:01Z", "duration_ms=93601000"),
+        ("2026-03-10T05:00:00Z", "duration_ms=163800000"),
+    ] {
+        request["calendarIntervals"] = json!([{"start": "2026-03-08T07:30:00Z", "end": end}]);
+        let error = dispatch_json("workspace.readModel.v1", &request.to_string())
+            .unwrap_err()
+            .to_string();
+        assert!(error.contains("index=0"), "{end} {error}");
+        assert!(error.contains(duration_ms), "{end} {error}");
+        assert!(error.contains("2026-03-08T07:30:00Z"), "{error}");
+        assert!(error.contains(end), "{error}");
+        assert!(error.contains("observed_at=2026-03-08T07:30:00"), "{error}");
+    }
+}
+
+#[test]
+fn checker_civil_day_exact_bounds_accept_standalone() {
+    let fixture = fixture();
+    let mut request = fixture["request"].clone();
+    request["observedAt"] = json!("2026-03-08T12:00:00Z");
+    for (start, end) in [
+        ("2026-03-08T05:00:00Z", "2026-03-09T03:00:00Z"),
+        ("2026-03-08T05:00:00Z", "2026-03-09T07:00:00Z"),
+    ] {
+        request["calendarIntervals"] = json!([{"start": start, "end": end}]);
+        assert_eq!(
+            output(&request)["cadence"]["completedFocusToday"],
+            0,
+            "{start}/{end}"
+        );
+    }
 }
 
 #[test]

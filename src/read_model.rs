@@ -106,10 +106,13 @@ pub(crate) fn read_json(raw: &str) -> Result<String, CoreError> {
     let workspace = workspace(&input)?;
     let Source::Workspace(raw) = &input.source;
     crate::workspace_intent::completion_mutation::lifecycle_evidence(&input.lifecycle, raw)?;
+    let mut workspace = workspace;
+    // The canonical timer is one small object shared by completion evidence;
+    // only the full history moves out by value.
     let timer: Option<CanonicalTimer> =
         serde_json::from_value(workspace["canonicalTimer"].clone())?;
     let history: Vec<crate::timer::HistoryItem> =
-        serde_json::from_value(workspace["history"].clone())?;
+        serde_json::from_value(workspace["history"].take())?;
     if let Some(timer) = &timer {
         crate::timer::validate_canonical_timer(timer)?;
         if matches!(timer.status.as_str(), "running" | "paused")
@@ -141,32 +144,69 @@ fn validate_selection(input: &Input) -> Result<(), CoreError> {
     Ok(())
 }
 
+fn parse_civil_interval(
+    interval: &Interval,
+    index: usize,
+    observed: DateTime<Utc>,
+) -> Result<(DateTime<Utc>, DateTime<Utc>, usize), CoreError> {
+    let start = crate::timer::parse_time(&interval.start)?;
+    let end = crate::timer::parse_time(&interval.end)?;
+    let duration = end - start;
+    if start >= end
+        || duration < chrono::Duration::hours(22)
+        || duration > chrono::Duration::hours(26)
+    {
+        return Err(invalid(&format!(
+            "invalid read model calendar interval index={index} start={} end={} duration_ms={} observed_at={}",
+            interval.start,
+            interval.end,
+            duration.num_milliseconds(),
+            observed.to_rfc3339(),
+        )));
+    }
+    Ok((start, end, index))
+}
+
 fn day_bounds(
     intervals: &[Interval],
     observed: DateTime<Utc>,
 ) -> Result<(DateTime<Utc>, DateTime<Utc>), CoreError> {
-    let mut bounds = intervals
-        .iter()
-        .map(|interval| {
-            let start = crate::timer::parse_time(&interval.start)?;
-            let end = crate::timer::parse_time(&interval.end)?;
-            if start >= end
-                || end - start < chrono::Duration::hours(23)
-                || end - start > chrono::Duration::hours(25)
-            {
-                return Err(invalid("invalid read model calendar interval"));
-            }
-            Ok((start, end))
-        })
-        .collect::<Result<Vec<_>, CoreError>>()?;
+    // Platform owns local-midnight boundaries; Core never derives days with
+    // UTC arithmetic. Accept 22h..=26h (24h +/- max 2h DST shift; Troll is
+    // the current 2h case, Lord Howe 30min fits inside). Date-line: skipped
+    // dates emit no interval, repeated dates emit two distinct intervals, so
+    // empty and overlapping stay rejected and over-26h stays a non-day.
+    let mut bounds = Vec::with_capacity(intervals.len());
+    for (index, interval) in intervals.iter().enumerate() {
+        bounds.push(parse_civil_interval(interval, index, observed)?);
+    }
     bounds.sort();
-    if bounds.windows(2).any(|pair| pair[0].1 > pair[1].0) {
-        return Err(invalid("overlapping read model calendar intervals"));
+    if let Some(pair) = bounds.windows(2).find(|pair| pair[0].1 > pair[1].0) {
+        let (first, second) = (pair[0].2, pair[1].2);
+        return Err(invalid(&format!(
+            "overlapping read model calendar intervals first_start={} first_end={} second_start={} second_end={} observed_at={}",
+            intervals[first].start,
+            intervals[first].end,
+            intervals[second].start,
+            intervals[second].end,
+            observed.to_rfc3339(),
+        )));
     }
     bounds
         .into_iter()
-        .find(|(start, end)| observed >= *start && observed < *end)
-        .ok_or_else(|| invalid("missing read model calendar interval"))
+        .find(|(start, end, _)| observed >= *start && observed < *end)
+        .map(|(start, end, _)| (start, end))
+        .ok_or_else(|| {
+            let summary = intervals
+                .iter()
+                .map(|interval| format!("{}->{}", interval.start, interval.end))
+                .collect::<Vec<_>>()
+                .join(",");
+            invalid(&format!(
+                "missing read model calendar interval observed_at={} intervals=[{summary}]",
+                observed.to_rfc3339(),
+            ))
+        })
 }
 
 fn workspace(input: &Input) -> Result<Value, CoreError> {
@@ -184,12 +224,25 @@ fn workspace(input: &Input) -> Result<Value, CoreError> {
             request["now"] =
                 json!(projection_time(value, input)?.unwrap_or_else(|| input.observed_at.clone()));
             let observed = clock::running_timer(input.monotonic.as_ref())?;
-            let projected = crate::reconciliation::workspace::project_observed_json(
-                &request.to_string(),
+            let history = value["base"]["history"]
+                .as_array()
+                .map(Vec::len)
+                .unwrap_or(0);
+            let queued = value
+                .get("local")
+                .and_then(Value::as_object)
+                .map(|queues| {
+                    queues
+                        .values()
+                        .map(|queue| queue.as_array().map(Vec::len).unwrap_or(0))
+                        .sum()
+                })
+                .unwrap_or(0);
+            let mut output = crate::reconciliation::workspace::project_observed_value(
+                request,
                 observed.as_ref(),
             )?;
-            let projected: Value = serde_json::from_str(&projected)?;
-            Ok(projected["workspace"].clone())
+            crate::take_projection_workspace(&mut output, "workspace.readModel.v1", history, queued)
         }
     }
 }
@@ -201,11 +254,8 @@ fn projection_time(value: &Value, input: &Input) -> Result<Option<String>, CoreE
     let mut request = value.clone();
     request["now"] = json!("1970-01-01T00:00:00Z");
     let observed = clock::running_timer(input.monotonic.as_ref())?;
-    let unexpired = crate::reconciliation::workspace::project_observed_json(
-        &request.to_string(),
-        observed.as_ref(),
-    )?;
-    let unexpired: Value = serde_json::from_str(&unexpired)?;
+    let unexpired =
+        crate::reconciliation::workspace::project_observed_value(request, observed.as_ref())?;
     let timer = &unexpired["workspace"]["canonicalTimer"];
     if timer.is_null() {
         return Ok(None);

@@ -6,11 +6,30 @@ use super::{CoreError, admission};
 mod observation;
 pub(super) use observation::{ReplayDomains, observed};
 
+fn local_queued(workspace: &Value) -> usize {
+    workspace
+        .get("local")
+        .and_then(Value::as_object)
+        .map(|queues| {
+            queues
+                .values()
+                .map(|queue| queue.as_array().map(Vec::len).unwrap_or(0))
+                .sum()
+        })
+        .unwrap_or(0)
+}
+
+fn base_history(workspace: &Value) -> usize {
+    workspace["base"]["history"]
+        .as_array()
+        .map(Vec::len)
+        .unwrap_or(0)
+}
+
 pub(super) fn project(workspace: &Value, now: &str) -> Result<Value, CoreError> {
     let mut request = workspace.clone();
     request["now"] = json!(now);
-    let output = crate::reconciliation::workspace::project_json(&request.to_string())?;
-    Ok(serde_json::from_str(&output)?)
+    crate::reconciliation::workspace::project_observed_value(request, None)
 }
 
 pub(super) fn before(
@@ -32,14 +51,19 @@ pub(super) fn before(
     } else {
         replay_at.unwrap_or(&input.clock.physical_now).to_owned()
     };
-    Ok(observed(
+    let mut wire = observed(
         &input.workspace,
         observation,
         input.compatibility,
         ReplayDomains::Safe,
         &replay,
-    )?["workspace"]
-        .clone())
+    )?;
+    crate::take_projection_workspace(
+        &mut wire,
+        "workspace.intent.v1",
+        base_history(&input.workspace),
+        local_queued(&input.workspace),
+    )
 }
 
 pub(super) fn entrypoint(
@@ -48,7 +72,27 @@ pub(super) fn entrypoint(
     observation: &Observation,
     now: &str,
 ) -> Result<Value, CoreError> {
-    let retained = match input.compatibility {
+    if !retained_entrypoint(input) {
+        return Ok(safe.clone());
+    }
+    let replay_at = entrypoint_replay_time(input, observation, now)?;
+    let mut wire = observed(
+        &input.workspace,
+        observation,
+        input.compatibility,
+        ReplayDomains::Retained,
+        &replay_at,
+    )?;
+    crate::take_projection_workspace(
+        &mut wire,
+        "workspace.intent.v1",
+        base_history(&input.workspace),
+        local_queued(&input.workspace),
+    )
+}
+
+fn retained_entrypoint(input: &Input) -> bool {
+    match input.compatibility {
         // Android's coordinator receives all Room queues. Desktop and PWA
         // legacy readers replay local queues when no canonical head is installed.
         Compatibility::AndroidCoordinator => true,
@@ -60,11 +104,15 @@ pub(super) fn entrypoint(
                 && input.workspace.get("displayContext").is_none()
         }
         Compatibility::AppleWorkspace => false,
-    };
-    if !retained {
-        return Ok(safe.clone());
     }
-    let replay_at = if input.compatibility == Compatibility::PwaStorage
+}
+
+fn entrypoint_replay_time(
+    input: &Input,
+    observation: &Observation,
+    now: &str,
+) -> Result<String, CoreError> {
+    if input.compatibility == Compatibility::PwaStorage
         && input.clock.monotonic_now_ms.is_some()
         && now == input.clock.physical_now
     {
@@ -79,18 +127,10 @@ pub(super) fn entrypoint(
             input,
             &unexpired["workspace"]["canonicalTimer"],
             observation,
-        )?
+        )
     } else {
-        now.to_owned()
-    };
-    Ok(observed(
-        &input.workspace,
-        observation,
-        input.compatibility,
-        ReplayDomains::Retained,
-        &replay_at,
-    )?["workspace"]
-        .clone())
+        Ok(now.to_owned())
+    }
 }
 
 pub(super) fn after_time(input: &Input, commands: &[Value]) -> String {
@@ -105,13 +145,15 @@ pub(super) fn after_time(input: &Input, commands: &[Value]) -> String {
 
 pub(super) fn after(
     input: &Input,
-    before: &Value,
+    before: Value,
     workspace: &Value,
     observation: &Observation,
     commands: &[Value],
 ) -> Result<Value, CoreError> {
     if commands.is_empty() {
-        return Ok(json!({"workspace": before}));
+        let mut idle = serde_json::Map::with_capacity(1);
+        idle.insert("workspace".into(), before);
+        return Ok(Value::Object(idle));
     }
     let mut result = observed(
         workspace,

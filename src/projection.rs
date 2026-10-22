@@ -77,30 +77,63 @@ pub(crate) fn apply_v2_json(input: &str) -> Result<String, CoreError> {
 }
 
 pub(crate) fn apply_workspace_json(input: &str) -> Result<String, CoreError> {
-    crate::timer::workspace::validate_native_device(&crate::strict_json::parse(input)?)?;
-    apply_json(input, crate::timer::workspace::replay)
+    let value = crate::strict_json::parse(input)?;
+    crate::timer::workspace::validate_native_device(&value)?;
+    Ok(apply_workspace_value(value)?.to_string())
+}
+
+pub(crate) fn apply_workspace_value(
+    input: serde_json::Value,
+) -> Result<serde_json::Value, CoreError> {
+    crate::timer::workspace::validate_native_device(&input)?;
+    apply_value(input, crate::timer::workspace::replay)
 }
 
 pub(crate) fn apply_observed_workspace_json(
     input: &str,
     observation: &crate::timer::workspace::observation::Observation<'_>,
 ) -> Result<String, CoreError> {
-    crate::timer::workspace::validate_native_device(&crate::strict_json::parse(input)?)?;
-    apply_json(input, |timer, history, commands, now| {
+    let value = crate::strict_json::parse(input)?;
+    crate::timer::workspace::validate_native_device(&value)?;
+    Ok(apply_observed_value(value, observation)?.to_string())
+}
+
+pub(crate) fn apply_observed_value(
+    input: serde_json::Value,
+    observation: &crate::timer::workspace::observation::Observation<'_>,
+) -> Result<serde_json::Value, CoreError> {
+    crate::timer::workspace::validate_native_device(&input)?;
+    apply_value(input, |timer, history, commands, now| {
         crate::timer::workspace::observation::replay(timer, history, commands, now, observation)
     })
 }
 
-pub(crate) fn apply_monotonic_workspace_json(
-    input: &str,
+pub(crate) fn apply_monotonic_value(
+    input: serde_json::Value,
     observed: &crate::timer::workspace::retarget_observation::RunningTimer,
-) -> Result<String, CoreError> {
-    crate::timer::workspace::validate_native_device(&crate::strict_json::parse(input)?)?;
-    apply_json(input, |timer, history, commands, now| {
+) -> Result<serde_json::Value, CoreError> {
+    crate::timer::workspace::validate_native_device(&input)?;
+    apply_value(input, |timer, history, commands, now| {
         crate::timer::workspace::retarget_observation::replay(
             timer, history, commands, now, observed,
         )
     })
+}
+
+fn apply_value(
+    input: serde_json::Value,
+    replay_timer: impl FnOnce(
+        Option<CanonicalTimer>,
+        Vec<HistoryItem>,
+        Vec<WireCommand>,
+        &str,
+    ) -> Result<crate::timer::TimerReductionOutput, CoreError>,
+) -> Result<serde_json::Value, CoreError> {
+    validate_projection_shape(&input)?;
+    let input: ProjectionApplyInput = serde_json::from_value(input)?;
+    validate_base_durations(&input.base.durations_ms)?;
+    validate_projection_input(&input)?;
+    Ok(serde_json::to_value(project(input, replay_timer)?)?)
 }
 
 fn apply_json(
@@ -113,11 +146,7 @@ fn apply_json(
     ) -> Result<crate::timer::TimerReductionOutput, CoreError>,
 ) -> Result<String, CoreError> {
     let value = crate::strict_json::parse(input)?;
-    validate_projection_shape(&value)?;
-    let input: ProjectionApplyInput = serde_json::from_value(value)?;
-    validate_base_durations(&input.base.durations_ms)?;
-    validate_projection_input(&input)?;
-    Ok(serde_json::to_string(&project(input, replay_timer)?)?)
+    Ok(apply_value(value, replay_timer)?.to_string())
 }
 
 fn project(

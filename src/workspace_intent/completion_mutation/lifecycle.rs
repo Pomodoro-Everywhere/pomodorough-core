@@ -43,10 +43,15 @@ pub(super) fn project(input: &Input, workspace: &Value, now: &str) -> Result<Val
     let result = if input.replication_mode == ReplicationMode::Centralized {
         safe
     } else {
-        let raw = json!({"base": workspace["base"], "pending": workspace["local"], "now": now});
-        json!({"workspace": serde_json::from_str::<Value>(
-            &crate::projection::apply_workspace_json(&raw.to_string())?)?,
-            "projectionPending": workspace["local"]})
+        let mut request = serde_json::Map::with_capacity(3);
+        request.insert("base".into(), workspace["base"].clone());
+        request.insert("pending".into(), workspace["local"].clone());
+        request.insert("now".into(), json!(now));
+        let applied = crate::projection::apply_workspace_value(serde_json::Value::Object(request))?;
+        let mut output = serde_json::Map::with_capacity(2);
+        output.insert("workspace".into(), applied);
+        output.insert("projectionPending".into(), workspace["local"].clone());
+        serde_json::Value::Object(output)
     };
     Ok(result)
 }

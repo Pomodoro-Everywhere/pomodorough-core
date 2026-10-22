@@ -27,24 +27,27 @@ pub(in crate::workspace_intent) fn observed(
         ),
         ReplayDomains::Retained => &workspace["local"],
     };
-    let input = json!({"base": workspace["base"], "pending": pending, "now": now});
+    let mut input = serde_json::Map::with_capacity(3);
+    input.insert("base".into(), workspace["base"].clone());
+    input.insert("pending".into(), pending.clone());
+    input.insert("now".into(), json!(now));
     let projected = if profile == Compatibility::PwaStorage {
         match &observation.running_timer {
-            Some(timer) => {
-                crate::projection::apply_monotonic_workspace_json(&input.to_string(), timer)?
-            }
-            None => crate::projection::apply_workspace_json(&input.to_string())?,
+            Some(timer) => crate::projection::apply_monotonic_value(Value::Object(input), timer)?,
+            None => crate::projection::apply_workspace_value(Value::Object(input))?,
         }
     } else {
         let observation = crate::timer::workspace::observation::Observation {
             canonical_anchor_at: observation.canonical_anchor_at.as_deref(),
             command_times: &observation.command_times,
         };
-        crate::projection::apply_observed_workspace_json(&input.to_string(), &observation)?
+        crate::projection::apply_observed_value(Value::Object(input), &observation)?
     };
-    Ok(
-        json!({"workspace": serde_json::from_str::<Value>(&projected)?, "projectionPending": pending}),
-    )
+    // Map inserts move the large base subtree; json! would clone it.
+    let mut output = serde_json::Map::with_capacity(2);
+    output.insert("workspace".into(), projected);
+    output.insert("projectionPending".into(), pending.clone());
+    Ok(Value::Object(output))
 }
 
 pub(super) fn apple_replay_time(

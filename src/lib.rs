@@ -148,6 +148,53 @@ pub enum CoreError {
     InvalidInput(String),
 }
 
+/// Move a required field out without a Null fallback. History stays owned by
+/// the returned value, never truncated. The error carries only operation,
+/// byte-length, and row-count context, never field contents or titles.
+pub(crate) fn take_required_field(
+    root: &mut serde_json::Value,
+    field: &'static str,
+    op: &'static str,
+    history: usize,
+    queued: usize,
+) -> Result<serde_json::Value, CoreError> {
+    match root.get_mut(field).map(serde_json::Value::take) {
+        Some(value) => Ok(value),
+        None => {
+            let bytes = serde_json::to_string(&root)
+                .map(|body| body.len())
+                .unwrap_or(0);
+            Err(CoreError::InvalidInput(format!(
+                "missing required workspace field op={op} field={field} \
+                 history={history} queued={queued} bytes={bytes}"
+            )))
+        }
+    }
+}
+
+/// Move the composed `workspace` out of a projection envelope. A missing or
+/// Null workspace previously flowed downstream as Null and failed later as a
+/// generic type error; fail here with operation and count context instead.
+pub(crate) fn take_projection_workspace(
+    output: &mut serde_json::Value,
+    op: &'static str,
+    history: usize,
+    queued: usize,
+) -> Result<serde_json::Value, CoreError> {
+    match output.get_mut("workspace").map(serde_json::Value::take) {
+        Some(workspace) if !workspace.is_null() => Ok(workspace),
+        _ => {
+            let bytes = serde_json::to_string(&output)
+                .map(|body| body.len())
+                .unwrap_or(0);
+            Err(CoreError::InvalidInput(format!(
+                "missing projection workspace op={op} \
+                 history={history} queued={queued} bytes={bytes}"
+            )))
+        }
+    }
+}
+
 pub fn dispatch_envelope_json(operation: &str, input: &str) -> String {
     match dispatch_json(operation, input) {
         Ok(value) => {
@@ -217,5 +264,54 @@ pub fn dispatch_json(operation: &str, input: &str) -> Result<String, CoreError> 
         "hlc.tick.v1" => clock::tick_json(input),
         "uuidv7.fromParts.v1" => clock::uuid_v7_from_parts_json(input),
         other => Err(CoreError::UnsupportedOperation(other.to_owned())),
+    }
+}
+
+#[cfg(test)]
+mod sweep_helper_tests {
+    use super::{take_projection_workspace, take_required_field};
+    use serde_json::{Value, json};
+
+    #[test]
+    fn missing_field_reports_operation_and_counts_without_contents() {
+        let mut root = json!({"unrelated": [{"title": "SweepSecretTitle-7f3a"}]});
+        let error = take_required_field(&mut root, "base", "op.test", 3, 2)
+            .unwrap_err()
+            .to_string();
+        assert!(error.contains("op=op.test"), "{error}");
+        assert!(error.contains("field=base"), "{error}");
+        assert!(error.contains("history=3"), "{error}");
+        assert!(error.contains("queued=2"), "{error}");
+        assert!(error.contains("bytes="), "{error}");
+        assert!(!error.contains("SweepSecretTitle-7f3a"), "{error}");
+    }
+
+    #[test]
+    fn present_field_moves_by_value_without_truncation() {
+        let mut root = json!({"base": {"history": [1, 2, 3]}});
+        let moved = take_required_field(&mut root, "base", "op.test", 3, 0).unwrap();
+        assert_eq!(moved, json!({"history": [1, 2, 3]}));
+        assert!(root["base"].is_null());
+    }
+
+    #[test]
+    fn missing_or_null_workspace_reports_operation_and_counts() {
+        for output in [json!({}), json!({"workspace": Value::Null})] {
+            let mut output = output;
+            let error = take_projection_workspace(&mut output, "op.test", 5, 1)
+                .unwrap_err()
+                .to_string();
+            assert!(error.contains("op=op.test"), "{error}");
+            assert!(error.contains("history=5"), "{error}");
+            assert!(error.contains("queued=1"), "{error}");
+        }
+    }
+
+    #[test]
+    fn present_workspace_moves_by_value() {
+        let mut output = json!({"workspace": {"history": [1, 2]}, "other": true});
+        let moved = take_projection_workspace(&mut output, "op.test", 2, 0).unwrap();
+        assert_eq!(moved, json!({"history": [1, 2]}));
+        assert!(output["workspace"].is_null());
     }
 }

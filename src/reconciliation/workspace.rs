@@ -13,6 +13,9 @@ pub(crate) mod display;
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct Input {
+    // Moved out before typed decode so the full base history is never
+    // duplicated; shape checks still run on the complete request first.
+    // The placeholder decodes here but planning uses the moved value.
     base: Value,
     local: LocalQueues,
     canonical_head: RequiredNullable<Head>,
@@ -36,16 +39,23 @@ fn empty_proof() -> Value {
 }
 
 pub(crate) fn project_json(input: &str) -> Result<String, CoreError> {
-    project_observed_json(input, None)
+    Ok(project_value(crate::strict_json::parse(input)?)?.to_string())
 }
 
-pub(crate) fn project_observed_json(
-    input: &str,
+pub(crate) fn project_value(input: Value) -> Result<Value, CoreError> {
+    project_observed_value(input, None)
+}
+
+pub(crate) fn project_observed_value(
+    raw: Value,
     observed: Option<&crate::timer::workspace::retarget_observation::RunningTimer>,
-) -> Result<String, CoreError> {
-    let raw = crate::strict_json::parse(input)?;
+) -> Result<Value, CoreError> {
+    let mut raw = raw;
     validate_shape(&raw)?;
-    let input: Input = serde_json::from_value(raw.clone())?;
+    let (base, context) = take_base_and_context(&mut raw)?;
+    let local_value = raw["local"].clone();
+    let input: Input = serde_json::from_value(raw)?;
+    let _ = &input.base;
     let head = input
         .canonical_head
         .0
@@ -56,55 +66,159 @@ pub(crate) fn project_observed_json(
     validation::local_queue_ids(&input.local)?;
     super::clocks::validate_local(&input.local)?;
     timer_dependencies::validate_retained(&input.local.commands, &input.timer_dependencies)?;
-    let policy = delivery::Policy::from_queues(&raw["local"], &json!({}), &input.never_sent)?;
+    let policy = delivery::Policy::from_queues(&local_value, &json!({}), &input.never_sent)?;
     let pending = pending_queues(input.local);
     let projected = policy.project_queues(&pending, head)?;
-    let safe = raw_projection_queues(&raw["local"], &projected)?;
-    project_display(&raw, &input.base, &input.now, safe, observed)
+    let safe = raw_projection_queues(&local_value, &projected)?;
+    project_display_value(
+        DisplayProjection {
+            base,
+            local: local_value,
+            context,
+            never_sent: input.never_sent,
+            head,
+            safe,
+        },
+        &input.now,
+        observed,
+    )
 }
 
-fn project_display(
-    raw: &Value,
-    base: &Value,
-    now: &str,
+struct DisplayProjection {
+    base: Value,
+    local: Value,
+    context: Option<Value>,
+    never_sent: Value,
+    head: Option<(i64, i64)>,
     safe: Value,
+}
+
+fn take_base_and_context(raw: &mut Value) -> Result<(Value, Option<Value>), CoreError> {
+    // Move exact subtrees out before typed decode. The base history must
+    // never duplicate; local queues keep their missing/null/value form for
+    // the whole pipeline. Placeholders preserve field checks in decode.
+    // Counts and byte length stay numeric in the error; contents never log.
+    let history = raw["base"]["history"].as_array().map(Vec::len).unwrap_or(0);
+    let queued = raw
+        .get("local")
+        .and_then(Value::as_object)
+        .map(|queues| {
+            queues
+                .values()
+                .map(|queue| queue.as_array().map(Vec::len).unwrap_or(0))
+                .sum()
+        })
+        .unwrap_or(0);
+    let base = crate::take_required_field(raw, "base", "workspace.projection", history, queued)?;
+    // displayContext presence is semantic: absent stays absent so the
+    // no-context contract path keeps working.
+    let context = if raw.get("displayContext").is_some() {
+        Some(crate::take_required_field(
+            raw,
+            "displayContext",
+            "workspace.projection",
+            history,
+            queued,
+        )?)
+    } else {
+        None
+    };
+    Ok((base, context))
+}
+
+fn project_display_value(
+    request: DisplayProjection,
+    now: &str,
     observed: Option<&crate::timer::workspace::retarget_observation::RunningTimer>,
-) -> Result<String, CoreError> {
-    let mut projection = json!({"base": base, "pending": raw["local"], "now": now});
-    // Validate every retained payload through the existing production reducers,
-    // including domains excluded from display. Filtering must not hide corruption.
-    let complete = apply_projection(&projection, observed)?;
-    let stored = display::stored(raw)?;
+) -> Result<Value, CoreError> {
+    let (base, root, safe) = display_workspace_root(request);
+    let (stored, selected) = select_display_queues(&root, &safe)?;
+    let workspace = project_selected_queues(base, &root, selected.clone(), now, observed)?;
+    let mut result_map = serde_json::Map::with_capacity(3);
+    result_map.insert("projectionPending".into(), safe);
+    result_map.insert("workspace".into(), workspace);
+    if stored.is_some() {
+        result_map.insert("displayContext".into(), display::context(selected));
+    }
+    Ok(Value::Object(result_map))
+}
+
+fn display_workspace_root(request: DisplayProjection) -> (Value, Value, Value) {
+    // Small root for delivery/display lookups; the large base moves by
+    // value into each projection request and is never cloned. Map inserts
+    // move ownership; the json! macro would clone through serialization.
+    // Delivery admission reads neverSent and canonicalHead from this root,
+    // so both travel alongside the exact local queues.
+    let DisplayProjection {
+        base,
+        local,
+        context,
+        never_sent,
+        head,
+        safe,
+    } = request;
+    let mut root_map = serde_json::Map::with_capacity(4);
+    root_map.insert("local".into(), local);
+    if let Some(context) = context {
+        root_map.insert("displayContext".into(), context);
+    }
+    root_map.insert("neverSent".into(), never_sent);
+    root_map.insert(
+        "canonicalHead".into(),
+        head.map_or(
+            Value::Null,
+            |(wall, counter)| json!({"wallMs": wall, "counter": counter}),
+        ),
+    );
+    (base, Value::Object(root_map), safe)
+}
+
+fn select_display_queues(root: &Value, safe: &Value) -> Result<(Option<Value>, Value), CoreError> {
+    let stored = display::stored(root)?;
     let selected = if stored.is_some() {
-        display::queues(raw, stored.as_ref())?
+        display::queues(root, stored.as_ref())?
     } else {
         safe.clone()
     };
-    let workspace = if selected == raw["local"] {
-        complete
-    } else {
-        projection["pending"] = selected.clone();
-        apply_projection(&projection, observed)?
-    };
-    let mut result = json!({
-        "projectionPending": safe,
-        "workspace": serde_json::from_str::<Value>(&workspace)?
-    });
-    if stored.is_some() {
-        result["displayContext"] = display::context(selected);
-    }
-    Ok(result.to_string())
+    Ok((stored, selected))
 }
 
-fn apply_projection(
-    projection: &Value,
+fn project_selected_queues(
+    base: Value,
+    root: &Value,
+    selected: Value,
+    now: &str,
     observed: Option<&crate::timer::workspace::retarget_observation::RunningTimer>,
-) -> Result<String, CoreError> {
+) -> Result<Value, CoreError> {
+    // Validate every retained payload through the existing production reducers,
+    // including domains excluded from display. Filtering must not hide
+    // corruption. The retained check runs first so its errors keep precedence.
+    if selected == root["local"] {
+        let projection = projection_request(base, selected, now);
+        apply_projection_value(projection, observed)
+    } else {
+        let retained = projection_request(base.clone(), root["local"].clone(), now);
+        apply_projection_value(retained, observed)?;
+        let projection = projection_request(base, selected, now);
+        apply_projection_value(projection, observed)
+    }
+}
+
+fn projection_request(base: Value, pending: Value, now: &str) -> Value {
+    let mut map = serde_json::Map::with_capacity(3);
+    map.insert("base".into(), base);
+    map.insert("pending".into(), pending);
+    map.insert("now".into(), Value::String(now.to_owned()));
+    Value::Object(map)
+}
+
+fn apply_projection_value(
+    projection: Value,
+    observed: Option<&crate::timer::workspace::retarget_observation::RunningTimer>,
+) -> Result<Value, CoreError> {
     match observed {
-        Some(observed) => {
-            crate::projection::apply_monotonic_workspace_json(&projection.to_string(), observed)
-        }
-        None => crate::projection::apply_workspace_json(&projection.to_string()),
+        Some(observed) => crate::projection::apply_monotonic_value(projection, observed),
+        None => crate::projection::apply_workspace_value(projection),
     }
 }
 

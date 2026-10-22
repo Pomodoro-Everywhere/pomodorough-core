@@ -4,7 +4,7 @@ use super::model::{Allocation, CommandKind, Compatibility as C, Input, Intent};
 use super::{CoreError, admission, allocation, append, invalid, monotonic, projection};
 
 struct Plan<'a> {
-    input: &'a Input,
+    input: &'a mut Input,
     workspace: Value,
     allocation: Allocation,
     observation: super::model::Observation,
@@ -13,53 +13,132 @@ struct Plan<'a> {
     retired_duration_ids: Vec<String>,
 }
 
-pub(super) fn plan(input: &Input) -> Result<String, CoreError> {
+fn intent_name(intent: &Intent) -> &'static str {
+    match intent {
+        Intent::UpsertTask { .. } => "upsertTask",
+        Intent::AddAndSelectTask { .. } => "addAndSelectTask",
+        Intent::DeleteTask { .. } => "deleteTask",
+        Intent::SelectTask { .. } => "selectTask",
+        Intent::SetDuration { .. } => "setDuration",
+        Intent::ChangeDuration { .. } => "changeDuration",
+        Intent::SetAutoStart { .. } => "setAutoStart",
+        _ => "timerIntent",
+    }
+}
+
+fn base_history_len(plan: &Plan<'_>) -> usize {
+    plan.workspace["base"]["history"]
+        .as_array()
+        .map(Vec::len)
+        .unwrap_or(0)
+}
+
+fn queued_total(plan: &Plan<'_>) -> usize {
+    [
+        "commands",
+        "taskOperations",
+        "durationOperations",
+        "autoStartOperations",
+        "selectedTaskOperations",
+    ]
+    .iter()
+    .map(|name| plan.operations[name].as_array().map(Vec::len).unwrap_or(0))
+    .sum()
+}
+
+pub(super) fn plan(input: &mut Input) -> Result<String, CoreError> {
     validate_boundaries(input)?;
     let (safe, observation) = monotonic::before(input)?;
     let before = projection::entrypoint(input, &safe, &observation, &input.clock.physical_now)?;
+    let workspace = input.workspace.clone();
+    let allocation = input.allocation.clone();
     let mut plan = Plan {
         input,
-        workspace: input.workspace.clone(),
-        allocation: input.allocation.clone(),
+        workspace,
+        allocation,
         observation,
         operations: empty_queues(),
         index: 0,
         retired_duration_ids: Vec::new(),
     };
-    match &input.intent {
-        Intent::UpsertTask { title } => plan.upsert(title, false, &before)?,
-        Intent::AddAndSelectTask { title } => plan.upsert(title, true, &before)?,
-        Intent::DeleteTask { task_id } => plan.delete(task_id, &before)?,
-        Intent::SelectTask { task_id } => plan.select(task_id.0.as_deref(), &before)?,
+    dispatch_mutation_intent(&mut plan, &before)?;
+    drop(before);
+    release_staged_base(&mut plan);
+    output_with_prior_policy(plan, safe)
+}
+
+fn dispatch_mutation_intent(plan: &mut Plan<'_>, before: &Value) -> Result<(), CoreError> {
+    match plan.input.intent.clone() {
+        Intent::UpsertTask { title } => plan.upsert(&title, false, before)?,
+        Intent::AddAndSelectTask { title } => plan.upsert(&title, true, before)?,
+        Intent::DeleteTask { task_id } => plan.delete(&task_id, before)?,
+        Intent::SelectTask { task_id } => plan.select(task_id.0.as_deref(), before)?,
         Intent::SetDuration { phase, minutes } => {
-            if input.compatibility == C::AndroidCoordinator {
+            if plan.input.compatibility == C::AndroidCoordinator {
                 return Err(invalid("absolute duration is not an Android entrypoint"));
             }
-            let minutes = if input.compatibility == C::AppleWorkspace {
-                (*minutes).clamp(1, 180)
+            let minutes = if plan.input.compatibility == C::AppleWorkspace {
+                minutes.clamp(1, 180)
             } else {
-                if !(1..=180).contains(minutes) {
+                if !(1..=180).contains(&minutes) {
                     return Err(invalid("invalid duration range"));
                 }
-                *minutes
+                minutes
             };
-            plan.duration(phase.name(), minutes * 60_000, &before)?;
+            plan.duration(phase.name(), minutes * 60_000, before)?;
         }
         Intent::ChangeDuration { phase, delta } => {
-            if input.compatibility != C::AndroidCoordinator {
+            if plan.input.compatibility != C::AndroidCoordinator {
                 return Err(invalid("relative duration is Android-only"));
             }
-            let current = input.local_durations_ms.as_ref().unwrap()[phase.name()];
+            let current = plan.input.local_durations_ms.as_ref().unwrap()[phase.name()];
             plan.duration(
                 phase.name(),
-                ((current / 60_000) as i128 + *delta as i128).clamp(1, 180) as i64 * 60_000,
-                &before,
+                ((current / 60_000) as i128 + delta as i128).clamp(1, 180) as i64 * 60_000,
+                before,
             )?;
         }
-        Intent::SetAutoStart { enabled } => plan.auto_start(*enabled, &before)?,
-        _ => unreachable!("workspace mutation routed above"),
+        Intent::SetAutoStart { enabled } => plan.auto_start(enabled, before)?,
+        _ => {
+            let history = base_history_len(plan);
+            let queued = queued_total(plan);
+            return Err(CoreError::InvalidInput(format!(
+                "unsupported workspace mutation intent op=workspace.intent.v1 intent={} history={history} queued={queued}",
+                intent_name(&plan.input.intent),
+            )));
+        }
     }
-    plan.output(&safe)
+    Ok(())
+}
+
+fn release_staged_base(plan: &mut Plan<'_>) {
+    // Operations may re-project the live request workspace for selection
+    // admission, so the staged base stays until they complete. The output
+    // tail only consults retained queues, except a monotonic retarget check
+    // that cannot run without a live anchor.
+    if plan.observation.running_timer.is_none() {
+        let staged: &mut Input = &mut *plan.input;
+        drop(std::mem::replace(
+            &mut staged.workspace["base"],
+            serde_json::Value::Null,
+        ));
+    }
+}
+
+fn output_with_prior_policy(plan: Plan<'_>, safe: Value) -> Result<String, CoreError> {
+    // The prior workspace is only read for unchanged display and for the
+    // monotonic running-timer branch. Release it before the output tail
+    // when neither can observe it.
+    let keep_before = plan.index == 0
+        || (plan.input.compatibility == C::PwaStorage
+            && plan.input.clock.monotonic_now_ms.is_some()
+            && safe["canonicalTimer"]["status"] == "running");
+    if keep_before {
+        plan.output(Some(&safe))
+    } else {
+        drop(safe);
+        plan.output(None)
+    }
 }
 
 fn validate_boundaries(input: &Input) -> Result<(), CoreError> {
@@ -414,12 +493,12 @@ impl Plan<'_> {
         self.operation("autoStartOperations", json!({"enabled": enabled}))
     }
 
-    fn output(mut self, before: &Value) -> Result<String, CoreError> {
+    fn output(mut self, before: Option<&Value>) -> Result<String, CoreError> {
         let changed = self.index != 0;
         let after = self.display_after(before)?;
         let admission_now = if self.input.compatibility == C::PwaStorage
             && self.input.clock.monotonic_now_ms.is_some()
-            && before["canonicalTimer"]["status"] == "running"
+            && before.is_some_and(|before| before["canonicalTimer"]["status"] == "running")
         {
             self.display_now(before, self.operations["commands"].as_array().unwrap())?
         } else {
@@ -434,48 +513,107 @@ impl Plan<'_> {
         )?;
         let outcomes = self.group_outcomes(&after);
         monotonic::after(self.input, &after, &mut self.observation)?;
+        self.assemble_mutation_envelope(after, outcomes, changed)
+    }
+
+    fn assemble_mutation_envelope(
+        mut self,
+        after: Value,
+        outcomes: Value,
+        changed: bool,
+    ) -> Result<String, CoreError> {
         let ids = self.operation_ids();
         let durable = self.durable_operations();
         let effects = self.effects_after_commit();
         let commands = self.operations["commands"].clone();
-        Ok(json!({"schemaVersion": 1, "outcome": if changed {"planned"} else {"noop"},
-            "reason": if changed {""} else {"unchangedOrIneligible"},
-            "workspace": self.workspace, "selection": self.input.selection,
-            "allocation": self.allocation, "observation": self.observation,
-            "commands": commands, "atomicCommandIds": ids["commands"],
-            "operations": self.operations, "durableOperations": durable, "atomicOperationIds": ids,
-            "retiredDurationOperationIds": self.retired_duration_ids,
-            "groupOutcomes": outcomes, "ownershipWrites": [],
-            "projection": after, "timerObservation": monotonic::timer_observation(self.input, &after, &self.observation)?,
-            "effectsAfterCommit": effects}).to_string())
+        let timer_observation =
+            monotonic::timer_observation(self.input, &after, &self.observation)?;
+        let atomic_commands = ids["commands"].clone();
+        // Map inserts move large subtrees; the json! macro would clone them.
+        let mut output = serde_json::Map::with_capacity(16);
+        output.insert("schemaVersion".into(), json!(1));
+        output.insert(
+            "outcome".into(),
+            json!(if changed { "planned" } else { "noop" }),
+        );
+        output.insert(
+            "reason".into(),
+            json!(if changed { "" } else { "unchangedOrIneligible" }),
+        );
+        output.insert(
+            "workspace".into(),
+            std::mem::replace(&mut self.workspace, json!(null)),
+        );
+        output.insert("selection".into(), json!(self.input.selection));
+        output.insert("allocation".into(), json!(self.allocation));
+        output.insert("observation".into(), json!(self.observation));
+        output.insert("commands".into(), commands);
+        output.insert("atomicCommandIds".into(), atomic_commands);
+        output.insert(
+            "operations".into(),
+            std::mem::replace(&mut self.operations, json!(null)),
+        );
+        output.insert("durableOperations".into(), durable);
+        output.insert("atomicOperationIds".into(), ids);
+        output.insert(
+            "retiredDurationOperationIds".into(),
+            json!(self.retired_duration_ids),
+        );
+        output.insert("groupOutcomes".into(), outcomes);
+        output.insert("ownershipWrites".into(), json!([]));
+        output.insert("projection".into(), after);
+        output.insert("timerObservation".into(), timer_observation);
+        output.insert("effectsAfterCommit".into(), json!(effects));
+        Ok(serde_json::Value::Object(output).to_string())
     }
 
-    fn display_after(&self, before: &Value) -> Result<Value, CoreError> {
+    fn display_after(&self, before: Option<&Value>) -> Result<Value, CoreError> {
         if self.index == 0 {
+            let Some(before) = before else {
+                let bytes = self.operations.to_string().len();
+                return Err(CoreError::InvalidInput(format!(
+                    "unchanged workspace display requires the prior workspace \
+                     op=workspace.intent.v1 index=0 history={} queued={} bytes={bytes}",
+                    base_history_len(self),
+                    queued_total(self),
+                )));
+            };
             return Ok(before.clone());
         }
         let commands = self.operations["commands"].as_array().unwrap();
         let now = self.display_now(before, commands)?;
-        Ok(projection::observed(
+        let mut observed = projection::observed(
             &self.workspace,
             &self.observation,
             self.input.compatibility,
             projection::ReplayDomains::Safe,
             &now,
-        )?["workspace"]
-            .clone())
+        )?;
+        crate::take_projection_workspace(
+            &mut observed,
+            "workspace.intent.v1",
+            base_history_len(self),
+            queued_total(self),
+        )
     }
 
-    fn display_now(&self, before: &Value, commands: &[Value]) -> Result<String, CoreError> {
+    fn display_now(&self, before: Option<&Value>, commands: &[Value]) -> Result<String, CoreError> {
         if self.input.compatibility == C::PwaStorage
             && self.input.clock.monotonic_now_ms.is_some()
-            && before["canonicalTimer"]["status"] == "running"
+            && before.is_some_and(|before| before["canonicalTimer"]["status"] == "running")
         {
-            return monotonic::entrypoint_time(
-                self.input,
-                &before["canonicalTimer"],
-                &self.observation,
-            );
+            let timer = before
+                .and_then(|before| before.get("canonicalTimer"))
+                .filter(|timer| timer["status"] == "running")
+                .ok_or_else(|| {
+                    CoreError::InvalidInput(format!(
+                        "missing running canonical timer op=workspace.intent.v1 \
+                         history={} queued={}",
+                        base_history_len(self),
+                        queued_total(self),
+                    ))
+                })?;
+            return monotonic::entrypoint_time(self.input, timer, &self.observation);
         }
         if !commands.is_empty() {
             return Ok(projection::after_time(self.input, commands));

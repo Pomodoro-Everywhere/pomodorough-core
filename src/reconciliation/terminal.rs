@@ -77,16 +77,24 @@ fn display_after(
     output: &mut Value,
 ) -> Result<Value, CoreError> {
     let Some(stored) = stored else {
-        let projection = json!({"base":base, "pending":output["projectionPending"],
-            "now":raw["response"]["serverTime"]});
-        return Ok(serde_json::from_str(
-            &crate::projection::apply_workspace_json(&projection.to_string())?,
-        )?);
+        let mut request = serde_json::Map::with_capacity(3);
+        request.insert("base".into(), base.clone());
+        request.insert("pending".into(), output["projectionPending"].clone());
+        request.insert("now".into(), raw["response"]["serverTime"].clone());
+        return crate::projection::apply_workspace_value(serde_json::Value::Object(request));
     };
     let local: Value = FIELDS
         .iter()
         .map(|(queue, field)| ((*queue).to_owned(), output[*field].clone()))
         .collect();
+    let proof = never_sent_proof(raw, &local);
+    let request = terminal_projection_request(base, local, proof, raw, output, &stored);
+    let mut projected = super::workspace::project_value(serde_json::Value::Object(request))?;
+    output["displayContext"] = projected["displayContext"].take();
+    Ok(projected["workspace"].take())
+}
+
+fn never_sent_proof(raw: &Value, local: &Value) -> Value {
     let mut proof = json!({});
     for name in delivery::QUEUES {
         proof[name] = json!(
@@ -102,14 +110,38 @@ fn display_after(
                 .collect::<Vec<_>>()
         );
     }
-    let request = json!({"base": base, "local": local, "neverSent": proof,
-        "canonicalHead": {"wallMs": raw["response"]["serverHlcWallMs"], "counter": raw["response"]["serverHlcCounter"]},
-        "timerDependencies": output["pendingTimerDependencies"], "now": raw["response"]["serverTime"],
-        "displayContext": super::workspace::display::context(super::workspace::display::trim(&stored, &local))});
-    let projected: Value =
-        serde_json::from_str(&super::workspace::project_json(&request.to_string())?)?;
-    output["displayContext"] = projected["displayContext"].clone();
-    Ok(projected["workspace"].clone())
+    proof
+}
+
+fn terminal_projection_request(
+    base: &Value,
+    local: Value,
+    proof: Value,
+    raw: &Value,
+    output: &Value,
+    stored: &Value,
+) -> serde_json::Map<String, Value> {
+    let mut request = serde_json::Map::with_capacity(8);
+    request.insert("base".into(), base.clone());
+    request.insert("local".into(), local);
+    request.insert("neverSent".into(), proof);
+    request.insert(
+        "canonicalHead".into(),
+        json!({"wallMs": raw["response"]["serverHlcWallMs"], "counter": raw["response"]["serverHlcCounter"]}),
+    );
+    request.insert(
+        "timerDependencies".into(),
+        output["pendingTimerDependencies"].clone(),
+    );
+    request.insert("now".into(), raw["response"]["serverTime"].clone());
+    request.insert(
+        "displayContext".into(),
+        super::workspace::display::context(super::workspace::display::trim(
+            stored,
+            &request["local"],
+        )),
+    );
+    request
 }
 
 fn canonical_base(response: &Value) -> Value {

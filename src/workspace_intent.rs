@@ -26,22 +26,25 @@ pub(crate) fn plan_json(raw: &str) -> Result<String, CoreError> {
 
 fn plan_raw(raw: &str) -> Result<String, CoreError> {
     let value = crate::strict_json::parse(raw)?;
-    let input = pwa_selection::parse(&value)?;
+    let mut input = pwa_selection::parse(&value)?;
     known_tasks::validate(&input, &value)?;
     validate_intent_metadata(&input, &value)?;
+    // The decoded input owns every planning field; release the request tree
+    // before the composed projections materialize full history copies.
+    drop(value);
     validate(&input)?;
     if let Some(lifecycle) = &input.lifecycle {
         completion_mutation::lifecycle_evidence(lifecycle, &input.workspace)?;
     }
     let result = if input.intent.is_workspace_mutation() {
-        mutation::plan(&input)?
+        mutation::plan(&mut input)?
     } else {
-        plan_timer(&input)?
+        plan_timer(&mut input)?
     };
     pwa_selection::with_lifecycle(&input, result)
 }
 
-fn plan_timer(input: &Input) -> Result<String, CoreError> {
+fn plan_timer(input: &mut Input) -> Result<String, CoreError> {
     let (before, observed) = monotonic::before(input)?;
     let decision = projection::entrypoint(input, &before, &observed, &input.clock.physical_now)?;
     let target = policy::target(input, &decision);
@@ -49,12 +52,18 @@ fn plan_timer(input: &Input) -> Result<String, CoreError> {
     let mut selection = policy::selection(input, &decision)?;
     let (workspace, allocation, mut observation, commands) =
         prepare_commands(input, &target, observed)?;
+    // The staged base history is fully installed in the prepared workspace;
+    // release the request copy before the composed tail runs.
+    let staged_base = std::mem::replace(&mut input.workspace["base"], Value::Null);
     if input.compatibility == Compatibility::AppleWorkspace
         && commands.iter().any(|command| command["type"] == "start")
     {
         selection.explicit = false;
     }
-    let after = projection::after(input, &before, &workspace, &observation, &commands)?;
+    let clear_timer = (matches!(input.intent, Intent::Clear)
+        && !before["canonicalTimer"].is_null())
+    .then(|| before["canonicalTimer"]["id"].clone());
+    let after = projection::after(input, before, &workspace, &observation, &commands)?;
     policy::after_commands(
         input,
         &decision,
@@ -62,22 +71,142 @@ fn plan_timer(input: &Input) -> Result<String, CoreError> {
         &commands,
         &mut selection,
     )?;
+    // Retarget evidence may replay the live request workspace, so stage the
+    // base back for that call and release it again immediately after.
+    input.workspace["base"] = staged_base;
     monotonic::after(input, &after["workspace"], &mut observation)?;
+    drop(std::mem::replace(&mut input.workspace["base"], Value::Null));
+    // Release the full pre-command trees before assembling the moved output.
+    drop(decision);
+    finish_timer_plan(
+        input,
+        TimerCompletion {
+            workspace,
+            allocation,
+            observation,
+            commands,
+            selection,
+            target,
+            after,
+            clear_timer,
+        },
+    )
+}
+
+struct TimerCompletion {
+    workspace: Value,
+    allocation: model::Allocation,
+    observation: model::Observation,
+    commands: Vec<Value>,
+    selection: model::Selection,
+    target: Value,
+    after: Value,
+    clear_timer: Option<Value>,
+}
+
+fn finish_timer_plan(input: &Input, completion: TimerCompletion) -> Result<String, CoreError> {
+    let TimerCompletion {
+        workspace,
+        allocation,
+        observation,
+        commands,
+        selection,
+        target,
+        mut after,
+        clear_timer,
+    } = completion;
     let changed = !commands.is_empty()
         || serde_json::to_value(&selection)? != serde_json::to_value(&input.selection)?;
-    let effects = effects(input, &commands, changed, &before)?;
-    Ok(
-        json!({"schemaVersion": 1, "outcome": if changed {"planned"} else {"noop"},
-        "reason": if changed {""} else {policy::no_change_reason(input, &target)},
-        "workspace": workspace, "selection": selection, "allocation": allocation,
-         "observation": observation, "commands": commands,
-         "commandOutcomes": admission::command_outcomes(&after["workspace"], &commands),
-         "timerObservation": monotonic::timer_observation(input, &after["workspace"], &observation)?,
-        "atomicCommandIds": commands.iter().map(|command| &command["id"]).collect::<Vec<_>>(),
-        "ownershipWrites": ownership_writes(input, &commands),
-        "projection": after["workspace"], "effectsAfterCommit": effects})
-        .to_string(),
-    )
+    let effects = effects(input, &commands, changed, clear_timer)?;
+    let reason = if changed {
+        String::new()
+    } else {
+        policy::no_change_reason(input, &target).to_owned()
+    };
+    let outcomes = admission::command_outcomes(&after["workspace"], &commands);
+    let timer_observation = monotonic::timer_observation(input, &after["workspace"], &observation)?;
+    let atomic_command_ids = serde_json::to_value(
+        commands
+            .iter()
+            .map(|command| &command["id"])
+            .collect::<Vec<_>>(),
+    )?;
+    let ownership_writes = serde_json::Value::from(ownership_writes(input, &commands));
+    let outcomes = serde_json::to_value(&outcomes)?;
+    drop(target);
+    let projection = after["workspace"].take();
+    assemble_timer_envelope(TimerEnvelope {
+        workspace,
+        allocation,
+        observation,
+        commands,
+        selection,
+        outcomes,
+        timer_observation,
+        atomic_command_ids,
+        ownership_writes,
+        projection,
+        reason,
+        effects,
+        changed,
+    })
+}
+
+struct TimerEnvelope {
+    workspace: Value,
+    allocation: model::Allocation,
+    observation: model::Observation,
+    commands: Vec<Value>,
+    selection: model::Selection,
+    outcomes: Value,
+    timer_observation: Value,
+    atomic_command_ids: Value,
+    ownership_writes: Value,
+    projection: Value,
+    reason: String,
+    effects: Vec<Value>,
+    changed: bool,
+}
+
+fn assemble_timer_envelope(envelope: TimerEnvelope) -> Result<String, CoreError> {
+    let TimerEnvelope {
+        workspace,
+        allocation,
+        observation,
+        commands,
+        selection,
+        outcomes,
+        timer_observation,
+        atomic_command_ids,
+        ownership_writes,
+        projection,
+        reason,
+        effects,
+        changed,
+    } = envelope;
+    // Map inserts move large subtrees; the json! macro would clone them.
+    let mut output = serde_json::Map::with_capacity(12);
+    output.insert("schemaVersion".into(), serde_json::Value::from(1));
+    output.insert(
+        "outcome".into(),
+        serde_json::Value::from(if changed { "planned" } else { "noop" }),
+    );
+    output.insert("reason".into(), serde_json::Value::from(reason));
+    output.insert("workspace".into(), workspace);
+    output.insert("selection".into(), serde_json::to_value(&selection)?);
+    output.insert("allocation".into(), serde_json::to_value(&allocation)?);
+    output.insert("observation".into(), serde_json::to_value(&observation)?);
+    output.insert("commands".into(), serde_json::Value::from(commands));
+    output.insert("commandOutcomes".into(), outcomes);
+    output.insert("timerObservation".into(), timer_observation);
+    output.insert("atomicCommandIds".into(), atomic_command_ids);
+    output.insert("ownershipWrites".into(), ownership_writes);
+    output.insert("projection".into(), projection);
+    output.insert(
+        "effectsAfterCommit".into(),
+        serde_json::Value::from(effects),
+    );
+    Ok(serde_json::Value::Object(output).to_string())
 }
 
 fn validate_intent_metadata(input: &Input, value: &Value) -> Result<(), CoreError> {
@@ -245,7 +374,7 @@ fn effects(
     input: &Input,
     commands: &[Value],
     changed: bool,
-    before: &Value,
+    clear_timer: Option<Value>,
 ) -> Result<Vec<Value>, CoreError> {
     if !changed {
         return Ok(vec![]);
@@ -272,10 +401,8 @@ fn effects(
             effects.push(effect);
         }
     }
-    if matches!(input.intent, Intent::Clear) && !before["canonicalTimer"].is_null() {
-        effects.push(
-            json!({"kind": "clearCompletionAlert", "timerId": before["canonicalTimer"]["id"]}),
-        );
+    if matches!(input.intent, Intent::Clear) && clear_timer.is_some() {
+        effects.push(json!({"kind": "clearCompletionAlert", "timerId": clear_timer}));
     }
     Ok(effects)
 }
