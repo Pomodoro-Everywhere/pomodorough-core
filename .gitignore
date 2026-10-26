@@ -17,3 +17,10 @@ __pycache__/
 coverage/
 lcov.info
 *.profraw
+.env.*
+build/
+.venv/
+*.key
+*.pem
+*.p8
+*.p12
