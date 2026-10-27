@@ -197,10 +197,8 @@ fn project_selected_queues(
         let projection = projection_request(base, selected, now);
         apply_projection_value(projection, observed)
     } else {
-        let retained = projection_request(base.clone(), root["local"].clone(), now);
-        apply_projection_value(retained, observed)?;
-        let projection = projection_request(base, selected, now);
-        apply_projection_value(projection, observed)
+        let retained = projection_request(base, root["local"].clone(), now);
+        crate::projection::apply_selected_workspace_value(retained, selected, observed)
     }
 }
 

@@ -4,6 +4,7 @@
     "tests/c2_round5_wasm_parity.mjs",
     "tests/c3_wasm_parity.mjs",
     "tests/c4_wasm_allocation_contract.mjs",
+    "tests/r53_c01_history_budget.mjs",
     "tests/wasm_abi_host.mjs"
   ],
   "historical": [

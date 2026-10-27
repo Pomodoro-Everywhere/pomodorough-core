@@ -19,7 +19,7 @@ struct ProjectionApplyInput {
     now: String,
 }
 
-#[derive(Deserialize)]
+#[derive(Clone, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct ProjectionBase {
     #[serde(default)]
@@ -118,6 +118,38 @@ pub(crate) fn apply_monotonic_value(
             timer, history, commands, now, observed,
         )
     })
+}
+
+pub(crate) fn apply_selected_workspace_value(
+    input: serde_json::Value,
+    selected: serde_json::Value,
+    observed: Option<&crate::timer::workspace::retarget_observation::RunningTimer>,
+) -> Result<serde_json::Value, CoreError> {
+    crate::timer::workspace::validate_native_device(&input)?;
+    validate_projection_shape(&input)?;
+    // Consume the raw history before replay. Only the compact typed base is
+    // duplicated; retained output is dropped without another JSON history tree.
+    let input: ProjectionApplyInput = serde_json::from_value(input)?;
+    validate_base_durations(&input.base.durations_ms)?;
+    validate_projection_input(&input)?;
+    let base = input.base.clone();
+    let now = input.now.clone();
+    let replay = |timer, history, commands, now: &str| match observed {
+        Some(observed) => crate::timer::workspace::retarget_observation::replay(
+            timer, history, commands, now, observed,
+        ),
+        None => crate::timer::workspace::replay(timer, history, commands, now),
+    };
+    project(input, replay)?;
+    let pending = crate::strict_json::object(&selected, "pending")?;
+    validate_queue_shape(pending, "pending")?;
+    let input = ProjectionApplyInput {
+        base,
+        pending: serde_json::from_value(selected)?,
+        now,
+    };
+    validate_projection_input(&input)?;
+    Ok(serde_json::to_value(project(input, replay)?)?)
 }
 
 fn apply_value(
