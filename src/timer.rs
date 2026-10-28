@@ -868,7 +868,8 @@ pub(crate) fn parse_time(value: &str) -> Result<DateTime<Utc>, CoreError> {
 
 pub(crate) fn format_time(value: &DateTime<Utc>) -> String {
     let mut result = value.format("%Y-%m-%dT%H:%M:%S").to_string();
-    let nanoseconds = value.nanosecond();
+    // Chrono stores the leap-second marker above the fractional nanoseconds.
+    let nanoseconds = value.nanosecond() % 1_000_000_000;
     if nanoseconds != 0 {
         let fraction = format!("{nanoseconds:09}").trim_end_matches('0').to_owned();
         result.push('.');
