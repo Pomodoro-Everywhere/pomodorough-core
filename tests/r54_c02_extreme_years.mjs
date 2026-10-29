@@ -114,6 +114,29 @@ function pwaObservation(anchor, now, wallMs) {
   return input;
 }
 
+// Apple adapter request whose retained start was physically observed 30
+// minutes after its canonical time, so the overlay shifts the paused anchor
+// by 30 minutes.
+function appleOverlay(replicationMode, anchorAt) {
+  const intentAt = "9999-12-31T23:00:00Z";
+  const physicalAt = "9999-12-31T23:30:00Z";
+  const wallMs = 253402297200000;
+  const input = structuredClone(intentFixture.request);
+  input.replicationMode = replicationMode;
+  input.intent = { kind: "selectPhase", phase: "focus" };
+  input.workspace.base.canonicalTimer = { ...intentFixture.timer, status: "paused", anchorAt,
+    lastIntent: { type: "start", commandId: "retained-start", occurredAt: intentAt } };
+  input.workspace.local.commands = [{ id: "retained-start", deviceId: "device-local", deviceSequence: 6,
+    timerId: "existing-timer", type: "start", phase: "focus", plannedDurationMs: 60000, occurredAt: intentAt,
+    hlcWallMs: wallMs, hlcCounter: 0, observedElapsedMs: 0 }];
+  input.workspace.canonicalHead = { wallMs, counter: 0 };
+  input.allocation.hlc = { wallMs, counter: 0 };
+  input.observation = { canonicalAnchorAt: null, commandTimes: { "retained-start": physicalAt } };
+  Object.assign(input.clock, { occurredAt: physicalAt, physicalNow: physicalAt, observedAt: physicalAt });
+  input.calendarIntervals = LAST_DAY;
+  return input;
+}
+
 const [terminal, terminalHistory] = completedPair("9999-12-31T23:30:00-01:00");
 const queued = workspace(null, [], "9999-12-31T23:59:59Z");
 queued.local.commands = [command("start", "9999-12-31T23:30:00-01:00")];
@@ -209,6 +232,13 @@ const rejections = [
   ["intent/observation-at-10000", "workspace.intent.v1",
     pwaObservation("9999-12-31T23:59:05Z", "9999-12-31T23:59:15Z", 253402300755000),
     "invalid shared-core input: monotonic timer observation out of range"],
+  // 23:30:00 shifts to exactly 10000-01-01T00:00:00Z. Centralized Apple
+  // replays at the shifted anchor, so parsing that replay time rejects it.
+  // Iroh replays at physical now, so only the session bound rejects it.
+  ["intent/apple-overlay-centralized-at-10000", "workspace.intent.v1",
+    appleOverlay("centralized", "9999-12-31T23:30:00Z"), "invalid RFC 3339 timestamp: +10000-01-01T00:00:00Z"],
+  ["intent/apple-overlay-iroh-at-10000", "workspace.intent.v1",
+    appleOverlay("iroh", "9999-12-31T23:30:00Z"), TIMER_OUT_OF_RANGE],
 ];
 
 const upperRunning = timer("9999-12-31T23:58:59.999999999Z", "running");
@@ -232,6 +262,8 @@ const accepted = {
     monotonic("9999-12-31T23:58:59.999Z", 253402300770000, 30099))],
   intentObservation: ["workspace.intent.v1",
     pwaObservation("9999-12-31T23:59:04.999Z", "9999-12-31T23:59:14.999Z", 253402300754999)],
+  appleOverlayCentralized: ["workspace.intent.v1", appleOverlay("centralized", "9999-12-31T23:29:59.999999999Z")],
+  appleOverlayIroh: ["workspace.intent.v1", appleOverlay("iroh", "9999-12-31T23:29:59.999999999Z")],
 };
 
 const acceptedNames = Object.keys(accepted);
@@ -301,6 +333,11 @@ check("readModelReplay", () => {
 check("intentObservation", () =>
   assert.deepEqual(first.intentObservation.timerObservation, { timerId: "existing-timer", elapsedMs: 15000,
     remainingMs: 45000, deadlineAt: "9999-12-31T23:59:59.999Z" }, "intent observation"));
+for (const name of ["appleOverlayCentralized", "appleOverlayIroh"]) {
+  check(name, () => assert.deepEqual(first[name].projection.canonicalTimer, { ...intentFixture.timer,
+    status: "paused", anchorAt: LAST_INSTANT,
+    lastIntent: { type: "start", commandId: "retained-start", occurredAt: "9999-12-31T23:00:00Z" } }, name));
+}
 
 // The legacy reducer rejects a timer that overlaps history, so reopen each
 // field alone; workspace reopens feed back the complete projected base, and
@@ -343,8 +380,8 @@ run(reopenPlan.map(reopenItem)).forEach(({ value }, index) => {
 });
 
 check("R54-C02 parity call counts", () => assert.deepEqual(calls, { "timer.reduce.v1": 28,
-  "workspace.project.v1": 15, "workspace.readModel.v1": 2, "workspace.intent.v1": 1, "timer.replay.page.v1": 5,
-  rejected: 31 }));
+  "workspace.project.v1": 15, "workspace.readModel.v1": 2, "workspace.intent.v1": 3, "timer.replay.page.v1": 5,
+  rejected: 33 }));
 const total = Object.values(calls).reduce((sum, count) => sum + count, 0);
 if (failures.length > 0) {
   console.error(failures.join("\n"));

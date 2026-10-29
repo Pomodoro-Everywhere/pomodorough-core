@@ -505,3 +505,62 @@ fn pwa_timer_observation_deadline_stays_inside_four_digit_years() {
             "deadlineAt": "9999-12-31T23:59:59.999Z"})
     );
 }
+
+/// Apple adapter request whose retained start was physically observed 30
+/// minutes after its canonical time, so the overlay shifts the paused
+/// anchor by 30 minutes.
+fn apple_overlay(replication_mode: &str, anchor: &str) -> Result<Value, String> {
+    const INTENT_AT: &str = "9999-12-31T23:00:00Z";
+    const PHYSICAL_AT: &str = "9999-12-31T23:30:00Z";
+    const INTENT_WALL_MS: i64 = 253_402_297_200_000;
+    let fixture: Value =
+        serde_json::from_str(include_str!("../fixtures/workspace-intent-v1.json")).unwrap();
+    let mut input = fixture["request"].clone();
+    input["replicationMode"] = json!(replication_mode);
+    input["intent"] = json!({"kind": "selectPhase", "phase": "focus"});
+    let mut timer = fixture["timer"].clone();
+    timer["status"] = json!("paused");
+    timer["anchorAt"] = json!(anchor);
+    timer["lastIntent"] =
+        json!({"type": "start", "commandId": "retained-start", "occurredAt": INTENT_AT});
+    input["workspace"]["base"]["canonicalTimer"] = timer;
+    input["workspace"]["local"]["commands"] = json!([{"id": "retained-start",
+        "deviceId": "device-local", "deviceSequence": 6, "timerId": "existing-timer",
+        "type": "start", "phase": "focus", "plannedDurationMs": 60000, "occurredAt": INTENT_AT,
+        "hlcWallMs": INTENT_WALL_MS, "hlcCounter": 0, "observedElapsedMs": 0}]);
+    input["workspace"]["canonicalHead"] = json!({"wallMs": INTENT_WALL_MS, "counter": 0});
+    input["allocation"]["hlc"] = json!({"wallMs": INTENT_WALL_MS, "counter": 0});
+    input["observation"] =
+        json!({"canonicalAnchorAt": null, "commandTimes": {"retained-start": PHYSICAL_AT}});
+    for field in ["occurredAt", "physicalNow", "observedAt"] {
+        input["clock"][field] = json!(PHYSICAL_AT);
+    }
+    input["calendarIntervals"] = serde_json::from_str(LAST_DAY).unwrap();
+    call("workspace.intent.v1", &input).map(|output| output["projection"]["canonicalTimer"].clone())
+}
+
+#[test]
+fn apple_observation_overlay_anchor_stays_inside_four_digit_years() {
+    // 23:30:00 shifts to exactly 10000-01-01T00:00:00Z. Centralized Apple
+    // replays at the shifted anchor, so parsing that replay time rejects it.
+    // Iroh replays at physical now, so only the session bound rejects it.
+    for (replication_mode, error) in [
+        (
+            "centralized",
+            "invalid RFC 3339 timestamp: +10000-01-01T00:00:00Z",
+        ),
+        ("iroh", TIMER_OUT_OF_RANGE),
+    ] {
+        let overflow = apple_overlay(replication_mode, "9999-12-31T23:30:00Z");
+        assert_eq!(overflow.unwrap_err(), error, "{replication_mode}");
+        let last = apple_overlay(replication_mode, "9999-12-31T23:29:59.999999999Z").unwrap();
+        assert_eq!(
+            last,
+            json!({"id": "existing-timer", "phase": "focus", "status": "paused",
+                "plannedDurationMs": 60000, "elapsedAtAnchorMs": 5000, "anchorAt": LAST_INSTANT,
+                "startedByDeviceId": "device-local", "lastIntent": {"type": "start",
+                    "commandId": "retained-start", "occurredAt": "9999-12-31T23:00:00Z"}}),
+            "{replication_mode}"
+        );
+    }
+}
