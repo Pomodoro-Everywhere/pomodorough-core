@@ -310,6 +310,24 @@ and retarget, or only retarget when the selection already matches but the timer
 assignment differs. On an active break, it selects without retarget. A truly
 new task remains blocked during an active timer by `issueTaskOperation`.
 
+`renameTask` (`taskId`, `title`) replaces a projected task because task
+identity hashes the normalized title. Core validates the new title with
+`task.identity.v1`, then queues an upsert for the new identity followed by a
+delete for the old one in a single plan. When the old task is the selected
+task, core queues a selected-task operation for the new identity on every
+profile, including PWA, so selection survives the replacement. When a running
+or paused focus timer is assigned to the old task, core queues one immutable
+retarget command to the new identity. A new title that already exists merges
+into that task: core skips the upsert and still queues the delete, selection
+move, and retarget. A title whose normalized identity equals the old one is
+`noop` with `unchangedOrIneligible`. Rename requires a currently projected
+task; `knownTasks` cache membership does not admit it. History entries keep
+the old task identity, so clients that resolve history titles through a cache
+or the projected task list show the old title for earlier arrivals. Rename
+may consume up to four operation identities (upsert, delete, selection,
+retarget), so clients supply four `commandUuids` for it; every other
+workspace mutation keeps the three-identity limit and timer intents keep two.
+
 For these variants, supply account and durability fields, read inside the
 platform's workspace/account transaction:
 

@@ -40,6 +40,7 @@ pub(super) enum Intent {
     UpsertTask { title: String },
     AddAndSelectTask { title: String },
     DeleteTask { task_id: String },
+    RenameTask { task_id: String, title: String },
     SelectTask { task_id: RequiredNullable<String> },
     SetDuration { phase: Phase, minutes: i64 },
     ChangeDuration { phase: Phase, delta: i64 },
@@ -53,6 +54,7 @@ impl Intent {
             Self::UpsertTask { .. }
                 | Self::AddAndSelectTask { .. }
                 | Self::DeleteTask { .. }
+                | Self::RenameTask { .. }
                 | Self::SelectTask { .. }
                 | Self::SetDuration { .. }
                 | Self::ChangeDuration { .. }

@@ -18,6 +18,7 @@ fn intent_name(intent: &Intent) -> &'static str {
         Intent::UpsertTask { .. } => "upsertTask",
         Intent::AddAndSelectTask { .. } => "addAndSelectTask",
         Intent::DeleteTask { .. } => "deleteTask",
+        Intent::RenameTask { .. } => "renameTask",
         Intent::SelectTask { .. } => "selectTask",
         Intent::SetDuration { .. } => "setDuration",
         Intent::ChangeDuration { .. } => "changeDuration",
@@ -72,6 +73,7 @@ fn dispatch_mutation_intent(plan: &mut Plan<'_>, before: &Value) -> Result<(), C
         Intent::UpsertTask { title } => plan.upsert(&title, false, before)?,
         Intent::AddAndSelectTask { title } => plan.upsert(&title, true, before)?,
         Intent::DeleteTask { task_id } => plan.delete(&task_id, before)?,
+        Intent::RenameTask { task_id, title } => plan.rename(&task_id, &title, before)?,
         Intent::SelectTask { task_id } => plan.select(task_id.0.as_deref(), before)?,
         Intent::SetDuration { phase, minutes } => {
             if plan.input.compatibility == C::AndroidCoordinator {
@@ -382,6 +384,45 @@ impl Plan<'_> {
                     self.command(before, CommandKind::Retarget, None)?;
                 }
             }
+        }
+        Ok(())
+    }
+
+    fn rename(&mut self, task_id: &str, title: &str, before: &Value) -> Result<(), CoreError> {
+        if task_id.is_empty() {
+            return Err(invalid("invalid task identity"));
+        }
+        let tasks = before["tasks"].as_array().unwrap();
+        if !tasks.iter().any(|task| task["id"] == task_id) {
+            return Err(invalid("task rename requires an active task"));
+        }
+        let (id, title) = crate::task::identity(title)?;
+        if id == task_id {
+            return Ok(());
+        }
+        // Task identity hashes the title, so a rename replaces the record.
+        // The new identity lands before the old one leaves, and the current
+        // selection plus any active focus assignment follow it in the same
+        // plan. A title that already exists merges into that task.
+        if !tasks.iter().any(|task| task["id"] == id) {
+            self.operation(
+                "taskOperations",
+                json!({"taskId": id, "type": "upsert", "title": title}),
+            )?;
+        }
+        self.operation(
+            "taskOperations",
+            json!({"taskId": task_id, "type": "delete"}),
+        )?;
+        if before["selectedTaskId"] == task_id {
+            self.operation("selectedTaskOperations", json!({"taskId": id}))?;
+        }
+        let timer = &before["canonicalTimer"];
+        if timer["phase"] == "focus"
+            && matches!(timer["status"].as_str(), Some("running" | "paused"))
+            && timer["taskId"] == task_id
+        {
+            self.command(before, CommandKind::Retarget, Some(&id))?;
         }
         Ok(())
     }

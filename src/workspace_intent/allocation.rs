@@ -1,16 +1,17 @@
 use chrono::{SecondsFormat, Utc};
 use serde_json::{Value, json};
 
-use super::model::{Allocation, CommandKind, Compatibility, Input, Observation};
+use super::model::{Allocation, CommandKind, Compatibility, Input, Intent, Observation};
 use super::{CoreError, invalid};
 
 pub(super) fn validate(input: &Input) -> Result<(), CoreError> {
     crate::clock::validate_hlc_values(input.allocation.hlc.wall_ms, input.allocation.hlc.counter)?;
     crate::clock::validate_hlc_values(input.allocation.device_sequence, 0)?;
-    let limit = if input.intent.is_workspace_mutation() {
-        3
-    } else {
-        2
+    // Rename replaces a task: upsert, delete, selection move, and retarget.
+    let limit = match &input.intent {
+        Intent::RenameTask { .. } => 4,
+        intent if intent.is_workspace_mutation() => 3,
+        _ => 2,
     };
     if input.allocation.device_id.is_empty() || input.identities.command_uuids.len() > limit {
         return Err(invalid("invalid workspace allocation"));
