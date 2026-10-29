@@ -81,6 +81,7 @@ pub(super) fn replay_time(
     let delta = (elapsed - timer.elapsed_at_anchor_ms as f64).floor() as i64;
     let effective = anchor
         .checked_add_signed(chrono::Duration::milliseconds(delta))
+        .filter(crate::timer::is_rfc3339_representable)
         .ok_or_else(|| invalid("read model replay time out of range"))?;
     Ok(Some(effective.to_rfc3339_opts(SecondsFormat::Millis, true)))
 }
@@ -137,6 +138,7 @@ pub(super) fn timer_view(
         Some(
             anchor
                 .checked_add_signed(chrono::Duration::milliseconds(remaining))
+                .filter(crate::timer::is_rfc3339_representable)
                 .ok_or_else(|| invalid("read model deadline out of range"))?
                 .to_rfc3339_opts(SecondsFormat::AutoSi, true),
         )

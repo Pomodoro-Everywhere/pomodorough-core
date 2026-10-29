@@ -218,6 +218,12 @@ fn terminal_intent_mismatch_is_rejected_in_both_directions() {
         (FINE_LEAP, "2016-12-31T23:59:60.12345679Z"),
         ("2016-12-31T23:59:60Z", "2016-12-31T23:59:59.999999999Z"),
         ("2016-12-31T23:59:59.999999999Z", "2016-12-31T23:59:60Z"),
+        // Same fraction one second away across the leap: Unix-nanos and
+        // leap-stripped equality would both accept these.
+        ("2016-12-31T23:59:60.5Z", "2016-12-31T23:59:59.5Z"),
+        ("2016-12-31T23:59:59.5Z", "2016-12-31T23:59:60.5Z"),
+        ("2016-12-31T23:59:60.5Z", "2017-01-01T00:00:00.5Z"),
+        ("2017-01-01T00:00:00.5Z", "2016-12-31T23:59:60.5Z"),
     ] {
         for status in ["completed", "cancelled"] {
             let mut input = request(anchor, status);

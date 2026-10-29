@@ -157,6 +157,7 @@ fn effective_now(timer: &Value, elapsed: f64) -> Result<String, CoreError> {
         .checked_add((elapsed - elapsed_at_anchor as f64).floor() as i64)
         .ok_or_else(|| invalid("monotonic timer observation out of range"))?;
     Ok(chrono::DateTime::<Utc>::from_timestamp_millis(now)
+        .filter(crate::timer::is_rfc3339_representable)
         .ok_or_else(|| invalid("monotonic timer observation out of range"))?
         .to_rfc3339_opts(SecondsFormat::Millis, true))
 }

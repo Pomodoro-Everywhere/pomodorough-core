@@ -37,7 +37,8 @@ export function validateEnvelopes(cases, output) {
   return envelopes;
 }
 
-export function nativeResponses(cases) {
+// Runs one native oracle batch and returns its raw stdout, unvalidated.
+export function nativeOutput(cases) {
   const input = cases.map(({ operation, input }) => JSON.stringify({ operation, input })).join("\n") + "\n";
   const result = spawnSync("rustup", ["run", "1.97.1", "cargo", "run", "--quiet", "--locked", "--example", "artifact_parity_oracle"], {
     cwd: fileURLToPath(new URL("../../", import.meta.url)), input, encoding: "utf8",
@@ -45,7 +46,11 @@ export function nativeResponses(cases) {
   });
   assert.ifError(result.error && new Error(`${result.error.message}: ${result.stderr}`));
   assert.equal(result.status, 0, `native oracle failed: ${result.stderr}`);
-  return validateResponses(cases, result.stdout);
+  return result.stdout;
+}
+
+export function nativeResponses(cases) {
+  return validateResponses(cases, nativeOutput(cases));
 }
 
 export function nativeEnvelopes(cases) {

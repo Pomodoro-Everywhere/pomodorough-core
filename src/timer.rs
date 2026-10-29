@@ -1,6 +1,6 @@
 use std::collections::{BTreeMap, BTreeSet};
 
-use chrono::{DateTime, Duration, Timelike, Utc};
+use chrono::{DateTime, Datelike, Duration, Timelike, Utc};
 use serde::{Deserialize, Serialize};
 
 use crate::{CoreError, MAX_COMMANDS, check_input_len};
@@ -584,6 +584,7 @@ impl ReductionState {
     }
 
     fn project(&self) -> Result<TimerReductionOutput, CoreError> {
+        check_representable_sessions(self.sessions.values())?;
         let canonical_timer = self
             .current_id
             .as_ref()
@@ -598,6 +599,25 @@ impl ReductionState {
             outcomes: self.outcomes.clone(),
         })
     }
+}
+
+fn check_representable_sessions<'a>(
+    sessions: impl IntoIterator<Item = &'a Session>,
+) -> Result<(), CoreError> {
+    // Natural completion adds the remaining duration to the anchor, so a leap
+    // second `now` or a shifted observation anchor can pass 9999-12-31.
+    let representable = sessions.into_iter().all(|session| {
+        [&session.anchor_at, &session.started_at]
+            .into_iter()
+            .chain(&session.ended_at)
+            .all(is_rfc3339_representable)
+    });
+    if !representable {
+        return Err(CoreError::InvalidInput(
+            "timer timestamp out of range".into(),
+        ));
+    }
+    Ok(())
 }
 
 fn sorted_commands(mut commands: Vec<Command>) -> Vec<Command> {
@@ -862,8 +882,17 @@ fn clamp(value: i64, minimum: i64, maximum: i64) -> i64 {
 
 pub(crate) fn parse_time(value: &str) -> Result<DateTime<Utc>, CoreError> {
     DateTime::parse_from_rfc3339(value)
+        .ok()
         .map(|time| time.with_timezone(&Utc))
-        .map_err(|_| CoreError::InvalidTimestamp(value.to_owned()))
+        .filter(is_rfc3339_representable)
+        .ok_or_else(|| CoreError::InvalidTimestamp(value.to_owned()))
+}
+
+/// RFC 3339 spells exactly four year digits. Chrono writes any other UTC year
+/// with an expanded sign that `parse_time` rejects, so offset normalization and
+/// computed instants must stay inside 0000-01-01 through 9999-12-31 UTC.
+pub(crate) fn is_rfc3339_representable(value: &DateTime<Utc>) -> bool {
+    (0..=9999).contains(&value.year())
 }
 
 pub(crate) fn format_time(value: &DateTime<Utc>) -> String {

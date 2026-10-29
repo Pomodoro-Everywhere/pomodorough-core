@@ -142,7 +142,13 @@ for (const key of ["canonicalTimer", "history"]) {
 for (const [anchor, intent] of [["2016-12-31T23:59:60.123456789Z", "2016-12-31T23:59:60.123456788Z"],
   ["2016-12-31T23:59:60.123456789Z", "2016-12-31T23:59:60.12345679Z"],
   ["2016-12-31T23:59:60Z", "2016-12-31T23:59:59.999999999Z"],
-  ["2016-12-31T23:59:59.999999999Z", "2016-12-31T23:59:60Z"]]) {
+  ["2016-12-31T23:59:59.999999999Z", "2016-12-31T23:59:60Z"],
+  // Same fraction one second away across the leap: Unix-nanos and leap-stripped
+  // equality would both accept these.
+  ["2016-12-31T23:59:60.5Z", "2016-12-31T23:59:59.5Z"],
+  ["2016-12-31T23:59:59.5Z", "2016-12-31T23:59:60.5Z"],
+  ["2016-12-31T23:59:60.5Z", "2017-01-01T00:00:00.5Z"],
+  ["2017-01-01T00:00:00.5Z", "2016-12-31T23:59:60.5Z"]]) {
   for (const status of ["completed", "cancelled"]) {
     const label = `${status}/${anchor}/intent-${intent}`;
     const input = request(anchor, status);
@@ -152,7 +158,7 @@ for (const [anchor, intent] of [["2016-12-31T23:59:60.123456789Z", "2016-12-31T2
   }
 }
 
-assert.deepEqual(calls, { "workspace.project.v1": 400, "projection.apply.v2": 8, "timer.reduce.v1": 9, rejected: 8 },
+assert.deepEqual(calls, { "workspace.project.v1": 400, "projection.apply.v2": 8, "timer.reduce.v1": 9, rejected: 16 },
   "R54-C01 parity call counts");
 const total = Object.values(calls).reduce((sum, count) => sum + count, 0);
 const perOperation = Object.entries(calls).map(([name, count]) => `${name} ${count}`).join(", ");
