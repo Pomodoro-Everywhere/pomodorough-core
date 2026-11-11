@@ -253,3 +253,89 @@ fn pending_alias_retains_only_unacknowledged_original_objects() {
         assert_eq!(output[pending], input["pending"][queue], "{queue}");
     }
 }
+
+fn generated_break_rewrite_request() -> Value {
+    let mut input = request();
+    let mut finish = operation("commands");
+    finish["type"] = json!("finish");
+    let mut start = operation("commands");
+    start["id"] = json!("generated-start");
+    start["timerId"] = json!("generated-break");
+    start["deviceSequence"] = json!(2);
+    start["hlcCounter"] = json!(1);
+    start["phase"] = json!("long_break");
+    start["plannedDurationMs"] = json!(900000);
+    start["extension"] = json!({"phase": "long_break", "nested": [null, ""]});
+    input["local"]["commands"] = json!([finish, start]);
+    input["sent"]["commands"] = json!([{"id": "shared-id"}]);
+    input["response"]["acknowledgements"] =
+        json!([{"commandId": "shared-id", "outcome": "ignored"}]);
+    input["response"]["history"] = json!([{"id": "completed-focus", "timerId": "timer-a",
+        "commandId": "shared-id", "phase": "focus", "status": "completed",
+        "plannedDurationMs": 60000, "completedAt": "2026-07-20T12:00:00Z"}]);
+    input["timerDependencies"] = json!([{"operationId": "generated-start",
+        "dependsOnOperationId": "shared-id", "generatedBreak": true,
+        "sourceDayStart": "2026-07-20T00:00:00Z", "sourceDayEnd": "2026-07-21T00:00:00Z"}]);
+    input["neverSent"] = json!({"commands": ["generated-start"]});
+    input
+}
+
+#[test]
+fn legitimate_never_sent_rewrite_survives_raw_retention_and_restart() {
+    let mut input = generated_break_rewrite_request();
+    let mut frozen = input.clone();
+    frozen["neverSent"] = json!({});
+    let error = dispatch_json("reconcile.rebase.v2", &frozen.to_string()).unwrap_err();
+    assert!(
+        error
+            .to_string()
+            .contains("rewrite a possibly delivered operation")
+    );
+
+    let output = call(&input);
+    let mut expected = input["local"]["commands"][1].clone();
+    expected["phase"] = json!("short_break");
+    expected["plannedDurationMs"] = json!(300000);
+    expected.as_object_mut().unwrap().remove("extension");
+    assert_eq!(output["pending"], json!([expected.clone()]));
+    assert_eq!(
+        output,
+        expected_rewrite_return(&input, &expected, json!(["generated-start"]))
+    );
+
+    let persisted = json!({"local": {"commands": output["pending"]}, "sent": {},
+        "neverSent": input["neverSent"], "timerDependencies": output["pendingTimerDependencies"],
+        "response": input["response"]});
+    input["local"]["commands"] = json!([expected.clone()]);
+    input["sent"] = json!({});
+    input["timerDependencies"] = json!([]);
+    assert_eq!(persisted, input);
+    let mut reopened: Value = serde_json::from_str(&persisted.to_string()).unwrap();
+    assert_eq!(reopened, input);
+    reopened["response"]["acknowledgements"] = json!([]);
+    reopened["response"]["serverHlcCounter"] = json!(99);
+    input["response"]["acknowledgements"] = json!([]);
+    input["response"]["serverHlcCounter"] = json!(99);
+    assert_eq!(reopened, input);
+    assert_eq!(
+        call(&reopened),
+        expected_rewrite_return(&input, &expected, json!([]))
+    );
+}
+
+fn expected_rewrite_return(input: &Value, command: &Value, promoted: Value) -> Value {
+    let response = &input["response"];
+    let mut history = response["history"].clone();
+    history[0]["endedAt"] = json!("2026-07-20T12:00:00Z");
+    json!({"projectionPending": {"commands": [], "taskOperations": [],
+        "durationOperations": [], "autoStartOperations": [], "selectedTaskOperations": []},
+        "revision": 1, "pending": [command], "pendingTaskOperations": [],
+        "pendingDurationOperations": [], "pendingAutoStartOperations": [],
+        "pendingSelectedTaskOperations": [], "pendingTimerDependencies": [],
+        "promotedTimerOperationIds": promoted, "droppedTimerOperationIds": [],
+        "droppedTimerIds": [], "baseTimer": null, "baseHistory": response["history"],
+        "baseTasks": [], "baseDurationsMs": response["durationsMs"],
+        "baseAutoStartBreaks": false, "baseSelectedTaskId": null,
+        "timer": null, "history": history, "tasks": [],
+        "durationsMs": response["durationsMs"], "autoStartBreaks": false, "selectedTaskId": null})
+}

@@ -4,8 +4,10 @@
 from __future__ import annotations
 
 import importlib.util
+import os
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = Path(__file__).with_name("verify_wasm_artifact.py")
@@ -76,7 +78,30 @@ CORRECT_SIGS = [
 ]
 
 
+def release_artifact_path() -> Path:
+    target = Path(os.environ.get("CARGO_TARGET_DIR", ROOT / "target"))
+    return target.resolve() / "wasm32-unknown-unknown" / "release" / "pomodorough_core.wasm"
+
+
 class VerifyWasmArtifactTests(unittest.TestCase):
+    def test_release_artifact_path_defaults_to_repository_target(self) -> None:
+        with patch.dict(os.environ, {}, clear=True):
+            self.assertEqual(
+                release_artifact_path(),
+                ROOT / "target/wasm32-unknown-unknown/release/pomodorough_core.wasm",
+            )
+
+    def test_release_artifact_path_honors_custom_target(self) -> None:
+        for target in [str(ROOT / "custom target"), "relative target", "."]:
+            with self.subTest(target=target), patch.dict(
+                os.environ, {"CARGO_TARGET_DIR": target}
+            ):
+                self.assertEqual(
+                    release_artifact_path(),
+                    Path(target).resolve()
+                    / "wasm32-unknown-unknown/release/pomodorough_core.wasm",
+                )
+
     def test_rejects_uniform_empty_signatures(self) -> None:
         wasm = artifact_with_sigs([func_type(b"", b"")] * 4)
         with self.assertRaisesRegex(ContractError, "incompatible signature"):
@@ -89,7 +114,7 @@ class VerifyWasmArtifactTests(unittest.TestCase):
             validate(StubPath(artifact_with_sigs(sigs)))  # type: ignore[arg-type]
 
     def test_accepts_exact_release_artifact(self) -> None:
-        wasm = ROOT / "target" / "wasm32-unknown-unknown" / "release" / "pomodorough_core.wasm"
+        wasm = release_artifact_path()
         self.assertTrue(wasm.is_file(), f"missing release artifact at {wasm}")
         digest = validate(wasm)
         self.assertRegex(digest, r"^[0-9a-f]{64}$")
