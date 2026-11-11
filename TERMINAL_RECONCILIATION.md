@@ -75,6 +75,10 @@ V3 also returns these required fields:
 - `schemaVersion: 3`.
 - `canonicalResponse`, the original parsed response value, including extensions.
   Its six canonical fields are also returned verbatim in the `base*` fields.
+  `baseHistory` is therefore an unchanged echo of the response history. A row
+  that arrived without `elapsedMs` stays without it there and in
+  `canonicalResponse`, next to its unchanged `baseTimer`. `workspace.history`
+  is the projection and always writes `elapsedMs`.
 - `workspace`, the complete safe production projection with `canonicalTimer`,
   `history`, `tasks`, `durationsMs`, `autoStartBreaks`, `selectedTaskId`,
   `timerOutcomes`, and `winningOperationIds`.

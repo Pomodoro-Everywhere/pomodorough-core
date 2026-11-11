@@ -35,7 +35,11 @@ fn actual_http_finish_preserves_raw_evidence_and_projects_terminal_metadata() {
         output["timer"]["lastIntent"]["commandId"],
         input["local"]["commands"][0]["id"]
     );
-    assert_eq!(output["history"], input["response"]["history"]);
+    // The recorded response row predates elapsedMs; projection fills it from
+    // the canonical timer while baseHistory keeps the raw response row.
+    let mut projected_row = input["response"]["history"][0].clone();
+    projected_row["elapsedMs"] = input["response"]["canonicalTimer"]["elapsedAtAnchorMs"].clone();
+    assert_eq!(output["history"], json!([projected_row]));
     assert_eq!(output["pending"], json!([]));
     assert_eq!(input, before);
     let expected = call("workspace.project.v1", &workspace_request(&input, &output));
@@ -222,6 +226,27 @@ fn conflicting_terminal_pairs_and_c02_identity_collision_fail_without_repair() {
                 case["name"]
             );
         }
+    }
+}
+
+#[test]
+fn history_elapsed_outside_the_plan_fails_rebase_closed() {
+    let fixture: Value =
+        serde_json::from_str(include_str!("../fixtures/workspace-terminal-v1.json")).unwrap();
+    let cases = fixture["elapsedRangeRejections"].as_array().unwrap();
+    assert_eq!(cases.len(), 4);
+    for case in cases {
+        let input = terminal_request(case);
+        let error = dispatch_json("reconcile.rebase.v3", &input.to_string())
+            .unwrap_err()
+            .to_string();
+        assert_eq!(error, fixture["elapsedRangeError"], "{}", case["name"]);
+    }
+    for elapsed in [0, 60_000] {
+        let case = json!({"cleared": true, "historyOverrides": {"elapsedMs": elapsed}});
+        let output = call("reconcile.rebase.v3", &terminal_request(&case));
+        assert_eq!(output["workspace"]["history"][0]["elapsedMs"], elapsed);
+        assert_eq!(output["baseHistory"][0]["elapsedMs"], elapsed);
     }
 }
 

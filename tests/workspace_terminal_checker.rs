@@ -1,5 +1,6 @@
 use pomodorough_core::dispatch_json;
 use serde_json::{Value, json};
+use std::collections::BTreeSet;
 
 const WIRE: &str = "2026-07-20T12:00:10Z";
 const PHYSICAL: &str = "2026-07-20T12:00:15Z";
@@ -219,7 +220,9 @@ fn checker_invalid_standalone_terminal_fails_before_history_synthesis() {
         let mut workspace = fixture("terminal")["request"].clone();
         workspace["base"]["canonicalTimer"] = fixture("terminal")["timer"].clone();
         if variant == "underelapsed" {
+            // Deadline completion keeps its start intent and the whole plan.
             workspace["base"]["canonicalTimer"]["elapsedAtAnchorMs"] = json!(59999);
+            workspace["base"]["canonicalTimer"]["lastIntent"]["type"] = json!("start");
         } else {
             workspace["base"]["canonicalTimer"]["lastIntent"]["type"] = json!("clear");
         }
@@ -228,6 +231,17 @@ fn checker_invalid_standalone_terminal_fails_before_history_synthesis() {
         }
     }
     assert!(accepted.is_empty(), "accepted standalone {accepted:?}");
+}
+
+#[test]
+fn checker_standalone_early_finish_synthesizes_history_with_real_elapsed() {
+    let mut workspace = fixture("terminal")["request"].clone();
+    workspace["base"]["canonicalTimer"] = fixture("terminal")["timer"].clone();
+    workspace["base"]["canonicalTimer"]["elapsedAtAnchorMs"] = json!(59999);
+    let projected = projection(&workspace).unwrap();
+    assert_eq!(projected["canonicalTimer"]["elapsedAtAnchorMs"], 59999);
+    assert_eq!(projected["history"][0]["elapsedMs"], 59999);
+    assert_eq!(projected["history"][0]["plannedDurationMs"], 60000);
 }
 
 #[test]
@@ -322,43 +336,88 @@ fn checker_pause_resume_provenance_ignores_unused_task_phase_and_duration() {
     }
 }
 
+const ANY_ELAPSED: &[i64] = &[0, 59999, 60000];
+const NO_ELAPSED: &[i64] = &[0];
+const FULL_PLAN: &[i64] = &[60000];
+
+/// Every (status, last intent kind) pair that a zero-command workspace may
+/// hold, with the elapsed values it accepts. Any pair not listed is rejected.
+/// Finish may complete below the plan, so completed/finish accepts all three.
+const ACCEPTED_TERMINAL_AGGREGATES: &[(&str, &str, &[i64])] = &[
+    ("running", "none", ANY_ELAPSED),
+    ("running", "start", ANY_ELAPSED),
+    ("running", "pause", NO_ELAPSED),
+    ("running", "resume", ANY_ELAPSED),
+    ("running", "finish", NO_ELAPSED),
+    ("running", "cancel", NO_ELAPSED),
+    ("running", "clear", NO_ELAPSED),
+    ("running", "unknown", NO_ELAPSED),
+    ("paused", "none", ANY_ELAPSED),
+    ("paused", "start", ANY_ELAPSED),
+    ("paused", "pause", ANY_ELAPSED),
+    ("paused", "resume", ANY_ELAPSED),
+    ("paused", "finish", ANY_ELAPSED),
+    ("paused", "cancel", ANY_ELAPSED),
+    ("paused", "clear", ANY_ELAPSED),
+    ("paused", "unknown", ANY_ELAPSED),
+    ("completed", "none", FULL_PLAN),
+    ("completed", "start", FULL_PLAN),
+    ("completed", "resume", FULL_PLAN),
+    ("completed", "finish", ANY_ELAPSED),
+    ("cancelled", "none", ANY_ELAPSED),
+    ("cancelled", "cancel", ANY_ELAPSED),
+    ("superseded", "none", ANY_ELAPSED),
+    ("superseded", "start", ANY_ELAPSED),
+    ("superseded", "pause", ANY_ELAPSED),
+    ("superseded", "resume", ANY_ELAPSED),
+];
+
+fn terminal_aggregate(status: &str, elapsed: i64, kind: &str) -> Value {
+    let mut workspace = fixture("terminal")["request"].clone();
+    let mut timer = fixture("terminal")["timer"].clone();
+    timer["status"] = json!(status);
+    timer["elapsedAtAnchorMs"] = json!(elapsed);
+    timer["lastIntent"] = if kind == "none" {
+        Value::Null
+    } else {
+        json!({"type": kind, "commandId": "source-command", "occurredAt": timer["anchorAt"], "deviceId": "native-device"})
+    };
+    workspace["base"]["canonicalTimer"] = timer;
+    workspace
+}
+
 #[test]
 fn checker_every_accepted_zero_command_terminal_aggregate_reopens_exactly() {
-    let mut accepted = 0;
+    let mut accepted = BTreeSet::new();
     let mut rejected = 0;
     for status in ["running", "paused", "completed", "cancelled", "superseded"] {
         for elapsed in [0, 59999, 60000] {
             for kind in [
                 "none", "start", "pause", "resume", "finish", "cancel", "clear", "unknown",
             ] {
-                let mut workspace = fixture("terminal")["request"].clone();
-                let mut timer = fixture("terminal")["timer"].clone();
-                timer["status"] = json!(status);
-                timer["elapsedAtAnchorMs"] = json!(elapsed);
-                timer["lastIntent"] = if kind == "none" {
-                    Value::Null
-                } else {
-                    json!({"type": kind, "commandId": "source-command", "occurredAt": timer["anchorAt"], "deviceId": "native-device"})
+                let mut workspace = terminal_aggregate(status, elapsed, kind);
+                let Ok(first) = projection(&workspace) else {
+                    rejected += 1;
+                    continue;
                 };
-                workspace["base"]["canonicalTimer"] = timer;
-                match projection(&workspace) {
-                    Ok(first) => {
-                        workspace["base"]["canonicalTimer"] = first["canonicalTimer"].clone();
-                        workspace["base"]["history"] = first["history"].clone();
-                        assert_eq!(
-                            projection(&workspace).unwrap(),
-                            first,
-                            "{status}/{elapsed}/{kind}"
-                        );
-                        accepted += 1;
-                    }
-                    Err(_) => rejected += 1,
-                }
+                workspace["base"]["canonicalTimer"] = first["canonicalTimer"].clone();
+                workspace["base"]["history"] = first["history"].clone();
+                let label = format!("{status}/{elapsed}/{kind}");
+                assert_eq!(projection(&workspace).unwrap(), first, "{label}");
+                accepted.insert(label);
             }
         }
     }
-    assert_eq!((accepted, rejected), (60, 60));
-    assert_eq!(accepted + rejected, 120);
+    let expected: BTreeSet<String> = ACCEPTED_TERMINAL_AGGREGATES
+        .iter()
+        .flat_map(|(status, kind, elapsed)| {
+            elapsed
+                .iter()
+                .map(move |elapsed| format!("{status}/{elapsed}/{kind}"))
+        })
+        .collect();
+    assert_eq!(accepted, expected);
+    assert_eq!((accepted.len(), rejected), (62, 58));
 }
 
 #[test]

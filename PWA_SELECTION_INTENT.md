@@ -154,6 +154,12 @@ The default is `/var/folders/r_/_mr22dqn24d31b7460cz8z5m0000gn/T/opencode`.
 The preserved inputs are `core-pwa-selection-prior-2141.json`, the pre-extension executable under `core-pwa-selection-baseline`,
 and the frozen PWA source under `pwa-core-045/baseline/web`.
 Verification never replaces those inputs or `fixtures/pwa-selection-public-v1.json`.
+
+The elapsed-time history change of 2026-11-11 rewrote recorded returns in that fixture once; every recorded input and persisted record is unchanged.
+The four planner returns per receipt were regenerated from their recorded `inputRaw` and gained history `elapsedMs`.
+Each receipt's `read` value was recorded without its request. The request was rebuilt from the receipt's persisted `after` record: profile `pwaStorage`, the stored snapshot, queues, selection, and lifecycle, observed at the completion time `2026-08-31T12:25:00.000Z`.
+The Core build at commit `0d9946c` returns exactly the earlier recorded `read` for both rebuilt requests, so the requests are the ones behind the recording.
+The current build's returns for the same requests replaced them. They differ from the earlier values only in `schemaVersion` 2 and the renamed `cadence.completedFocusTodayElapsedMs`.
 Fresh source receipts are written to `core-pwa-selection-source.json`.
 
 ## Ownership and publication status

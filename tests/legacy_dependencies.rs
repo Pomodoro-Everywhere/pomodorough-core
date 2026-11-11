@@ -206,6 +206,26 @@ fn exact_canonical_finish_without_history_is_evidence_without_persisted_phantom_
 }
 
 #[test]
+fn rejected_early_finish_without_history_reports_the_real_elapsed_time() {
+    let mut input = request("canonical-source-applied");
+    let source = input["workspace"]["base"]["history"][0].clone();
+    let elapsed = source["plannedDurationMs"].as_i64().unwrap() - 1000;
+    input["workspace"]["base"]["history"] = json!([]);
+    input["workspace"]["base"]["canonicalTimer"] = json!({"id": source["timerId"], "phase": "focus",
+        "status": "completed", "plannedDurationMs": source["plannedDurationMs"],
+        "elapsedAtAnchorMs": elapsed, "anchorAt": source["completedAt"],
+        "startedByDeviceId": input["deviceId"], "lastIntent": {"type": "finish",
+            "commandId": "legacy-finish", "occurredAt": source["completedAt"]}});
+    input["sourceAcknowledgements"][0]["outcome"] = json!("rejected");
+    let unresolved = plan(&input)["recovery"]["unresolved"][0].clone();
+    assert_eq!(unresolved["reason"], "sourceRejectedRequiresDecision");
+    assert_eq!(
+        unresolved["sourceEvidence"]["canonicalCompletion"]["elapsedMs"],
+        elapsed
+    );
+}
+
+#[test]
 fn frozen_generated_payload_difference_returns_blocked_recovery() {
     let mut input = request("complete");
     let start = input["workspace"]["local"]["commands"]

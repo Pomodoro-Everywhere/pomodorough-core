@@ -10,9 +10,9 @@ test("immutable pre-extension digest rejects input drift and complete envelope d
   assertSelectionPreservation(corpus.cases, corpus.expected);
   const cases = structuredClone(corpus.cases), expected = [...corpus.expected];
   cases[0].input += " ";
-  assert.throws(() => assertSelectionPreservation(cases, expected), /2141 prior inputs/);
+  assert.throws(() => assertSelectionPreservation(cases, expected), /2151 prior inputs/);
   cases[0] = corpus.cases[0]; expected[0] += " ";
-  assert.throws(() => assertSelectionPreservation(cases, expected), /2141 prior inputs/);
+  assert.throws(() => assertSelectionPreservation(cases, expected), /2151 prior inputs/);
 });
 const mutations = [
   ["cycle-start-focus", "selection.explicit", true],

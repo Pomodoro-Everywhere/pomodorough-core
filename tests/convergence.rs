@@ -3,7 +3,7 @@ use serde_json::Value;
 use sha2::{Digest, Sha256};
 
 const FIXTURE: &[u8] = include_bytes!("../fixtures/convergence-v1.json");
-const EXPECTED_SHA256: &str = "51c357d8fd63e7200c1316ef36fc45821bea9ac2fbe11f255832fa21110ea104";
+const EXPECTED_SHA256: &str = "60ee91bed591a89fb728e6d252cfc47a202ca87cac3adc7f4c4bfab3de7038f3";
 
 #[test]
 fn canonical_timer_reducer_matches_every_fixture_arrival_order() {

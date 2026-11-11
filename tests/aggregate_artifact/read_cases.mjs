@@ -40,8 +40,8 @@ export function taskTotalCases() {
     ({ ...row, taskId: row.taskId === "current" ? task.id : row.taskId }));
   const totals = branch("workspace.readModel.v1", "populated-task-totals", input, "taskTotals", {
     equals: { "tasks.total": 1, "cadence.completedFocusToday": 3,
-      "cadence.completedFocusTodayPlannedDurationMs": 1320000,
-      "tasks.completedFocusTodayByTask": { [task.id]: { count: 1, plannedDurationMs: 900000 } } } });
+      "cadence.completedFocusTodayElapsedMs": 1320000,
+      "tasks.completedFocusTodayByTask": { [task.id]: { count: 1, elapsedMs: 900000 } } } });
   const boundaries = [
     ["23-hour-day", "2026-03-08T05:00:00Z", "2026-03-09T04:00:00Z", "2026-03-08T07:30:00Z"],
     ["25-hour-day", "2026-11-01T04:00:00Z", "2026-11-02T05:00:00Z", "2026-11-02T04:59:59Z"],
@@ -53,7 +53,7 @@ export function taskTotalCases() {
       phase: "focus", status: "completed", plannedDurationMs: 60000, completedAt }));
     return branch("workspace.readModel.v1", name, request, "taskTotals", { equals: {
       "cadence.completedFocusToday": 1, "cadence.completedFocusTotal": 2,
-      "tasks.completedFocusTodayByTask": { [task.id]: { count: 1, plannedDurationMs: 60000 } } } });
+      "tasks.completedFocusTodayByTask": { [task.id]: { count: 1, elapsedMs: 60000 } } } });
   });
   return [totals, ...boundaries];
 }

@@ -253,7 +253,7 @@ fn resume_expiry_task_totals_and_fourth_focus_use_original_session() {
         4
     );
     assert_eq!(
-        model["tasks"]["completedFocusTodayByTask"][task["id"].as_str().unwrap()]["plannedDurationMs"],
+        model["tasks"]["completedFocusTodayByTask"][task["id"].as_str().unwrap()]["elapsedMs"],
         6000000
     );
 }

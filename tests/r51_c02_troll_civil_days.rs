@@ -153,12 +153,12 @@ fn troll_day_edges_count_start_inclusive_end_exclusive() {
         assert_eq!(result["cadence"]["completedFocusToday"], 2, "{observed}");
         assert_eq!(result["cadence"]["completedFocusTotal"], 4, "{observed}");
         assert_eq!(
-            result["cadence"]["completedFocusTodayPlannedDurationMs"], 3_000_000,
+            result["cadence"]["completedFocusTodayElapsedMs"], 3_000_000,
             "{observed}"
         );
         assert_eq!(
             result["tasks"]["completedFocusTodayByTask"][&id],
-            json!({"count": 2, "plannedDurationMs": 3_000_000}),
+            json!({"count": 2, "elapsedMs": 3_000_000}),
             "{observed}"
         );
     }

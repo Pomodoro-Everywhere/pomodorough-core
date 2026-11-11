@@ -127,6 +127,15 @@ fn projected_history(input: &[Value], order: &[usize]) -> Vec<Value> {
             if row["completedAt"].is_string() {
                 row["endedAt"] = row["completedAt"].clone();
             }
+            // A row without elapsedMs counts its whole plan when completed
+            // and nothing otherwise; projection writes that value out.
+            if row["elapsedMs"].is_null() {
+                row["elapsedMs"] = if row["status"] == "completed" {
+                    row["plannedDurationMs"].clone()
+                } else {
+                    json!(0)
+                };
+            }
             row
         })
         .collect()

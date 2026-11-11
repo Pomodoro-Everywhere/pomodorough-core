@@ -24,7 +24,10 @@
     {"name": "missing superseded history does not invent replacement", "timerOverrides": {"status": "superseded", "elapsedAtAnchorMs": 21000, "lastIntent": {"type": "pause", "commandId": "pause-existing", "occurredAt": "2026-07-20T11:59:45Z"}}, "historyOverrides": {}, "missingHistory": true, "expectedHistoryOverrides": {"status": "superseded", "commandId": null, "completedAt": null}, "expectedTimer": "retained"},
     {"name": "retained finish ignores task phase and duration", "timerOverrides": {}, "historyOverrides": {}, "expectedTimer": "retained", "retainedCommands": [{"id": "finish-existing", "deviceId": "device-local", "deviceSequence": 8, "timerId": "existing-timer", "type": "finish", "phase": "long_break", "plannedDurationMs": 180000, "observedElapsedMs": 0, "occurredAt": "2026-07-20T12:00:00Z", "hlcWallMs": 1784548800000, "hlcCounter": 1}]},
     {"name": "HLC supersession permits occurrence rollback", "timerOverrides": {"status": "superseded", "elapsedAtAnchorMs": 0, "anchorAt": "2026-07-20T11:59:59Z", "lastIntent": {"type": "start", "commandId": "start-existing", "occurredAt": "2026-07-20T12:00:00Z"}}, "historyOverrides": {"status": "superseded", "commandId": "start-replacement", "completedAt": null, "endedAt": "2026-07-20T11:59:59Z"}, "expectedTimer": "retained"},
-    {"name": "native intent device metadata remains present", "timerOverrides": {"lastIntent": {"type": "finish", "commandId": "finish-existing", "occurredAt": "2026-07-20T12:00:00Z", "deviceId": "device-origin"}}, "historyOverrides": {}, "expectedTimer": "retained"}
+    {"name": "native intent device metadata remains present", "timerOverrides": {"lastIntent": {"type": "finish", "commandId": "finish-existing", "occurredAt": "2026-07-20T12:00:00Z", "deviceId": "device-origin"}}, "historyOverrides": {}, "expectedTimer": "retained"},
+    {"name": "early finish records elapsed", "timerOverrides": {"elapsedAtAnchorMs": 59999}, "historyOverrides": {"elapsedMs": 59999}, "expectedTimer": "retained"},
+    {"name": "early finish fills elapsed on a row without it", "timerOverrides": {"elapsedAtAnchorMs": 59999}, "historyOverrides": {}, "expectedTimer": "retained"},
+    {"name": "standalone early finish synthesizes elapsed", "timerOverrides": {"elapsedAtAnchorMs": 59999}, "historyOverrides": {}, "missingHistory": true, "expectedTimer": "retained"}
   ],
   "conflictError": "invalid shared-core input: conflicting workspace terminal timer/history",
   "rejections": [
@@ -37,7 +40,8 @@
     {"name": "empty command", "historyOverrides": {"commandId": ""}},
     {"name": "completion time", "historyOverrides": {"completedAt": "2026-07-20T12:00:01Z"}},
     {"name": "end time", "historyOverrides": {"endedAt": "2026-07-20T11:59:59Z"}},
-    {"name": "partial elapsed", "timerOverrides": {"elapsedAtAnchorMs": 59999}},
+    {"name": "partial elapsed without finish", "timerOverrides": {"elapsedAtAnchorMs": 59999, "lastIntent": {"type": "start", "commandId": "start-existing", "occurredAt": "2026-07-20T11:59:00Z"}}, "historyOverrides": {"commandId": null}},
+    {"name": "recorded elapsed differs from timer", "historyOverrides": {"elapsedMs": 59999}},
     {"name": "clear intent", "timerOverrides": {"lastIntent": {"type": "clear", "commandId": "finish-existing", "occurredAt": "2026-07-20T12:00:00Z"}}},
     {"name": "unknown intent", "timerOverrides": {"lastIntent": {"type": "forged", "commandId": "finish-existing", "occurredAt": "2026-07-20T12:00:00Z"}}},
     {"name": "intent time", "timerOverrides": {"lastIntent": {"type": "finish", "commandId": "finish-existing", "occurredAt": "2026-07-20T12:00:01Z"}}},
@@ -45,8 +49,15 @@
     {"name": "C02 unrelated history identity", "historyOverrides": {"timerId": "other-timer"}},
     {"name": "active overlap", "timerOverrides": {"status": "running"}},
     {"name": "paused overlap", "timerOverrides": {"status": "paused"}},
-    {"name": "standalone underelapsed completion", "missingHistory": true, "timerOverrides": {"elapsedAtAnchorMs": 59999}},
+    {"name": "standalone underelapsed deadline completion", "missingHistory": true, "timerOverrides": {"elapsedAtAnchorMs": 59999, "lastIntent": {"type": "start", "commandId": "start-existing", "occurredAt": "2026-07-20T11:59:00Z"}}},
     {"name": "standalone clear intent", "missingHistory": true, "timerOverrides": {"lastIntent": {"type": "clear", "commandId": "finish-existing", "occurredAt": "2026-07-20T12:00:00Z"}}}
+  ],
+  "elapsedRangeError": "invalid shared-core input: invalid timer history",
+  "elapsedRangeRejections": [
+    {"name": "paired elapsed below zero", "historyOverrides": {"elapsedMs": -1}},
+    {"name": "paired elapsed above plan", "historyOverrides": {"elapsedMs": 60001}},
+    {"name": "unpaired elapsed below zero", "cleared": true, "historyOverrides": {"elapsedMs": -1}},
+    {"name": "unpaired elapsed above plan", "cleared": true, "historyOverrides": {"elapsedMs": 60001}}
   ],
   "ignoredCommandFields": [
     {"omitTask": true}, {"taskId": null}, {"taskId": "other-task"},

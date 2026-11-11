@@ -129,7 +129,6 @@ pub(super) fn timer_view(
     let anchor = crate::timer::parse_time(&timer.anchor_at)?;
     let elapsed = match timer.status.as_str() {
         "running" => elapsed_running(timer, now, monotonic, anchor)?,
-        "completed" => planned as f64,
         _ => timer.elapsed_at_anchor_ms as f64,
     };
     let elapsed = elapsed.clamp(0.0, planned as f64);

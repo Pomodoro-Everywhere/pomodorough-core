@@ -5,7 +5,7 @@ export const requiredHits = {
   queued: 12, generated: 6, childPause: 3, childFinish: 3, barrierRebase: 3, barrier: 3, rejection: 6,
   desktopDeferred: 4, appleExplicit: 4, fractionalRead: 3, missingReading: 1,
   taskTotals: 3, savedOrder: 1, oversizedSaved: 1, cursorRotation: 10, batchDrain: 4,
-  terminalRebase: 19, terminalPartial: 1, terminalBarrier: 1, terminalRejection: 1,
+  terminalRebase: 22, terminalPartial: 1, terminalBarrier: 1, terminalRejection: 1,
   terminalPromotion: 1, terminalComposition: 2, terminalNormalization: 1,
   terminalMissingHistory: 6, workspaceMissingHistory: 6,
   pwaDisplay: 4, pwaLifecycle: 16, pwaRebase: 4,
@@ -29,8 +29,8 @@ export const requiredHits = {
 };
 
 export const requiredRejections = { pwaOwnershipShape: 222, legacyPreferences: 21, legacyNumeric: 9, pwaNatural: 24,
-  pwaChecker: 10, pwaStructure: 426, legacyDependencies: 88, legacyDependencyChecker: 3,
-  pwaRelease: 31, pwaReleaseShape: 207, pwaChoiceShape: 82, pwaDischargeShape: 204 };
+  pwaChecker: 10, pwaStructure: 432, legacyDependencies: 88, legacyDependencyChecker: 3,
+  pwaRelease: 31, pwaReleaseShape: 207, pwaChoiceShape: 82, pwaDischargeShape: 207 };
 
 export function branch(operation, name, input, hit, checks) {
   return { ...vector(operation, name, input), hit, checks };

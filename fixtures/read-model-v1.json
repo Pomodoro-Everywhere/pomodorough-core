@@ -39,8 +39,8 @@
     {"id": "unassigned", "timerId": "unassigned", "phase": "focus", "status": "completed", "plannedDurationMs": 120000, "completedAt": "2026-03-08T06:30:00Z", "taskId": null}
   ],
   "checkerDailyTotals": {
-    "focusCount": 3, "focusPlannedDurationMs": 1320000,
-    "currentTaskCount": 1, "currentTaskPlannedDurationMs": 900000
+    "focusCount": 3, "focusElapsedMs": 1320000,
+    "currentTaskCount": 1, "currentTaskElapsedMs": 900000
   },
   "desktopPrimary": [
     {"status": "idle", "intents": ["start", "selectPhase"]},

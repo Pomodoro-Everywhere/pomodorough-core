@@ -30,7 +30,7 @@ fn countdown_and_profile_display_parity() {
     let fixture = fixture();
     let mut request = fixture["request"].clone();
     let idle = output(&request);
-    assert_eq!(idle["schemaVersion"], 1);
+    assert_eq!(idle["schemaVersion"], 2);
     assert_eq!(idle["canonical"]["timerId"], Value::Null);
     assert_eq!(idle["display"]["remainingMs"], 1_500_000.0);
     assert_eq!(
@@ -87,7 +87,7 @@ fn cadence_skip_and_task_counts_cover_zero_through_twelve_and_dst_edges() {
         let result = output(&request);
         assert_eq!(result["cadence"]["completedFocusToday"], count);
         assert_eq!(
-            result["cadence"]["completedFocusTodayPlannedDurationMs"],
+            result["cadence"]["completedFocusTodayElapsedMs"],
             count as i64 * 1_500_000
         );
         assert_eq!(result["cadence"]["completedFocusTotal"], count + 2);
@@ -99,7 +99,7 @@ fn cadence_skip_and_task_counts_cover_zero_through_twelve_and_dst_edges() {
         );
         assert_eq!(
             result["tasks"]["completedFocusTodayByTask"][task_id()],
-            json!({"count": count, "plannedDurationMs": count as i64 * 1_500_000})
+            json!({"count": count, "elapsedMs": count as i64 * 1_500_000})
         );
         request["selectedPhase"] = json!("long_break");
         assert_eq!(output(&request)["cadence"]["skipDestination"], "focus");
@@ -252,7 +252,7 @@ fn twenty_five_hour_day_and_stale_monotonic_fallback() {
     ]);
     assert_eq!(output(&request)["cadence"]["completedFocusToday"], 2);
     assert_eq!(
-        output(&request)["cadence"]["completedFocusTodayPlannedDurationMs"],
+        output(&request)["cadence"]["completedFocusTodayElapsedMs"],
         3_000_000
     );
 
@@ -325,7 +325,7 @@ fn checker_terminal_display_and_completed_short_anchor_rejection() {
 }
 
 #[test]
-fn checker_task_rows_use_reference_day_and_planned_durations() {
+fn checker_task_rows_use_reference_day_and_elapsed_durations() {
     let fixture = fixture();
     let mut request = fixture["request"].clone();
     let id = task_id();
@@ -350,12 +350,12 @@ fn checker_task_rows_use_reference_day_and_planned_durations() {
         totals["focusCount"]
     );
     assert_eq!(
-        result["cadence"]["completedFocusTodayPlannedDurationMs"],
-        totals["focusPlannedDurationMs"]
+        result["cadence"]["completedFocusTodayElapsedMs"],
+        totals["focusElapsedMs"]
     );
     assert_eq!(
         result["tasks"]["completedFocusTodayByTask"][&id],
-        json!({"count": totals["currentTaskCount"], "plannedDurationMs": totals["currentTaskPlannedDurationMs"]})
+        json!({"count": totals["currentTaskCount"], "elapsedMs": totals["currentTaskElapsedMs"]})
     );
     assert!(
         result["tasks"]["completedFocusTodayByTask"]
@@ -580,26 +580,25 @@ fn retargeted_completion_counts_only_selected_destination_task_today() {
     let result = output(&request);
     assert_eq!(
         result["tasks"]["completedFocusTodayByTask"][a],
-        json!({"count":0,"plannedDurationMs":0})
+        json!({"count":0,"elapsedMs":0})
     );
+    // Finish arrives 20 seconds after Start, so the session counts 20 seconds
+    // even though the command claims a full observed minute.
     assert_eq!(
         result["tasks"]["completedFocusTodayByTask"][b],
-        json!({"count":1,"plannedDurationMs":60000})
+        json!({"count":1,"elapsedMs":20000})
     );
     assert_eq!(result["cadence"]["completedFocusToday"], 1);
-    assert_eq!(
-        result["cadence"]["completedFocusTodayPlannedDurationMs"],
-        60_000
-    );
+    assert_eq!(result["cadence"]["completedFocusTodayElapsedMs"], 20_000);
     request["source"]["value"]["local"]["commands"][1]["taskId"] = Value::Null;
     let unassigned = output(&request);
     assert_eq!(
         unassigned["tasks"]["completedFocusTodayByTask"][b],
-        json!({"count":0,"plannedDurationMs":0})
+        json!({"count":0,"elapsedMs":0})
     );
     assert_eq!(unassigned["cadence"]["completedFocusToday"], 1);
     assert_eq!(
-        unassigned["cadence"]["completedFocusTodayPlannedDurationMs"],
-        60_000
+        unassigned["cadence"]["completedFocusTodayElapsedMs"],
+        20_000
     );
 }

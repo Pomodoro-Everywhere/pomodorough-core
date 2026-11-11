@@ -62,6 +62,25 @@ fn project(input: &Value) -> Value {
     call("workspace.project.v1", input).unwrap_or_else(|error| panic!("{error}: {input}"))
 }
 
+/// Projection records elapsed on every row: the canonical timer owns its own
+/// row, and a completed row without the field counts its whole plan.
+fn with_recorded_elapsed(rows: &Value, timer: &Value) -> Value {
+    let mut rows = rows.clone();
+    for row in rows.as_array_mut().unwrap() {
+        if !row["elapsedMs"].is_null() {
+            continue;
+        }
+        row["elapsedMs"] = if row["timerId"] == timer["id"] {
+            timer["elapsedAtAnchorMs"].clone()
+        } else if row["status"] == "completed" {
+            row["plannedDurationMs"].clone()
+        } else {
+            json!(0)
+        };
+    }
+    rows
+}
+
 fn serialized_options(mut value: Value) -> Value {
     if let Some(object) = value.as_object_mut() {
         object.retain(|_, field| !field.is_null());
@@ -93,7 +112,10 @@ fn shared_raw_terminal_fixture_accepts_exact_pairs_and_preserves_display() {
         } else {
             input["base"]["history"].clone()
         };
-        let expected_history = serialized_options(expected_history);
+        let expected_history = with_recorded_elapsed(
+            &serialized_options(expected_history),
+            &input["base"]["canonicalTimer"],
+        );
         let mut expected_rows = expected_history.as_array().unwrap().clone();
         expected_rows.sort_by_key(|row| row["timerId"].as_str().unwrap().to_owned());
         assert_eq!(
@@ -249,6 +271,86 @@ fn conflicts_fail_across_composed_boundaries_without_clearing_input() {
     }
 }
 
+const PROFILES: [&str; 5] = [
+    "appleWorkspace",
+    "desktopStorage",
+    "desktopTerminal",
+    "androidCoordinator",
+    "pwaStorage",
+];
+
+#[test]
+fn history_elapsed_outside_the_plan_fails_closed_on_every_composed_boundary() {
+    let fixture = fixture();
+    let expected = fixture["elapsedRangeError"].as_str().unwrap();
+    let cases = fixture["elapsedRangeRejections"].as_array().unwrap();
+    assert_eq!(cases.len(), 4);
+    for case in cases {
+        let input = request(case);
+        let name = &case["name"];
+        let error = call("workspace.project.v1", &input).unwrap_err();
+        assert_eq!(error, expected, "{name}");
+        for profile in PROFILES {
+            let error = call("workspace.readModel.v1", &read_request(&input, profile));
+            assert_eq!(error.unwrap_err(), expected, "{name} {profile}");
+            let error = call(
+                "workspace.intent.v1",
+                &intent_request(&input, profile, "clear"),
+            );
+            assert_eq!(error.unwrap_err(), expected, "{name} {profile}");
+        }
+    }
+}
+
+#[test]
+fn history_elapsed_at_the_range_bounds_is_accepted_without_its_timer() {
+    for elapsed in [0, 60_000] {
+        let case = json!({"cleared": true, "historyOverrides": {"elapsedMs": elapsed}});
+        let input = request(&case);
+        let output = project(&input);
+        assert_eq!(output["workspace"]["history"][0]["elapsedMs"], elapsed);
+        for profile in PROFILES {
+            let read = call("workspace.readModel.v1", &read_request(&input, profile)).unwrap();
+            assert_eq!(
+                read["cadence"]["completedFocusTodayElapsedMs"], elapsed,
+                "{profile}"
+            );
+        }
+    }
+}
+
+/// The row has no elapsed of its own, so the read model must take it from the
+/// paired timer in every profile, not count the plan.
+#[test]
+fn read_model_counts_the_paired_timer_elapsed_for_a_row_without_the_field() {
+    let fixture = fixture();
+    let case = fixture["cases"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|case| case["name"] == "early finish fills elapsed on a row without it")
+        .unwrap();
+    let mut input = request(case);
+    assert!(input["base"]["history"][0].get("elapsedMs").is_none());
+    let task = call("task.identity.v1", &json!({"title": "Study"})).unwrap();
+    let task_id = task["id"].as_str().unwrap();
+    input["base"]["tasks"] = json!([{"id": task_id, "title": "Study"}]);
+    input["base"]["canonicalTimer"]["taskId"] = json!(task_id);
+    input["base"]["history"][0]["taskId"] = json!(task_id);
+    for profile in PROFILES {
+        let read = call("workspace.readModel.v1", &read_request(&input, profile)).unwrap();
+        assert_eq!(read["canonical"]["elapsedMs"], 59_999.0, "{profile}");
+        assert_eq!(read["cadence"]["completedFocusToday"], 1, "{profile}");
+        assert_eq!(
+            read["cadence"]["completedFocusTodayElapsedMs"], 59_999,
+            "{profile}"
+        );
+        let task = &read["tasks"]["completedFocusTodayByTask"][task_id];
+        assert_eq!(task["count"], 1, "{profile}");
+        assert_eq!(task["elapsedMs"], 59_999, "{profile}");
+    }
+}
+
 #[test]
 fn terminal_pair_does_not_weaken_c02_or_history_identity_validation() {
     for collision in [
@@ -289,7 +391,10 @@ fn terminal_pair_does_not_weaken_c02_or_history_identity_validation() {
         output["workspace"]["canonicalTimer"],
         input["base"]["canonicalTimer"]
     );
-    assert_eq!(output["workspace"]["history"], input["base"]["history"]);
+    assert_eq!(
+        output["workspace"]["history"],
+        with_recorded_elapsed(&input["base"]["history"], &input["base"]["canonicalTimer"])
+    );
 }
 
 #[test]

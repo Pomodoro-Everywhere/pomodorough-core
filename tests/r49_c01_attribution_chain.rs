@@ -127,7 +127,7 @@ fn assert_credit(prior: &Value, mono: f64, count: u64) {
     assert_eq!(first["cadence"]["completedFocusTotal"], count);
     assert_eq!(
         first["tasks"]["completedFocusTodayByTask"][TASK],
-        json!({"count": count, "plannedDurationMs": 60000 * count})
+        json!({"count": count, "elapsedMs": 60000 * count})
     );
 }
 
@@ -326,7 +326,7 @@ fn assert_deadline_samples(prior: &Value, deadline: f64, samples: &[f64]) {
         assert_eq!(output["cadence"]["completedFocusTotal"], u64::from(expired));
         assert_eq!(
             output["tasks"]["completedFocusTodayByTask"][TASK],
-            json!({"count": u64::from(expired), "plannedDurationMs": 60000 * u64::from(expired)})
+            json!({"count": u64::from(expired), "elapsedMs": 60000 * u64::from(expired)})
         );
     }
 }
@@ -386,6 +386,6 @@ fn assert_late_selection(chosen: &Value, sample: f64) {
     assert_eq!(output["cadence"]["completedFocusTotal"], 1);
     assert_eq!(
         output["tasks"]["completedFocusTodayByTask"][TASK],
-        json!({"count": 0, "plannedDurationMs": 0})
+        json!({"count": 0, "elapsedMs": 0})
     );
 }

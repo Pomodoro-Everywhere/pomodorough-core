@@ -47,7 +47,7 @@ fn fifty_thousand_row_history_renders_without_truncation() {
     assert_eq!(result["cadence"]["completedFocusTotal"], 50_000);
     assert_eq!(result["cadence"]["completedFocusToday"], 50_000);
     assert_eq!(
-        result["cadence"]["completedFocusTodayPlannedDurationMs"]
+        result["cadence"]["completedFocusTodayElapsedMs"]
             .as_i64()
             .unwrap(),
         75_000_000_000_i64

@@ -4,6 +4,14 @@ This repair addresses the three rejected behaviors in the first [PWA selection i
 The extension remains opt-in, and the complete 2141-case preservation baseline remains unchanged.
 The current hosted corpus contains 2632 cases.
 
+The elapsed-time history change of 2026-11-11 supersedes both numbers.
+History rows record `elapsedMs`, so the completion shape fixture has 432 paths and the hosted corpus has 2645 cases.
+`fixtures/pwa-selection-preservation-v3.json` fixes the count and digests of 2151 prior cases; the v1 and v2 files stay unchanged.
+The comment at the gate in `tests/aggregate_artifact/pwa_selection_preservation.mjs` accounts for every case that changed.
+The recorded Core returns in `fixtures/pwa-cycle-public-v1.json` and `fixtures/pwa-selection-public-v1.json` were regenerated from their unchanged recorded inputs.
+Against the prior returns they differ only in added history `elapsedMs`, the two renamed read-model totals, and read-model `schemaVersion` 2.
+The two `read` values in `fixtures/pwa-selection-public-v1.json` have no recorded request. [PWA selection intent](PWA_SELECTION_INTENT.md) records how they were rebuilt.
+
 ## Cycle-scoped choice
 
 An admitted Start command in an opted-in PWA intent sets the returned selection's `explicit` field to false.

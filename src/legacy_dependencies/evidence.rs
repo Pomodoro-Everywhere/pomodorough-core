@@ -274,6 +274,7 @@ pub(super) fn canonical_completion(input: &Input, id: &str) -> Option<Value> {
         .then(|| json!({"id": timer["id"], "timerId": timer["id"], "commandId": id,
             "taskId": timer.get("taskId").cloned().unwrap_or(Value::Null),
             "phase": "focus", "status": "completed", "plannedDurationMs": timer["plannedDurationMs"],
+            "elapsedMs": timer["elapsedAtAnchorMs"],
             "completedAt": timer["anchorAt"], "endedAt": timer["anchorAt"]}))
 }
 

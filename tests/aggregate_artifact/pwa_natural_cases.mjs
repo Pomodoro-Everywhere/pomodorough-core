@@ -160,7 +160,7 @@ export function naturalScenarios(call) {
   const model = naturalRead({ ...fourth, workspace: completed.workspace, selection: completed.selection, lifecycle: completed.lifecycle });
   call(branch("workspace.readModel.v1", "natural-fourth-counts", model, "pwaNaturalFlow", {
     equals: { "cadence.completedFocusTotal": 4, "cadence.completedFocusToday": 4,
-      "cadence.completedFocusTodayPlannedDurationMs": 6000000, "canonical.phase": "long_break" } }));
+      "cadence.completedFocusTodayElapsedMs": 6000000, "canonical.phase": "long_break" } }));
 }
 
 function plannedFlow(name, input) {

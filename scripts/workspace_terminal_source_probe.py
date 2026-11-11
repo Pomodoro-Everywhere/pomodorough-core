@@ -74,22 +74,37 @@ def desktop(vectors):
     controller = SUITE / "desktop/src/pomodorough/ui_controller.py"
     projection_input = method(storage, "_projection_input", {})
     presented = method(controller, "presented_timer", {"TERMINAL_STATUSES": {"completed", "cancelled", "superseded"}})
-    history_differences = 0
+    differences = {"syntheticCommand": 0, "unrecordedElapsed": 0}
     for value, expected in vectors:
         legacy = legacy_projection(value, projection_input)
         actual = presented(types.SimpleNamespace(canonical_timer=legacy["canonicalTimer"],
             timer_outcomes=legacy["timerOutcomes"]), value["base"], value["local"]["commands"])
         assert wire(actual) == wire(expected["canonicalTimer"]), (actual, expected)
         if wire(legacy["history"]) != wire(expected["history"]):
-            assert not value["base"]["history"]
-            assert value["base"]["canonicalTimer"]["lastIntent"]["type"] in {"start", "pause", "resume"}
-            assert len(legacy["history"]) == 1
-            old_history = copy.deepcopy(legacy["history"])
-            assert old_history[0].pop("commandId") == value["base"]["canonicalTimer"]["lastIntent"]["commandId"]
-            assert wire(old_history) == wire(expected["history"])
-            history_differences += 1
-    assert history_differences == 2
-    return dict(terminalMatches=len(vectors), intentionalHistoryDifferences=history_differences)
+            differences[legacy_history_difference(value["base"], legacy["history"], expected["history"])] += 1
+    assert differences == {"syntheticCommand": 2, "unrecordedElapsed": 4}, differences
+    return dict(terminalMatches=len(vectors), intentionalHistoryDifferences=differences)
+
+
+def legacy_history_difference(base, legacy_history, expected_history):
+    """Name the one intended reason the timer-clearing input wrote other history."""
+    timer = base["canonicalTimer"]
+    old_history = copy.deepcopy(legacy_history)
+    if not base["history"]:
+        assert timer["lastIntent"]["type"] in {"start", "pause", "resume"}
+        assert len(old_history) == 1
+        assert old_history[0].pop("commandId") == timer["lastIntent"]["commandId"]
+        assert wire(old_history) == wire(expected_history)
+        return "syntheticCommand"
+    # The legacy input drops the canonical timer. A row that predates elapsedMs
+    # then gets the pre-field default, not the elapsed the timer recorded.
+    assert all("elapsedMs" not in row for row in base["history"])
+    row = next(row for row in old_history if row["timerId"] == timer["id"])
+    default = row["plannedDurationMs"] if row["status"] == "completed" else 0
+    assert row["elapsedMs"] == default != timer["elapsedAtAnchorMs"]
+    row["elapsedMs"] = timer["elapsedAtAnchorMs"]
+    assert wire(old_history) == wire(expected_history)
+    return "unrecordedElapsed"
 
 
 def section(path, start, end):

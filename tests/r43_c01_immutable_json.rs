@@ -327,6 +327,8 @@ fn expected_rewrite_return(input: &Value, command: &Value, promoted: Value) -> V
     let response = &input["response"];
     let mut history = response["history"].clone();
     history[0]["endedAt"] = json!("2026-07-20T12:00:00Z");
+    // The response row has no elapsedMs; a completed row counts its whole plan.
+    history[0]["elapsedMs"] = json!(60000);
     json!({"projectionPending": {"commands": [], "taskOperations": [],
         "durationOperations": [], "autoStartOperations": [], "selectedTaskOperations": []},
         "revision": 1, "pending": [command], "pendingTaskOperations": [],

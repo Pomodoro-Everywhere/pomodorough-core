@@ -185,6 +185,7 @@ fn post_deadline_expected(commands: &[Value]) -> Value {
         "anchorAt": "2026-07-20T12:01:00Z", "startedByDeviceId": "device-local", "lastIntent": intent},
         "history": [{"id": "existing-timer", "timerId": "existing-timer", "taskId": "task-original",
             "phase": "focus", "status": "completed", "plannedDurationMs": 60000,
+            "elapsedMs": 60000,
             "completedAt": "2026-07-20T12:01:00Z", "endedAt": "2026-07-20T12:01:00Z"}],
         "sessions": [{"timerId": "existing-timer", "taskId": "task-original", "phase": "focus",
             "status": "completed", "plannedDurationMs": 60000, "elapsedAtAnchorMs": 60000,

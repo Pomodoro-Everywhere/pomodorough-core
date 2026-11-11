@@ -39,6 +39,7 @@ pub(crate) const HISTORY: Shape = Shape::Fields(&[
     scalar("plannedDurationMs"),
     scalar("completedAt"),
     scalar("endedAt"),
+    scalar("elapsedMs"),
 ]);
 pub(crate) const SENT_COMMAND: Shape = Shape::Fields(&[
     scalar("id"),

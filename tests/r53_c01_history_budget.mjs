@@ -54,7 +54,7 @@ async function check(item, expected) {
   if (item.ok) {
     assert.equal(result.value.cadence.completedFocusTotal, 100000);
     assert.equal(result.value.cadence.completedFocusToday, 100000);
-    assert.equal(result.value.cadence.completedFocusTodayPlannedDurationMs, 6000000000);
+    assert.equal(result.value.cadence.completedFocusTodayElapsedMs, 6000000000);
   } else {
     assert.match(result.error, /boolean|invalid duration operation/);
   }

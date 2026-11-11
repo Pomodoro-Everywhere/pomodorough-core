@@ -116,10 +116,7 @@ fn assert_counts(input: &Value) {
     .unwrap();
     assert_eq!(output["cadence"]["completedFocusTotal"], 1);
     assert_eq!(output["cadence"]["completedFocusToday"], 1);
-    assert_eq!(
-        output["cadence"]["completedFocusTodayPlannedDurationMs"],
-        1500000
-    );
+    assert_eq!(output["cadence"]["completedFocusTodayElapsedMs"], 1500000);
 }
 
 #[test]

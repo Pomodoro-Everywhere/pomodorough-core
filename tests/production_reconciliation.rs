@@ -1099,6 +1099,10 @@ fn reconcile_rebase_v1_matches_convergence_response_case() {
         output["history"][0]["timerId"],
         expected["history"][0]["timerId"]
     );
+    assert_eq!(
+        output["history"][0]["elapsedMs"],
+        expected["history"][0]["elapsedMs"]
+    );
     assert_eq!(output["tasks"], expected["tasks"]);
     assert_eq!(output["durationsMs"], expected["durationsMs"]);
     assert_eq!(output["autoStartBreaks"], expected["autoStartBreaks"]);

@@ -173,6 +173,14 @@ pub(crate) fn validate_pair<'a>(
         return Err(conflict());
     }
     validate_terminal_time(timer, row)?;
+    // A row that records elapsed describes the same session as the canonical
+    // timer. A row without it predates the field; the canonical timer decides.
+    if row
+        .elapsed_ms
+        .is_some_and(|elapsed| elapsed != timer.elapsed_at_anchor_ms)
+    {
+        return Err(conflict());
+    }
     validate_terminal_intent(timer, row.command_id.as_deref())?;
     Ok(Some(row))
 }
@@ -211,7 +219,16 @@ fn validate_terminal_time(timer: &CanonicalTimer, row: &HistoryItem) -> Result<(
 }
 
 fn validate_terminal_elapsed(timer: &CanonicalTimer) -> Result<(), CoreError> {
-    if timer.status == "completed" && timer.elapsed_at_anchor_ms != timer.planned_duration_ms {
+    // Only a Finish command completes a timer before its deadline. Deadline
+    // completion keeps the prior start or resume intent and the whole plan.
+    let finished_by_command = timer
+        .last_intent
+        .as_ref()
+        .is_some_and(|intent| intent.kind == "finish");
+    if timer.status == "completed"
+        && !finished_by_command
+        && timer.elapsed_at_anchor_ms != timer.planned_duration_ms
+    {
         return Err(conflict());
     }
     Ok(())

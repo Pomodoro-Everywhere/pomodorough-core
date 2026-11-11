@@ -46,9 +46,11 @@ The monotonic anchor must match the current running timer and continuity identit
 
 The output has fixed top-level fields `schemaVersion`, `canonical`, `display`, `availableIntents`, `cadence`, and `tasks`.
 
+`schemaVersion` is 2. Version 1 named the daily totals `cadence.completedFocusTodayPlannedDurationMs` and `completedFocusTodayByTask[id].plannedDurationMs` and summed planned durations. Version 2 names them `cadence.completedFocusTodayElapsedMs` and `completedFocusTodayByTask[id].elapsedMs` and sums recorded elapsed time. The operation name `workspace.readModel.v1` and the request are unchanged. A reader must check `schemaVersion` before it reads either total. `tests/read_model_recorded_schema.rs` lists the only recorded version 1 returns that remain under `fixtures/`: two frozen captures of older builds, described in [PWA natural completion](PWA_NATURAL_COMPLETION.md).
+
 ```json
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "canonical": {
     "timerId": "timer-one", "phase": "focus", "status": "running",
     "plannedDurationMs": 1500000, "elapsedMs": 180000.5,
@@ -62,7 +64,7 @@ The output has fixed top-level fields `schemaVersion`, `canonical`, `display`, `
   },
   "availableIntents": ["pause", "finish", "cancel", "cancelAndClear", "selectPhase"],
   "cadence": {
-    "completedFocusToday": 0, "completedFocusTodayPlannedDurationMs": 0,
+    "completedFocusToday": 0, "completedFocusTodayElapsedMs": 0,
     "completedFocusTotal": 0,
     "longBreakProgress": 0, "nextCompletedFocusBreakPhase": "short_break",
     "skipDestination": "short_break"
@@ -71,11 +73,11 @@ The output has fixed top-level fields `schemaVersion`, `canonical`, `display`, `
 }
 ```
 
-When no timer exists, `canonical.timerId`, `canonical.phase`, and `canonical.deadlineAt` are null. Its status is `idle`, and its duration, elapsed, remaining, progress, and observed elapsed are zero. The `display` object uses the selected phase duration for idle or completed timers. Apple also uses an idle selected-phase display for cancelled and superseded timers. Android and PWA keep the completed status with a reset clock. A completed canonical timer reports full planned elapsed and zero remaining. The workspace boundary rejects underelapsed standalone completion before producing history. Desktop Terminal preserves the canonical timer separately from its next-interval display. Both Desktop profiles display zero elapsed for cancelled timers while retaining the canonical elapsed. `deadlineAt` is non-null only for a running timer.
+When no timer exists, `canonical.timerId`, `canonical.phase`, and `canonical.deadlineAt` are null. Its status is `idle`, and its duration, elapsed, remaining, progress, and observed elapsed are zero. The `display` object uses the selected phase duration for idle or completed timers. Apple also uses an idle selected-phase display for cancelled and superseded timers. Android and PWA keep the completed status with a reset clock. A completed canonical timer reports the elapsed time it recorded: the full plan after its deadline, or the real elapsed time after an early Finish. Its remaining is the planned duration minus that elapsed. The workspace boundary rejects underelapsed standalone completion without a `finish` intent before producing history. Desktop Terminal preserves the canonical timer separately from its next-interval display. Both Desktop profiles display zero elapsed for cancelled timers while retaining the canonical elapsed. `deadlineAt` is non-null only for a running timer.
 
 `availableIntents` is an ordered list of Core-eligible timer and phase actions based on the projected timer and profile. The list can contain actions without separate visible controls. `finish` maps to the separate completion-command path. On PWA, the active Cancel button maps to `cancelAndClear`, while the terminal clear button stops the alert sound and does not map to a timer intent. PWA terminal timers therefore offer Start but not `clear`. Apple `skip` maps to selection of `cadence.skipDestination`. Both Desktop profiles offer `start` only at idle and `restart` on completed, cancelled, and superseded timers. The Desktop GUI and Terminal primary actions call `queue_restart`, which stores an atomic `clear` then `start` pair. `workspace.intent.v1` supports `restart` for both Desktop profiles and requires the presented timer as `requestedTimer`. Its lower-level `desktopStorage` Start admission can accept a terminal timer, but the read model does not expose that action for the Desktop GUI. `availableIntents` does not include transport, bootstrap, offline, alert, or other platform readiness gates. Adapters apply those gates to controls without changing Core's timer policy.
 
-`skip` chooses a long break after 3, 7, or 11 focus completions today. Completion cadence chooses a long break at positive multiples of four. `longBreakProgress` is zero at zero completions, then cycles from 1 through 4. `cadence.completedFocusTodayPlannedDurationMs` sums the planned duration of every completed focus session in the supplied reference day, including deleted-task and unassigned sessions. It uses the same half-open day interval as `completedFocusToday`. For the shared fixture, the global total is 1,320,000 ms, while the current task row is 900,000 ms; yesterday's 600,000 ms is excluded from both daily totals. `completedFocusTodayByTask` maps each current projected task ID to `{count, plannedDurationMs}`. It includes a zero row for a task without a completion. Deleted tasks and unassigned completions do not appear in the current task map. Core uses projected history task identity after a retarget. Apple's separate all-time history summaries and Android's completed-focus breakdown remain distinct from these daily task rows.
+`skip` chooses a long break after 3, 7, or 11 focus completions today. Completion cadence chooses a long break at positive multiples of four. `longBreakProgress` is zero at zero completions, then cycles from 1 through 4. `cadence.completedFocusTodayElapsedMs` sums the history `elapsedMs` of every completed focus session in the supplied reference day, including deleted-task and unassigned sessions. A row without `elapsedMs` predates the field and counts its planned duration. Cancelled and superseded sessions are not counted. It uses the same half-open day interval as `completedFocusToday`. For the shared fixture, the global total is 1,320,000 ms, while the current task row is 900,000 ms; yesterday's 600,000 ms is excluded from both daily totals. `completedFocusTodayByTask` maps each current projected task ID to `{count, elapsedMs}`. It includes a zero row for a task without a completion. Deleted tasks and unassigned completions do not appear in the current task map. Core uses projected history task identity after a retarget. Apple's separate all-time history summaries and Android's completed-focus breakdown remain distinct from these daily task rows.
 
 ## Parity and limits
 

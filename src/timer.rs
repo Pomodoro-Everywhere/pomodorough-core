@@ -206,6 +206,31 @@ pub(crate) struct HistoryItem {
     pub(crate) completed_at: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub(crate) ended_at: Option<String>,
+    /// Time the session really ran, pauses excluded. Every row the reducer
+    /// writes carries it; rows written before the field existed do not.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub(crate) elapsed_ms: Option<i64>,
+}
+
+impl HistoryItem {
+    /// Elapsed time to count for this row. A row without `elapsedMs` predates
+    /// the field: the contract of that time required a completed session to
+    /// have run its whole plan and recorded nothing for the other statuses.
+    pub(crate) fn counted_elapsed_ms(&self) -> i64 {
+        self.elapsed_ms.unwrap_or(if self.status == "completed" {
+            self.planned_duration_ms
+        } else {
+            0
+        })
+    }
+
+    /// The plan is within the wire bounds and a recorded elapsed fits in it.
+    fn durations_valid(&self) -> bool {
+        (60_000..=14_400_000).contains(&self.planned_duration_ms)
+            && self
+                .elapsed_ms
+                .is_none_or(|elapsed| (0..=self.planned_duration_ms).contains(&elapsed))
+    }
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -366,7 +391,7 @@ pub(crate) fn validate_history(
                 item.status.as_str(),
                 "completed" | "cancelled" | "superseded"
             )
-            || !(60_000..=14_400_000).contains(&item.planned_duration_ms)
+            || !item.durations_valid()
             || (item.status == "completed" && !completed_at_valid)
             || (item.status != "completed" && !ended_at_valid)
             || (item.completed_at.is_some() && !completed_at_valid)
@@ -505,8 +530,15 @@ impl ReductionState {
             return;
         };
         if command.kind == "finish" {
+            // A Finish command's own observedElapsedMs is never used. A
+            // running session ends at the elapsed time measured to the command
+            // time, which already decides deadline completion. A paused or
+            // ended session keeps its stored elapsed: for a paused session that
+            // is the observedElapsedMs its Pause command supplied.
+            if target.status == "running" {
+                target.elapsed_at_anchor_ms = elapsed_at(target, &command.occurred_at);
+            }
             target.status = "completed".into();
-            target.elapsed_at_anchor_ms = target.planned_duration_ms;
         } else {
             target.status = "cancelled".into();
             target.elapsed_at_anchor_ms =
@@ -730,6 +762,11 @@ fn history_item(session: &Session) -> Result<HistoryItem, CoreError> {
         planned_duration_ms: session.planned_duration_ms,
         completed_at,
         ended_at,
+        elapsed_ms: Some(clamp(
+            session.elapsed_at_anchor_ms,
+            0,
+            session.planned_duration_ms,
+        )),
     })
 }
 
@@ -777,11 +814,7 @@ fn session_from_history(item: HistoryItem) -> Result<Session, CoreError> {
     }
     .ok_or(CoreError::MissingProjection("history.endedAt"))?;
     let ended_at = parse_time(ended_at)?;
-    let elapsed_at_anchor_ms = if item.status == "completed" {
-        item.planned_duration_ms
-    } else {
-        0
-    };
+    let elapsed_at_anchor_ms = item.counted_elapsed_ms();
     Ok(Session {
         history_id: item.id,
         timer_id: item.timer_id,
@@ -963,6 +996,7 @@ struct FixtureHistory {
     status: String,
     phase: String,
     duration_ms: i64,
+    elapsed_ms: i64,
     #[serde(skip_serializing_if = "Option::is_none")]
     command_id: Option<String>,
     ended_ms: i64,
@@ -1047,11 +1081,13 @@ fn fixture_history(
             .ended_at
             .as_deref()
             .ok_or(CoreError::MissingProjection("history.endedAt"))?;
+        let elapsed_ms = item.counted_elapsed_ms();
         history.push(FixtureHistory {
             timer_id: item.timer_id,
             status: item.status,
             phase: item.phase,
             duration_ms: item.planned_duration_ms,
+            elapsed_ms,
             command_id: item.command_id,
             ended_ms: parse_time(ended_at)?
                 .signed_duration_since(epoch)

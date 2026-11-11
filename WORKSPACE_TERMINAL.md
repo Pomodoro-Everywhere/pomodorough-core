@@ -20,8 +20,33 @@ Every supplied terminal timestamp must equal the timer's anchor as a parsed
 RFC 3339 instant. A completed row requires `completedAt`. Cancelled and superseded
 rows require `endedAt` and cannot contain `completedAt`.
 
-Completed timers require full planned elapsed. Cancelled and superseded timers
-retain their canonical elapsed because history does not encode that value.
+A history row records `elapsedMs`: the time its session ran, pauses excluded,
+as an integer from zero through the planned duration. Every row Core writes
+carries it. A row without it predates the field. Such a row counts its planned
+duration when completed and zero otherwise, and the row paired with the canonical
+terminal timer takes that timer's `elapsedAtAnchorMs`. A row that records
+`elapsedMs` must equal the paired timer's `elapsedAtAnchorMs`. An explicit
+`"elapsedMs": null` loads as a row without the field, like every other optional
+field of the row. A value outside zero through the planned duration fails closed
+with `invalid shared-core input: invalid timer history` on the reducer, workspace
+projection, read model, intent, and reconciliation boundaries. A value above the
+signed 64-bit range fails at JSON decode.
+
+Each ending records this elapsed time on the timer and its history row:
+
+| Ending | Status | Elapsed |
+| --- | --- | --- |
+| Deadline reached | completed | The planned duration. |
+| Finish while running, before the deadline | completed | The time measured to the command's `occurredAt`, so it can be below the plan. |
+| Finish at or after the deadline | completed | The planned duration. The deadline completes the session first. The Finish still applies: `completedAt`, `endedAt`, and the history `commandId` move to the Finish. |
+| Finish while paused | completed | The elapsed time its Pause stored. |
+| Finish on a completed, cancelled, or superseded session | completed | The elapsed time that session already recorded. A cancelled or superseded row without `elapsedMs` therefore becomes completed with 0, and a completed row without it keeps the planned duration. |
+| Cancel | cancelled | The command's `observedElapsedMs`, clamped to zero through the planned duration. |
+| Superseded by another timer's command | superseded | The time measured to the superseding command, clamped. |
+
+A Finish command's own `observedElapsedMs` is never used. Pause and Resume each
+store their command's `observedElapsedMs`, clamped to zero through the planned
+duration, so a Finish while paused records a value that a client supplied.
 Intent provenance follows the public reducer's transitions:
 
 - An explicit Finish has a `finish` intent. Its command ID and time equal the
@@ -76,8 +101,8 @@ or pick a terminal object by array order.
 
 A missing corresponding history row uses the canonical timer to seed the session.
 Core validates standalone terminal elapsed and intent before synthesizing history.
-An underelapsed completed timer or a standalone terminal Clear intent fails on the
-first read. The raw workspace result also passes the pair validator before return,
+An underelapsed completed timer without a `finish` intent, or a standalone terminal
+Clear intent, fails on the first read. The raw workspace result also passes the pair validator before return,
 so deadline completion cannot produce a result rejected on its next read.
 A prior active intent cannot become a synthetic terminal command. Deadline
 completion therefore creates history without a Finish command, and supersession
@@ -157,7 +182,7 @@ The supported representation comes from current client storage and adapters:
 `scripts/workspace_terminal_source_probe.py` executes the unchanged Desktop input
 and presentation methods. It compiles Apple's unchanged terminal mapper and
 elapsed method with the actual `CanonicalTimer`, `TimerIntent`, and `HistoryItem`
-definitions. Seventeen fixture cases compare complete returned terminal values.
+definitions. Twenty fixture cases compare complete returned terminal values.
 Two more Apple cases exercise the nullable-timer reconstruction branch for Finish
 and Cancel using history and outcomes from the real native reduction.
 Ten more vectors retain an actual task-attributed completion mutation's full queue
@@ -182,11 +207,15 @@ raw persisted Finish pair with `canonical timer overlaps timer history`. The tes
 then passes without changing that input. The separate strict-public-reducer test
 continues to reject the same pair.
 
-`fixtures/workspace-terminal-v1.json` has seventeen positive cases and nineteen
+`fixtures/workspace-terminal-v1.json` has twenty positive cases and twenty
 conflicting pairs. A runner starts from `request`, overlays `timerOverrides` and
 `historyOverrides` on the supplied objects, and applies the case controls as
 shown in `tests/workspace_terminal.rs`. Overrides replace fields, not nested
 objects. `conflictError` is the exact expected error for every rejection.
+Four more cases in `elapsedRangeRejections` put `elapsedMs` at -1 and at the
+planned duration plus one, with and without the paired timer. Their exact error
+is `elapsedRangeError`. They are a separate list because they fail history
+validation before the pair is compared.
 `retainedCommands` supplies the complete originating queue. The ten
 `ignoredCommandFields` vectors are also consumed by native reducer comparisons.
 
@@ -207,10 +236,13 @@ missing device metadata. The expanded zero-command matrix then exposed an
 additional deadline result that failed reopening. Its output postcondition is now
 checked before return.
 
-`tests/workspace_terminal_checker.rs` contains thirteen passing regression tests.
+`tests/workspace_terminal_checker.rs` contains fourteen passing regression tests.
 Ten field vectors exercise all four Finish, Cancel, Pause, and Resume kinds against
 real public reducer outputs with complete uncertain queues. A 120-case
-zero-command matrix accepts sixty aggregates and rejects sixty. Every accepted
+zero-command matrix accepts sixty-two aggregates and rejects fifty-eight. The two
+added acceptances are Finish completions below the plan. The test compares the
+accepted set with a table of twenty-six status and intent rows, so a change that
+swaps one acceptance for another fails even when both counts stay. Every accepted
 result reopens exactly. Proof retirement, metadata preservation, invalid physical
 masking, old extension behavior, and generated intent devices have separate checks.
 
@@ -270,3 +302,33 @@ from 3.54 to 3.53, and mean cognitive complexity changes from 2.84 to 2.83.
 Cyclomatic p95 remains 9. Cognitive p95 decreases from 10 to 9. Existing maxima
 remain 19 cyclomatic and 28 cognitive. Other projects' source fingerprints and
 metrics are unchanged.
+
+### Elapsed-time history, 2026-11-11
+
+History rows gained `elapsedMs`, and a Finish command now keeps the real elapsed
+time on its completed timer. `tests/history_elapsed.rs` has eighteen tests. The
+terminal fixture grew to twenty positive cases and twenty rejections with
+unchanged error text, plus the four `elapsedRangeRejections`.
+
+The range rejections run on `workspace.project.v1`, on `workspace.readModel.v1`
+and `workspace.intent.v1` in all five profiles, and on `reconcile.rebase.v3`.
+`tests/history_elapsed_wasm_parity.mjs` repeats them against the release artifact
+with an early Finish, a row without the field, and an explicit null: 48 raw
+native and WASM calls with pinned values and errors. It is a separate candidate
+suite, so the hosted aggregate corpus and its preservation digest of inputs do
+not change.
+
+One test pins a known limit instead of changing Core. A strict path, such as
+`timer.reduce.v1` or `projection.apply.v2` without the timer, writes `elapsedMs`
+0 for a cancelled row that lacks the field. Storing that row beside the raw
+cancelled timer, whose `elapsedAtAnchorMs` is above zero, fails the next
+workspace read with the conflict error. A client must pass the timer with its
+history, as the integration requirements above state.
+
+`scripts/workspace_terminal_source_probe.py` passes its Desktop leg with thirty
+terminal comparisons. It names six intentional legacy-history differences: the
+two earlier synthetic-command cases, and four cases where Desktop's timer-clearing
+legacy input meets a row without `elapsedMs` and therefore writes the pre-field
+default. Its Apple leg matches thirty-three of thirty-four timers and stays red on
+the nullable-timer Finish reconstruction. Apple's `terminalElapsed` still returns
+the planned duration for a completed row and must read the row's `elapsedMs`.

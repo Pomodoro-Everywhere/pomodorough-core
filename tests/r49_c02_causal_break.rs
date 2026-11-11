@@ -136,6 +136,15 @@ fn projected_history(case: &Scenario, response: &Value) -> Vec<Value> {
                     row[field] = json!(utc_time(timestamp));
                 }
             }
+            // A row without elapsedMs counts its whole plan when completed
+            // and nothing otherwise; projection writes that value out.
+            if row["elapsedMs"].is_null() {
+                row["elapsedMs"] = if row["status"] == "completed" {
+                    row["plannedDurationMs"].clone()
+                } else {
+                    json!(0)
+                };
+            }
             row
         })
         .collect()
@@ -288,13 +297,16 @@ fn canonical_only_source_keeps_reconciliation_fallback_but_not_planner_eligibili
     case.order = vec![2, 1, 0];
     let input = reconcile_input(&case);
     let mut expected = reconcile_expected(&case, &input, true);
+    // The synthesized row records the canonical timer's elapsed time.
+    let mut synthesized = completion(4, case.source_at);
+    synthesized["elapsedMs"] = input["response"]["canonicalTimer"]["elapsedAtAnchorMs"].clone();
     for path in ["/history", "/workspace/history"] {
         expected
             .pointer_mut(path)
             .unwrap()
             .as_array_mut()
             .unwrap()
-            .insert(0, completion(4, case.source_at));
+            .insert(0, synthesized.clone());
     }
     assert_preserved(case.name, "reconcile.rebase.v3", &input, expected);
     let expected = planner_expected(false, false, None);

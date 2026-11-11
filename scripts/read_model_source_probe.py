@@ -178,17 +178,17 @@ def compare_runtime():
     read = core(request)
     expected = FIXTURE["checkerDailyTotals"]
     assert desktop_task == {"finished": expected["currentTaskCount"],
-        "timeMs": expected["currentTaskPlannedDurationMs"]}
+        "timeMs": expected["currentTaskElapsedMs"]}
     assert read["tasks"]["completedFocusTodayByTask"][task_id] == {"count": desktop_task["finished"],
-        "plannedDurationMs": desktop_task["timeMs"]}
+        "elapsedMs": desktop_task["timeMs"]}
     assert pwa["tasks"]["current"] == {"count": desktop_task["finished"], "durationMs": desktop_task["timeMs"]}
     assert pwa["tasks"]["removed"] == {"count": 1, "durationMs": 300000}
     assert not pwa["tasks"]["unassigned"]
     assert read["cadence"]["completedFocusToday"] == expected["focusCount"]
     apple_count, apple_duration = apple_day_focus_totals(history, request["observedAt"])
-    assert (apple_count, apple_duration) == (expected["focusCount"], expected["focusPlannedDurationMs"])
+    assert (apple_count, apple_duration) == (expected["focusCount"], expected["focusElapsedMs"])
     assert (read["cadence"]["completedFocusToday"],
-        read["cadence"]["completedFocusTodayPlannedDurationMs"]) == (apple_count, apple_duration)
+        read["cadence"]["completedFocusTodayElapsedMs"]) == (apple_count, apple_duration)
     assert "removed" not in read["tasks"]["completedFocusTodayByTask"]
     request["source"]["value"]["base"]["history"] = []
     for row in pwa["readiness"]:

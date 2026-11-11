@@ -7,7 +7,7 @@ use crate::{CoreError, timer::HistoryItem};
 pub(super) struct Cadence {
     today: usize,
     total: usize,
-    planned_duration_today_ms: i64,
+    elapsed_today_ms: i64,
     day: (DateTime<Utc>, DateTime<Utc>),
 }
 
@@ -17,7 +17,7 @@ pub(super) fn cadence(
 ) -> Result<Cadence, CoreError> {
     let mut today = 0;
     let mut total = 0;
-    let mut planned_duration_today_ms = 0_i64;
+    let mut elapsed_today_ms = 0_i64;
     for item in history
         .iter()
         .filter(|item| item.status == "completed" && item.phase == "focus")
@@ -31,15 +31,15 @@ pub(super) fn cadence(
         let at = crate::timer::parse_time(at)?;
         if at >= day.0 && at < day.1 {
             today += 1;
-            planned_duration_today_ms = planned_duration_today_ms
-                .checked_add(item.planned_duration_ms)
+            elapsed_today_ms = elapsed_today_ms
+                .checked_add(item.counted_elapsed_ms())
                 .ok_or_else(|| invalid("read model daily focus duration overflow"))?;
         }
     }
     Ok(Cadence {
         today,
         total,
-        planned_duration_today_ms,
+        elapsed_today_ms,
         day,
     })
 }
@@ -78,10 +78,10 @@ pub(super) fn render(
     };
     let task_counts = task_counts(workspace, history, cadence.day)?;
     Ok(
-        json!({"schemaVersion": 1, "canonical": canonical, "display": display,
+        json!({"schemaVersion": 2, "canonical": canonical, "display": display,
         "availableIntents": available,
         "cadence": {"completedFocusToday": cadence.today,
-            "completedFocusTodayPlannedDurationMs": cadence.planned_duration_today_ms,
+            "completedFocusTodayElapsedMs": cadence.elapsed_today_ms,
             "completedFocusTotal": cadence.total,
             "longBreakProgress": if cadence.today == 0 { 0 } else { (cadence.today - 1) % 4 + 1 },
             "nextCompletedFocusBreakPhase": next_break, "skipDestination": skip},
@@ -208,7 +208,7 @@ fn task_counts(
         let id = task["id"]
             .as_str()
             .ok_or_else(|| invalid("invalid read model task"))?;
-        counts.insert(id.into(), json!({"count": 0, "plannedDurationMs": 0}));
+        counts.insert(id.into(), json!({"count": 0, "elapsedMs": 0}));
     }
     for item in history
         .iter()
@@ -224,8 +224,8 @@ fn task_counts(
         }
         if let Some(count) = item.task_id.as_ref().and_then(|id| counts.get_mut(id)) {
             count["count"] = json!(count["count"].as_u64().unwrap() + 1);
-            count["plannedDurationMs"] =
-                json!(count["plannedDurationMs"].as_i64().unwrap() + item.planned_duration_ms);
+            count["elapsedMs"] =
+                json!(count["elapsedMs"].as_i64().unwrap() + item.counted_elapsed_ms());
         }
     }
     Ok(Value::Object(counts))

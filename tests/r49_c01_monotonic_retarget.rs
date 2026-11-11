@@ -278,7 +278,7 @@ fn assert_live_read(output: &Value) {
     assert_eq!(
         dispatch("workspace.readModel.v1", &input),
         json!({"ok": true, "value": {
-            "schemaVersion": 1, "canonical": {"timerId": "existing-timer", "phase": "focus",
+            "schemaVersion": 2, "canonical": {"timerId": "existing-timer", "phase": "focus",
                 "status": "running", "plannedDurationMs": 60000, "elapsedMs": 16000.0,
                 "remainingMs": 44000.0, "deadlineAt": "2026-07-20T12:00:55Z",
                 "progress": progress, "observedElapsedMs": 16000},
@@ -286,11 +286,11 @@ fn assert_live_read(output: &Value) {
                 "elapsedMs": 16000.0, "remainingMs": 44000.0, "progress": progress,
                 "remainingSecondsCeil": 44},
             "availableIntents": ["pause", "finish", "cancel", "cancelAndClear"],
-            "cadence": {"completedFocusToday": 0, "completedFocusTodayPlannedDurationMs": 0,
+            "cadence": {"completedFocusToday": 0, "completedFocusTodayElapsedMs": 0,
                 "completedFocusTotal": 0, "longBreakProgress": 0,
                 "nextCompletedFocusBreakPhase": "short_break", "skipDestination": "short_break"},
             "tasks": {"total": 1, "selectedTaskId": TASK_ID,
-                "completedFocusTodayByTask": {TASK_ID: {"count": 0, "plannedDurationMs": 0}}}
+                "completedFocusTodayByTask": {TASK_ID: {"count": 0, "elapsedMs": 0}}}
         }})
     );
 }
@@ -381,8 +381,8 @@ fn expired_expected(prior: &Value, input: &Value) -> Value {
     projection["canonicalTimer"]["elapsedAtAnchorMs"] = json!(60000);
     projection["canonicalTimer"]["anchorAt"] = json!("2026-07-20T12:00:55Z");
     projection["history"] = json!([{"id": "existing-timer", "timerId": "existing-timer", "phase": "focus",
-        "status": "completed", "plannedDurationMs": 60000, "completedAt": "2026-07-20T12:00:55Z",
-        "endedAt": "2026-07-20T12:00:55Z"}]);
+        "status": "completed", "plannedDurationMs": 60000, "elapsedMs": 60000,
+        "completedAt": "2026-07-20T12:00:55Z", "endedAt": "2026-07-20T12:00:55Z"}]);
     expected(
         input,
         operations,

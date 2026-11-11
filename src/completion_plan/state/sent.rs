@@ -274,6 +274,7 @@ fn android_history(input: &Install, finish: &SentCommand) -> Vec<HistoryItem> {
             completed_at: Some(timer.anchor_at.clone()),
             ended_at: Some(timer.anchor_at.clone()),
             task_id: timer.task_id.clone(),
+            elapsed_ms: Some(timer.elapsed_at_anchor_ms),
         });
     }
     history

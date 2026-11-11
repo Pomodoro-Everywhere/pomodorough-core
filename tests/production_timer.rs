@@ -513,6 +513,7 @@ fn timer_reduce_v1_history_is_newest_first_at_fractional_precision() {
             "phase": "focus",
             "status": "cancelled",
             "plannedDurationMs": 300_000,
+            "elapsedMs": 50,
             "endedAt": "2026-07-15T10:00:01.1Z"
         })
     );
@@ -1067,6 +1068,7 @@ fn normalize_fixture_result(result: &Value, expected: &Value) -> Value {
                 "status": actual["status"].clone(),
                 "phase": actual["phase"].clone(),
                 "durationMs": actual["plannedDurationMs"].clone(),
+                "elapsedMs": actual["elapsedMs"].clone(),
                 "endedMs": wanted["endedMs"].clone(),
             });
             if let Some(command_id) = actual.get("commandId") {
