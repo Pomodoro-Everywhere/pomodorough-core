@@ -313,18 +313,21 @@ new task remains blocked during an active timer by `issueTaskOperation`.
 `renameTask` (`taskId`, `title`) replaces a projected task because task
 identity hashes the normalized title. Core validates the new title with
 `task.identity.v1`, then queues an upsert for the new identity followed by a
-delete for the old one in a single plan. When the old task is the selected
+`rename` operation for the old one in a single plan. The `rename` removes the
+old task like a delete and names the new normalized title, so every reducer
+can move the old task's finished history to the new identity; see
+[Task rename and history carryover](TASK_RENAME.md). When the old task is the selected
 task, core queues a selected-task operation for the new identity on every
 profile, including PWA, so selection survives the replacement. When a running
 or paused focus timer is assigned to the old task, core queues one immutable
 retarget command to the new identity. A new title that already exists merges
-into that task: core skips the upsert and still queues the delete, selection
+into that task: core skips the upsert and still queues the rename, selection
 move, and retarget. A title whose normalized identity equals the old one is
 `noop` with `unchangedOrIneligible`. Rename requires a currently projected
-task; `knownTasks` cache membership does not admit it. History entries keep
-the old task identity, so clients that resolve history titles through a cache
-or the projected task list show the old title for earlier arrivals. Rename
-may consume up to four operation identities (upsert, delete, selection,
+task; `knownTasks` cache membership does not admit it. Finished history that
+started before the rename moves to the new identity in the plan's projection
+and in every later reduction. Rename
+may consume up to four operation identities (upsert, rename, selection,
 retarget), so clients supply four `commandUuids` for it; every other
 workspace mutation keeps the three-identity limit and timer intents keep two.
 

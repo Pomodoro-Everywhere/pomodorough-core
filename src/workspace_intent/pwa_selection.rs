@@ -98,6 +98,52 @@ mod tests {
         );
     }
 
+    /// Names that a serde rejection lists: "expected `a`", "expected `a` or `b`",
+    /// or "expected one of `a`, `b`, `c`".
+    fn expected_names(error: &str) -> std::collections::BTreeSet<String> {
+        let (_, list) = error
+            .split_once("expected ")
+            .unwrap_or_else(|| panic!("serde lists the accepted names: {error}"));
+        let list = list.strip_prefix("one of ").unwrap_or(list);
+        list.split(", ")
+            .flat_map(|names| names.split(" or "))
+            .map(|name| name.trim_matches(|c: char| c == '`' || c.is_whitespace()))
+            .map(str::to_owned)
+            .collect()
+    }
+
+    // R54-S11: the strict list once lacked `renameTask`, so every PWA rename failed
+    // before the typed decoder saw it. Both lists must name the same kinds and fields.
+    #[test]
+    fn strict_intent_kinds_and_fields_match_the_typed_decoder() {
+        use super::super::model::Intent;
+        let Shape::Record(fields) = &crate::completion_schema::intent::REQUEST else {
+            panic!("intent record")
+        };
+        let intent = fields.iter().find(|field| field.name == "intent").unwrap();
+        let Shape::TaggedObject { variants, .. } = &intent.shape else {
+            panic!("tagged intent")
+        };
+        let probe = serde_json::json!({"kind": "notAnIntent"});
+        let error = serde_json::from_value::<Intent>(probe).err().unwrap();
+        let strict = variants.iter().map(|variant| variant.name.to_owned());
+        assert_eq!(
+            strict.collect::<std::collections::BTreeSet<_>>(),
+            expected_names(&error.to_string())
+        );
+        for variant in variants.iter().filter(|variant| !variant.fields.is_empty()) {
+            let probe = serde_json::json!({"kind": variant.name, "notAField": 1});
+            let error = serde_json::from_value::<Intent>(probe).err().unwrap();
+            let strict = variant.fields.iter().map(|field| field.name.to_owned());
+            assert_eq!(
+                strict.collect::<std::collections::BTreeSet<_>>(),
+                expected_names(&error.to_string()),
+                "{} fields",
+                variant.name
+            );
+        }
+    }
+
     #[test]
     fn schema_presence_and_nullable_metadata_matches_actual_intent_decoder() {
         let fixture: serde_json::Value =

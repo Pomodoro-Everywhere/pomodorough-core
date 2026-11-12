@@ -1,0 +1,148 @@
+{
+  "description": "R54-S11: the workspace.intent.v1 request the PWA sends when the user renames task Alpha to Beta. Recorded from server/web (app-actions.js renameTask) through the ux-view test fixture. The PWA always sends lifecycle, so Core validates the request against the strict schema completion_schema::intent::REQUEST.",
+  "request": {
+    "compatibility": "pwaStorage",
+    "replicationMode": "centralized",
+    "workspace": {
+      "base": {
+        "canonicalTimer": null,
+        "history": [],
+        "tasks": [],
+        "durationsMs": {
+          "focus": 1500000,
+          "short_break": 300000,
+          "long_break": 900000
+        },
+        "autoStartBreaks": true,
+        "selectedTaskId": null
+      },
+      "local": {
+        "commands": [],
+        "taskOperations": [
+          {
+            "deviceId": "shared-device",
+            "hlcCounter": 3,
+            "hlcWallMs": 1788091200000,
+            "id": "01a0528a-7200-7000-8000-000000000015",
+            "occurredAt": "2026-08-30T12:00:00.000Z",
+            "taskId": "8d42fcde-20c0-8634-b2f6-4ef6a1162f71",
+            "title": "Alpha",
+            "type": "upsert"
+          }
+        ],
+        "durationOperations": [],
+        "autoStartOperations": [],
+        "selectedTaskOperations": [
+          {
+            "deviceId": "shared-device",
+            "hlcCounter": 4,
+            "hlcWallMs": 1788091200000,
+            "id": "01a0528a-7200-7000-8000-000000000016",
+            "occurredAt": "2026-08-30T12:00:00.000Z",
+            "taskId": "8d42fcde-20c0-8634-b2f6-4ef6a1162f71"
+          }
+        ]
+      },
+      "canonicalHead": null,
+      "neverSent": {
+        "commands": [],
+        "taskOperations": [
+          "01a0528a-7200-7000-8000-000000000015"
+        ],
+        "durationOperations": [],
+        "autoStartOperations": [],
+        "selectedTaskOperations": [
+          "01a0528a-7200-7000-8000-000000000016"
+        ]
+      },
+      "timerDependencies": [],
+      "displayContext": {
+        "profile": "pwaStorage",
+        "projectionPending": {
+          "autoStartOperations": [],
+          "commands": [],
+          "durationOperations": [],
+          "selectedTaskOperations": [
+            {
+              "deviceId": "shared-device",
+              "hlcCounter": 4,
+              "hlcWallMs": 1788091200000,
+              "id": "01a0528a-7200-7000-8000-000000000016",
+              "occurredAt": "2026-08-30T12:00:00.000Z",
+              "taskId": "8d42fcde-20c0-8634-b2f6-4ef6a1162f71"
+            }
+          ],
+          "taskOperations": [
+            {
+              "deviceId": "shared-device",
+              "hlcCounter": 3,
+              "hlcWallMs": 1788091200000,
+              "id": "01a0528a-7200-7000-8000-000000000015",
+              "occurredAt": "2026-08-30T12:00:00.000Z",
+              "taskId": "8d42fcde-20c0-8634-b2f6-4ef6a1162f71",
+              "title": "Alpha",
+              "type": "upsert"
+            }
+          ]
+        }
+      }
+    },
+    "selection": {
+      "explicit": false,
+      "generation": "0",
+      "phase": "focus"
+    },
+    "lifecycle": {
+      "consumedCompletions": [],
+      "finishEvidence": [],
+      "pendingBreaks": []
+    },
+    "allocation": {
+      "deviceId": "shared-device",
+      "deviceSequence": 7,
+      "hlc": {
+        "counter": 4,
+        "wallMs": 1788091200000
+      },
+      "lastUuid": "01a0528a-7200-7000-8000-000000000016"
+    },
+    "observation": {
+      "canonicalAnchorAt": null,
+      "commandTimes": {}
+    },
+    "clock": {
+      "occurredAt": "2026-08-30T12:00:00.000Z",
+      "physicalNow": "2026-08-30T12:00:00.000Z",
+      "observedAt": "2026-08-30T12:00:00.000Z",
+      "continuityId": "b179c372-e8f1-4e99-8caf-49afdab0a82e"
+    },
+    "identities": {
+      "commandUuids": [
+        "01a0528a-7200-7000-8000-000000000017",
+        "01a0528a-7200-7000-8000-000000000018",
+        "01a0528a-7200-7000-8000-000000000019",
+        "01a0528a-7200-7000-8000-00000000001a"
+      ],
+      "timerUuid": "ddd2cea2-74c0-403e-8068-a68cb0fc5723"
+    },
+    "calendarIntervals": [
+      {
+        "start": "2026-08-29T19:00:00.000Z",
+        "end": "2026-08-30T19:00:00.000Z"
+      }
+    ],
+    "ownership": {
+      "expectedOwnerId": "account:v1:06fda93da0029dc561717efa7e89d2ee935f311d2c7652561883d122315e215b",
+      "ownerId": "account:v1:06fda93da0029dc561717efa7e89d2ee935f311d2c7652561883d122315e215b"
+    },
+    "durability": {
+      "outgoingDurationOperationIds": [],
+      "localTabId": "tab-0"
+    },
+    "intent": {
+      "kind": "renameTask",
+      "taskId": "8d42fcde-20c0-8634-b2f6-4ef6a1162f71",
+      "title": "Beta"
+    }
+  }
+}

@@ -45,7 +45,12 @@ The [immutable reconciliation contract](IMMUTABLE_RECONCILIATION.md) defines ret
 
 The opt-in [terminal-aware reconciliation contract](TERMINAL_RECONCILIATION.md)
 defines `reconcile.rebase.v3`, raw canonical evidence, safe terminal projection,
-and completion-state composition. V1 and v2 retain strict overlap rejection.
+and completion-state composition. Reconciliation v1 and v2 retain strict overlap
+rejection. Since 0.56.0, `projection.apply.v2` and `timer.reduce.v1` accept an
+overlap only as a validated terminal pair ([workspace terminal contract](WORKSPACE_TERMINAL.md)).
+
+The [task rename contract](TASK_RENAME.md) defines the `rename` task operation
+and `task.carryHistory.v1`, which move finished history to a renamed task.
 
 The [safe workspace projection contract](WORKSPACE_PROJECTION.md) defines
 `workspace.project.v1`, which selects safe queues inside Core for later mutations

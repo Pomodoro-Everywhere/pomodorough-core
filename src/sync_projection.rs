@@ -89,7 +89,7 @@ pub(crate) struct OperationClock {
     pub(crate) hlc_counter: i64,
 }
 
-fn operation_clock_key(clock: &OperationClock) -> (i64, i64, &str, &str) {
+pub(crate) fn operation_clock_key(clock: &OperationClock) -> (i64, i64, &str, &str) {
     (
         clock.hlc_wall_ms,
         clock.hlc_counter,
@@ -115,7 +115,7 @@ pub(crate) fn validate_operation_timestamp(clock: &OperationClock) -> Result<(),
         .map_err(|_| CoreError::InvalidTimestamp(clock.occurred_at.clone()))
 }
 
-fn validate_standalone_timestamps<'a>(
+pub(crate) fn validate_standalone_timestamps<'a>(
     clocks: impl IntoIterator<Item = &'a OperationClock>,
 ) -> Result<(), CoreError> {
     for clock in clocks {
@@ -166,11 +166,10 @@ pub(crate) fn reduce_tasks_v1_json(input: &str) -> Result<String, CoreError> {
     )?)?)
 }
 
-pub(crate) fn replay_tasks(
-    base_tasks: Vec<Task>,
-    operations: Vec<TaskOperation>,
-) -> Result<TaskReductionOutput, CoreError> {
-    for operation in &operations {
+/// Every operation in a task log has a valid clock and fields, and no two
+/// operations share an ID.
+pub(crate) fn validate_task_log(operations: &[TaskOperation]) -> Result<(), CoreError> {
+    for operation in operations {
         validate_operation_clock(&operation.clock)?;
         validate_task_operation_fields(operation)?;
     }
@@ -179,7 +178,14 @@ pub(crate) fn replay_tasks(
         operations
             .iter()
             .map(|operation| operation.clock.id.as_str()),
-    )?;
+    )
+}
+
+pub(crate) fn replay_tasks(
+    base_tasks: Vec<Task>,
+    operations: Vec<TaskOperation>,
+) -> Result<TaskReductionOutput, CoreError> {
+    validate_task_log(&operations)?;
 
     let winners = select_clock_winners(
         operations,
@@ -225,10 +231,29 @@ pub(crate) fn validate_task_operation_fields(operation: &TaskOperation) -> Resul
             "invalid task identity or title".into(),
         )),
         "delete" => Ok(()),
+        "rename" => validate_task_rename(operation),
         _ => Err(CoreError::InvalidInput(
             "invalid task operation type".into(),
         )),
     }
+}
+
+/// A rename names the old identity in `taskId` and the new normalized title in
+/// `title`. The new identity must differ, or the operation would delete the
+/// task it claims to keep.
+fn validate_task_rename(operation: &TaskOperation) -> Result<(), CoreError> {
+    let renamed = crate::task::identity(&operation.title)
+        .ok()
+        .filter(|(id, title)| *title == operation.title && *id != operation.task_id);
+    match renamed {
+        Some(_) => Ok(()),
+        None => Err(CoreError::InvalidInput("invalid task rename".into())),
+    }
+}
+
+/// The identity a validated rename moves its task to.
+pub(crate) fn renamed_task_id(operation: &TaskOperation) -> Result<String, CoreError> {
+    Ok(crate::task::identity(&operation.title)?.0)
 }
 
 fn apply_task_operations(
@@ -250,7 +275,9 @@ fn apply_task_operations(
                     },
                 );
             }
-            "delete" => {
+            // A rename removes the old identity like a delete. The planner
+            // emits the upsert of the new identity as its own operation.
+            "delete" | "rename" => {
                 tasks_by_id.remove(&operation.task_id);
             }
             _ => {
@@ -535,7 +562,7 @@ mod tests {
         let operation = TaskOperation {
             clock: test_clock(),
             task_id: "task-unknown-kind".to_owned(),
-            kind: "rename".to_owned(),
+            kind: "archive".to_owned(),
             title: "Task".to_owned(),
         };
         let winners = BTreeMap::from([("task-unknown-kind".to_owned(), operation)]);

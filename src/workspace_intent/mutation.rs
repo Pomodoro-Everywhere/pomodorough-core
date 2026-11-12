@@ -410,9 +410,12 @@ impl Plan<'_> {
                 json!({"taskId": id, "type": "upsert", "title": title}),
             )?;
         }
+        // The old identity leaves through a `rename` operation, not a
+        // `delete`, so every reducer can move its finished history to the new
+        // identity (`task.carryHistory.v1`, R54-C04).
         self.operation(
             "taskOperations",
-            json!({"taskId": task_id, "type": "delete"}),
+            json!({"taskId": task_id, "type": "rename", "title": title}),
         )?;
         if before["selectedTaskId"] == task_id {
             self.operation("selectedTaskOperations", json!({"taskId": id}))?;

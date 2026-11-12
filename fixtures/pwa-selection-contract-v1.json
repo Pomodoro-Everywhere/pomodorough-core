@@ -29,6 +29,7 @@
     "upsertTask": {"title": {"required": true, "shape": "string"}},
     "addAndSelectTask": {"title": {"required": true, "shape": "string"}},
     "deleteTask": {"taskId": {"required": true, "shape": "string"}},
+    "renameTask": {"taskId": {"required": true, "shape": "string"}, "title": {"required": true, "shape": "string"}},
     "selectTask": {"taskId": {"required": true, "shape": "nullable:string"}},
     "setDuration": {"phase": {"required": true, "shape": "enum:focus,short_break,long_break"}, "minutes": {"required": true, "shape": "integer"}},
     "changeDuration": {"phase": {"required": true, "shape": "enum:focus,short_break,long_break"}, "delta": {"required": true, "shape": "integer"}},

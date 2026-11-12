@@ -63,6 +63,51 @@ fn task_operations(output: &Value) -> Vec<(String, String)> {
         .collect()
 }
 
+/// Upsert of the new identity, then the rename of the old one. Both name the
+/// new title after normalization, so every reducer derives the same identity.
+fn assert_replaces_identity(output: &Value, old: &Value, new: &Value, profile: &str) {
+    assert_eq!(output["outcome"], "planned", "{profile}");
+    assert_eq!(
+        task_operations(output),
+        vec![
+            ("upsert".to_owned(), new["id"].as_str().unwrap().to_owned()),
+            ("rename".to_owned(), old["id"].as_str().unwrap().to_owned()),
+        ],
+        "{profile}"
+    );
+    for index in 0..2 {
+        assert_eq!(
+            output["operations"]["taskOperations"][index]["title"], new["title"],
+            "{profile}"
+        );
+    }
+}
+
+/// The selection and the active focus move to the new identity, both in the
+/// planned operations and in the projection.
+fn assert_moves_selection_and_focus(output: &Value, new: &Value, profile: &str) {
+    let selected = output["operations"]["selectedTaskOperations"]
+        .as_array()
+        .unwrap();
+    assert_eq!(selected.len(), 1, "{profile}");
+    assert_eq!(selected[0]["taskId"], new["id"], "{profile}");
+    let commands = output["operations"]["commands"].as_array().unwrap();
+    assert_eq!(commands.len(), 1, "{profile}");
+    assert_eq!(commands[0]["type"], "retarget", "{profile}");
+    assert_eq!(commands[0]["taskId"], new["id"], "{profile}");
+    let projection = &output["projection"];
+    assert_eq!(
+        projection["tasks"],
+        json!([{"id": new["id"], "title": new["title"]}]),
+        "{profile}"
+    );
+    assert_eq!(projection["selectedTaskId"], new["id"], "{profile}");
+    assert_eq!(
+        projection["canonicalTimer"]["taskId"], new["id"],
+        "{profile}"
+    );
+}
+
 #[test]
 fn rename_replaces_identity_and_moves_selection_and_active_focus_on_every_profile() {
     let old = task("Café");
@@ -73,41 +118,8 @@ fn rename_replaces_identity_and_moves_selection_and_active_focus_on_every_profil
         input["workspace"]["base"]["canonicalTimer"] = fixture()["timer"].clone();
         input["workspace"]["base"]["canonicalTimer"]["taskId"] = old["id"].clone();
         let output = plan(&input).unwrap();
-        assert_eq!(output["outcome"], "planned", "{profile}");
-        assert_eq!(
-            task_operations(&output),
-            vec![
-                ("upsert".to_owned(), new["id"].as_str().unwrap().to_owned()),
-                ("delete".to_owned(), old["id"].as_str().unwrap().to_owned()),
-            ],
-            "{profile}"
-        );
-        assert_eq!(
-            output["operations"]["taskOperations"][0]["title"], new["title"],
-            "{profile}"
-        );
-        let selected = output["operations"]["selectedTaskOperations"]
-            .as_array()
-            .unwrap();
-        assert_eq!(selected.len(), 1, "{profile}");
-        assert_eq!(selected[0]["taskId"], new["id"], "{profile}");
-        let commands = output["operations"]["commands"].as_array().unwrap();
-        assert_eq!(commands.len(), 1, "{profile}");
-        assert_eq!(commands[0]["type"], "retarget", "{profile}");
-        assert_eq!(commands[0]["taskId"], new["id"], "{profile}");
-        assert_eq!(
-            output["projection"]["tasks"],
-            json!([{"id": new["id"], "title": new["title"]}]),
-            "{profile}"
-        );
-        assert_eq!(
-            output["projection"]["selectedTaskId"], new["id"],
-            "{profile}"
-        );
-        assert_eq!(
-            output["projection"]["canonicalTimer"]["taskId"], new["id"],
-            "{profile}"
-        );
+        assert_replaces_identity(&output, &old, &new, profile);
+        assert_moves_selection_and_focus(&output, &new, profile);
     }
 }
 
@@ -160,7 +172,11 @@ fn rename_to_existing_title_merges_without_a_second_upsert() {
     let output = plan(&input).unwrap();
     assert_eq!(
         task_operations(&output),
-        vec![("delete".to_owned(), old["id"].as_str().unwrap().to_owned())]
+        vec![("rename".to_owned(), old["id"].as_str().unwrap().to_owned())]
+    );
+    assert_eq!(
+        output["operations"]["taskOperations"][0]["title"],
+        existing["title"]
     );
     assert_eq!(
         output["operations"]["selectedTaskOperations"][0]["taskId"],
@@ -223,4 +239,71 @@ fn rename_is_rejected_for_desktop_terminal_like_other_task_entrypoints() {
     let input = rename_request("desktopTerminal", &old, "New");
     let error = plan(&input).unwrap_err();
     assert!(error.contains("desktopStorage"), "{error}");
+}
+
+// R54-S11: the PWA sends every intent with `lifecycle`, which routes it through
+// the strict request schema before the typed decoder.
+#[test]
+fn pwa_rename_with_lifecycle_passes_the_strict_schema() {
+    let old = task("Café");
+    let new = task("Café au lait");
+    let mut input = rename_request("pwaStorage", &old, "Café au lait");
+    input["workspace"]["base"]["selectedTaskId"] = old["id"].clone();
+    let typed = plan(&input).unwrap();
+    input["lifecycle"] = json!({});
+    let output = plan(&input).unwrap();
+    assert_eq!(output["outcome"], "planned");
+    assert_eq!(output["operations"], typed["operations"]);
+    assert_eq!(
+        output["projection"]["tasks"],
+        json!([{"id": new["id"], "title": new["title"]}])
+    );
+    assert_eq!(output["projection"]["selectedTaskId"], new["id"]);
+}
+
+#[test]
+fn strict_pwa_rename_rejects_missing_and_unknown_fields() {
+    let old = task("Café");
+    for intent in [
+        json!({"kind": "renameTask", "taskId": old["id"]}),
+        json!({"kind": "renameTask", "title": "New"}),
+        json!({"kind": "renameTask", "taskId": old["id"], "title": "New", "extra": 1}),
+        json!({"kind": "renameTask", "taskId": null, "title": "New"}),
+        json!({"kind": "renameTask", "taskId": old["id"], "title": 1}),
+    ] {
+        let mut input = rename_request("pwaStorage", &old, "New");
+        input["intent"] = intent.clone();
+        input["lifecycle"] = json!({});
+        let error = plan(&input).unwrap_err();
+        assert!(error.contains("intent."), "{intent}: {error}");
+    }
+}
+
+// The request the PWA really sends (recorded from server/web). It carries
+// `lifecycle`, so it reaches the planner only through the strict schema.
+#[test]
+fn recorded_pwa_rename_request_plans_the_rename() {
+    let recorded: Value =
+        serde_json::from_str(include_str!("../fixtures/pwa-rename-request-v1.json")).unwrap();
+    let input = &recorded["request"];
+    let old_id = input["intent"]["taskId"].as_str().unwrap();
+    let beta = task("Beta");
+    let output = plan(input).unwrap();
+    assert_eq!(output["outcome"], "planned");
+    assert_eq!(
+        output["projection"]["tasks"],
+        json!([{"id": beta["id"], "title": "Beta"}])
+    );
+    assert_eq!(output["projection"]["selectedTaskId"], beta["id"]);
+    let operations = task_operations(&output);
+    assert_eq!(
+        operations[0],
+        ("upsert".to_owned(), beta["id"].as_str().unwrap().to_owned())
+    );
+    assert!(
+        operations
+            .iter()
+            .any(|(kind, id)| id == old_id && kind == "rename")
+    );
+    assert_eq!(output["lifecycle"], input["lifecycle"]);
 }

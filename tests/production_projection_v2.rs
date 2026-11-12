@@ -90,7 +90,7 @@ fn projection_apply_v2_rejects_malformed_operations_instead_of_ignoring_them() {
     let task = task_identity("Task");
     let mut malformed = clock("bad-task", 2_000);
     malformed["taskId"] = task["id"].clone();
-    malformed["type"] = json!("rename");
+    malformed["type"] = json!("archive");
     malformed["title"] = task["title"].clone();
     let input = json!({
         "base": {

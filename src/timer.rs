@@ -168,7 +168,7 @@ impl Outcome {
 pub(crate) struct TimerReductionOutput {
     pub(crate) canonical_timer: Option<CanonicalTimer>,
     pub(crate) history: Vec<HistoryItem>,
-    sessions: Vec<WireSession>,
+    pub(crate) sessions: Vec<WireSession>,
     pub(crate) outcomes: BTreeMap<String, Outcome>,
 }
 
@@ -233,18 +233,21 @@ impl HistoryItem {
     }
 }
 
+/// A reducer session as `timer.reduce.v1` and the replay page emit it. Inputs
+/// that read it back (`task.carryHistory.v1`, `timer.replay.page.v1`) accept
+/// only the fields the reducer writes.
 #[derive(Debug, Deserialize, Serialize)]
-#[serde(rename_all = "camelCase")]
-struct WireSession {
-    timer_id: String,
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub(crate) struct WireSession {
+    pub(crate) timer_id: String,
     #[serde(skip_serializing_if = "Option::is_none")]
-    task_id: Option<String>,
+    pub(crate) task_id: Option<String>,
     phase: String,
     status: String,
     planned_duration_ms: i64,
     elapsed_at_anchor_ms: i64,
     anchor_at: String,
-    started_at: String,
+    pub(crate) started_at: String,
     #[serde(default, skip_serializing_if = "String::is_empty")]
     started_by_device_id: String,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -262,19 +265,11 @@ pub(crate) fn reduce_timer_v1_json(input: &str) -> Result<String, CoreError> {
     check_input_len(input)?;
     let input: TimerReductionInput = serde_json::from_str(input)?;
     check_command_counts(input.commands.len())?;
-    check_unique_command_ids(input.commands.iter().map(|command| command.id.as_str()))?;
-    validate_replay_state(&input.canonical_timer, &input.history)?;
-    let now = parse_time(&input.now)?;
-    let commands = input
-        .commands
-        .into_iter()
-        .map(WireCommand::into_command)
-        .collect::<Result<Vec<_>, _>>()?;
-    Ok(serde_json::to_string(&replay_parsed(
+    Ok(serde_json::to_string(&replay_public(
         input.canonical_timer,
         input.history,
-        commands,
-        now,
+        input.commands,
+        &input.now,
     )?)?)
 }
 
@@ -325,22 +320,60 @@ pub(crate) fn replay(
     replay_parsed(canonical_timer, history, commands, now)
 }
 
+/// Replay for the public reducers, `timer.reduce.v1` and `projection.apply.v2`.
+/// A canonical timer that overlaps history is accepted only as a terminal pair
+/// that the workspace terminal validator accepts. That pair replays through the
+/// workspace seeding, so a row without `elapsedMs` takes the timer's elapsed.
+/// Reconciliation v1 and v2 keep the fully strict `replay`.
+pub(crate) fn replay_public(
+    canonical_timer: Option<CanonicalTimer>,
+    history: Vec<HistoryItem>,
+    commands: Vec<WireCommand>,
+    now: &str,
+) -> Result<TimerReductionOutput, CoreError> {
+    check_unique_command_ids(commands.iter().map(|command| command.id.as_str()))?;
+    if !overlaps_history(&canonical_timer, &history)? {
+        return replay(canonical_timer, history, commands, now);
+    }
+    // The accepted pair replays through the workspace seeding, which echoes the
+    // native device, so it gets the same device check as `workspace.project.v1`.
+    workspace::validate_timer_device(canonical_timer.as_ref())?;
+    // Every pair the workspace validator rejects is reported with the strict
+    // overlap error, so the public error contract stays the same for them.
+    if !matches!(
+        workspace::validate_pair(canonical_timer.as_ref(), &history),
+        Ok(Some(_))
+    ) {
+        return Err(overlap_error());
+    }
+    workspace::replay(canonical_timer, history, commands, now)
+}
+
 pub(crate) fn validate_replay_state(
     canonical_timer: &Option<CanonicalTimer>,
     history: &[HistoryItem],
 ) -> Result<(), CoreError> {
+    if overlaps_history(canonical_timer, history)? {
+        return Err(overlap_error());
+    }
+    Ok(())
+}
+
+fn overlaps_history(
+    canonical_timer: &Option<CanonicalTimer>,
+    history: &[HistoryItem],
+) -> Result<bool, CoreError> {
     if let Some(timer) = canonical_timer {
         validate_canonical_timer(timer)?;
     }
     let (history_ids, timer_ids) = validate_history(history)?;
-    if canonical_timer.as_ref().is_some_and(|timer| {
+    Ok(canonical_timer.as_ref().is_some_and(|timer| {
         timer_ids.contains(timer.id.as_str()) || history_ids.contains(timer.id.as_str())
-    }) {
-        return Err(CoreError::InvalidInput(
-            "canonical timer overlaps timer history".into(),
-        ));
-    }
-    Ok(())
+    }))
+}
+
+fn overlap_error() -> CoreError {
+    CoreError::InvalidInput("canonical timer overlaps timer history".into())
 }
 
 pub(crate) fn validate_canonical_timer(timer: &CanonicalTimer) -> Result<(), CoreError> {

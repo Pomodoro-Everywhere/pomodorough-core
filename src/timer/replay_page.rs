@@ -43,9 +43,12 @@ struct Output {
 
 // Replay the full sorted log; the host retains untouched sessions verbatim.
 // Never feed projected history back here: it omits resumable session state.
-// C31: unknown fields stay tolerated (like `timer.reduce.v1` and the C27 ack
-// precedent) so a newer host can extend commands or persist a richer `after`
-// cursor without breaking paged replay. `PAGE_SIZE`/ordering checks remain.
+// C31: unknown top-level, command and `after` cursor fields stay tolerated
+// (like `timer.reduce.v1` and the C27 ack precedent) so a newer host can extend
+// commands or persist a richer `after` cursor without breaking paged replay.
+// Sessions are strict: `WireSession` rejects unknown fields, so a host must
+// not store session fields that this Core does not know. `PAGE_SIZE`/ordering
+// checks remain.
 pub(crate) fn reduce_json(input: &str) -> Result<String, CoreError> {
     let input: Input = serde_json::from_value(crate::strict_json::parse(input)?)?;
     if input.commands.len() > PAGE_SIZE || input.sessions.len() > PAGE_SIZE + 1 {

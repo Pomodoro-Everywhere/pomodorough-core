@@ -1,0 +1,218 @@
+{
+  "carryHistory": {
+    "input": {
+      "canonicalTimer": {
+        "anchorAt": "2026-03-08T07:35:00Z",
+        "elapsedAtAnchorMs": 1500000,
+        "id": "01a0219e-0800-7102-8000-000000000002",
+        "lastIntent": {
+          "commandId": "01a0219e-0800-7101-8000-000000000004",
+          "occurredAt": "2026-03-08T07:35:00Z",
+          "type": "finish"
+        },
+        "phase": "focus",
+        "plannedDurationMs": 1500000,
+        "startedByDeviceId": "01a0219e-0800-7000-8000-00000000000b",
+        "status": "completed",
+        "taskId": "dc3cdc72-bf66-8e51-991f-bd28feac5355"
+      },
+      "history": [
+        {
+          "commandId": "01a0219e-0800-7101-8000-000000000004",
+          "completedAt": "2026-03-08T07:35:00Z",
+          "elapsedMs": 1500000,
+          "endedAt": "2026-03-08T07:35:00Z",
+          "id": "01a0219e-0800-7102-8000-000000000002",
+          "phase": "focus",
+          "plannedDurationMs": 1500000,
+          "status": "completed",
+          "taskId": "dc3cdc72-bf66-8e51-991f-bd28feac5355",
+          "timerId": "01a0219e-0800-7102-8000-000000000002"
+        },
+        {
+          "commandId": "01a0219e-0800-7101-8000-000000000002",
+          "completedAt": "2026-03-08T06:25:00Z",
+          "elapsedMs": 1500000,
+          "endedAt": "2026-03-08T06:25:00Z",
+          "id": "01a0219e-0800-7102-8000-000000000001",
+          "phase": "focus",
+          "plannedDurationMs": 1500000,
+          "status": "completed",
+          "taskId": "dc3cdc72-bf66-8e51-991f-bd28feac5355",
+          "timerId": "01a0219e-0800-7102-8000-000000000001"
+        }
+      ],
+      "sessions": [
+        {
+          "anchorAt": "2026-03-08T06:25:00Z",
+          "elapsedAtAnchorMs": 1500000,
+          "endedAt": "2026-03-08T06:25:00Z",
+          "lastCommandId": "01a0219e-0800-7101-8000-000000000002",
+          "lastIntent": {
+            "commandId": "01a0219e-0800-7101-8000-000000000002",
+            "occurredAt": "2026-03-08T06:25:00Z",
+            "type": "finish"
+          },
+          "phase": "focus",
+          "plannedDurationMs": 1500000,
+          "startedAt": "2026-03-08T06:00:00Z",
+          "startedByDeviceId": "01a0219e-0800-7000-8000-00000000000b",
+          "status": "completed",
+          "taskId": "dc3cdc72-bf66-8e51-991f-bd28feac5355",
+          "terminalCommandId": "01a0219e-0800-7101-8000-000000000002",
+          "timerId": "01a0219e-0800-7102-8000-000000000001"
+        },
+        {
+          "anchorAt": "2026-03-08T07:35:00Z",
+          "elapsedAtAnchorMs": 1500000,
+          "endedAt": "2026-03-08T07:35:00Z",
+          "lastCommandId": "01a0219e-0800-7101-8000-000000000004",
+          "lastIntent": {
+            "commandId": "01a0219e-0800-7101-8000-000000000004",
+            "occurredAt": "2026-03-08T07:35:00Z",
+            "type": "finish"
+          },
+          "phase": "focus",
+          "plannedDurationMs": 1500000,
+          "startedAt": "2026-03-08T07:10:00Z",
+          "startedByDeviceId": "01a0219e-0800-7000-8000-00000000000b",
+          "status": "completed",
+          "taskId": "dc3cdc72-bf66-8e51-991f-bd28feac5355",
+          "terminalCommandId": "01a0219e-0800-7101-8000-000000000004",
+          "timerId": "01a0219e-0800-7102-8000-000000000002"
+        }
+      ],
+      "taskOperations": [
+        {
+          "deviceId": "01a0219e-0800-7000-8000-00000000000a",
+          "hlcCounter": 1,
+          "hlcWallMs": 1772953200000,
+          "id": "01a0219e-0800-7103-8000-000000000001",
+          "occurredAt": "2026-03-08T07:00:00Z",
+          "taskId": "ae1adb4b-d64f-834e-853e-e10982eb2041",
+          "title": "Write chapter",
+          "type": "upsert"
+        },
+        {
+          "deviceId": "01a0219e-0800-7000-8000-00000000000a",
+          "hlcCounter": 2,
+          "hlcWallMs": 1772953200000,
+          "id": "01a0219e-0800-7103-8000-000000000002",
+          "occurredAt": "2026-03-08T07:00:00Z",
+          "taskId": "dc3cdc72-bf66-8e51-991f-bd28feac5355",
+          "title": "Write chapter",
+          "type": "rename"
+        }
+      ]
+    },
+    "operation": "task.carryHistory.v1",
+    "output": {
+      "canonicalTimer": {
+        "anchorAt": "2026-03-08T07:35:00Z",
+        "elapsedAtAnchorMs": 1500000,
+        "id": "01a0219e-0800-7102-8000-000000000002",
+        "lastIntent": {
+          "commandId": "01a0219e-0800-7101-8000-000000000004",
+          "occurredAt": "2026-03-08T07:35:00Z",
+          "type": "finish"
+        },
+        "phase": "focus",
+        "plannedDurationMs": 1500000,
+        "startedByDeviceId": "01a0219e-0800-7000-8000-00000000000b",
+        "status": "completed",
+        "taskId": "dc3cdc72-bf66-8e51-991f-bd28feac5355"
+      },
+      "history": [
+        {
+          "commandId": "01a0219e-0800-7101-8000-000000000004",
+          "completedAt": "2026-03-08T07:35:00Z",
+          "elapsedMs": 1500000,
+          "endedAt": "2026-03-08T07:35:00Z",
+          "id": "01a0219e-0800-7102-8000-000000000002",
+          "phase": "focus",
+          "plannedDurationMs": 1500000,
+          "status": "completed",
+          "taskId": "dc3cdc72-bf66-8e51-991f-bd28feac5355",
+          "timerId": "01a0219e-0800-7102-8000-000000000002"
+        },
+        {
+          "commandId": "01a0219e-0800-7101-8000-000000000002",
+          "completedAt": "2026-03-08T06:25:00Z",
+          "elapsedMs": 1500000,
+          "endedAt": "2026-03-08T06:25:00Z",
+          "id": "01a0219e-0800-7102-8000-000000000001",
+          "phase": "focus",
+          "plannedDurationMs": 1500000,
+          "status": "completed",
+          "taskId": "ae1adb4b-d64f-834e-853e-e10982eb2041",
+          "timerId": "01a0219e-0800-7102-8000-000000000001"
+        }
+      ]
+    }
+  },
+  "description": "Core 0.56.0 task rename wire cases (R54-C04). A rename at 07:00 moves the run that started at 06:00 to the new identity. The run that started at 07:10 keeps the old identity, because the old title was not renamed again. Inputs and outputs are exact Core results.",
+  "formatVersion": 1,
+  "invalidRenames": [
+    {
+      "error": "invalid task rename",
+      "title": "Draft chapter"
+    },
+    {
+      "error": "invalid task rename",
+      "title": " Write chapter\u0007"
+    },
+    {
+      "error": "invalid task rename",
+      "title": ""
+    }
+  ],
+  "renameOperation": {
+    "deviceId": "01a0219e-0800-7000-8000-00000000000a",
+    "hlcCounter": 2,
+    "hlcWallMs": 1772953200000,
+    "id": "01a0219e-0800-7103-8000-000000000002",
+    "occurredAt": "2026-03-08T07:00:00Z",
+    "taskId": "dc3cdc72-bf66-8e51-991f-bd28feac5355",
+    "title": "Write chapter",
+    "type": "rename"
+  },
+  "taskReduce": {
+    "input": {
+      "operations": [
+        {
+          "deviceId": "01a0219e-0800-7000-8000-00000000000a",
+          "hlcCounter": 1,
+          "hlcWallMs": 1772953200000,
+          "id": "01a0219e-0800-7103-8000-000000000001",
+          "occurredAt": "2026-03-08T07:00:00Z",
+          "taskId": "ae1adb4b-d64f-834e-853e-e10982eb2041",
+          "title": "Write chapter",
+          "type": "upsert"
+        },
+        {
+          "deviceId": "01a0219e-0800-7000-8000-00000000000a",
+          "hlcCounter": 2,
+          "hlcWallMs": 1772953200000,
+          "id": "01a0219e-0800-7103-8000-000000000002",
+          "occurredAt": "2026-03-08T07:00:00Z",
+          "taskId": "dc3cdc72-bf66-8e51-991f-bd28feac5355",
+          "title": "Write chapter",
+          "type": "rename"
+        }
+      ]
+    },
+    "operation": "task.reduce.v1",
+    "output": {
+      "tasks": [
+        {
+          "id": "ae1adb4b-d64f-834e-853e-e10982eb2041",
+          "title": "Write chapter"
+        }
+      ],
+      "winningOperationIds": {
+        "ae1adb4b-d64f-834e-853e-e10982eb2041": "01a0219e-0800-7103-8000-000000000001",
+        "dc3cdc72-bf66-8e51-991f-bd28feac5355": "01a0219e-0800-7103-8000-000000000002"
+      }
+    }
+  }
+}

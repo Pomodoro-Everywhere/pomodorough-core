@@ -121,10 +121,30 @@ its existing representation. Unknown extension fields are not domain fields or
 history selectors. Retained delivery payloads remain exact in `projectionPending`
 and the caller's durable queues.
 
-`projection.apply.v2` and `timer.reduce.v1` still reject every canonical/history
-overlap with `canonical timer overlaps timer history`. Reconciliation retains its
-strict canonical-response contract. CORE-M05 changes only the new workspace
-boundary and its composed consumers.
+Since Core 0.56.0, `projection.apply.v2` and `timer.reduce.v1` accept a
+canonical/history overlap only when it is a terminal pair that this workspace
+validator accepts. That pair replays through the same workspace seeding, so the
+output row takes the timer's elapsed time and the output pair passes the next
+zero-command workspace read. A row without `elapsedMs` next to a cancelled timer
+therefore takes the timer's elapsed instead of 0. Every pair this validator
+rejects still fails with exactly `canonical timer overlaps timer history`: a
+running or paused timer, a differing status, task, phase, plan, end time,
+terminal command or recorded elapsed, and a history row whose `id` names a
+different session's timer. Two rows of one timer still fail history validation
+with `invalid timer history`. A retained command that contradicts an accepted
+pair fails with the workspace conflict error. An overlapping timer first gets
+the workspace native device check, before the pair is validated: a
+`lastIntent.deviceId` that is present must be a nonempty string or null, so an
+empty string or a number fails with
+`invalid shared-core input: invalid native intent device identity`, as on
+`workspace.project.v1`. This is a contract change from
+0.55.0, which rejected every overlap; `tests/public_terminal_pair.rs` and
+`workspace_terminal.rs::public_reducers_keep_strict_overlap_contract` pin it.
+
+Reconciliation v1 and v2 retain their strict canonical-response contract and
+reject every overlap. CORE-M05 changed only the workspace boundary and its
+composed consumers; the 0.56.0 change above reuses that boundary for accepted
+pairs only.
 
 ## Physical observation and native metadata
 
@@ -204,8 +224,9 @@ establish native app, persistence, alarm, packaged-WASM, or artifact adoption.
 
 Before the implementation, the new positive fixture test failed on its first
 raw persisted Finish pair with `canonical timer overlaps timer history`. The test
-then passes without changing that input. The separate strict-public-reducer test
-continues to reject the same pair.
+then passes without changing that input. Since Core 0.56.0 the public-reducer
+test accepts the same pair and rejects every conflicting pair with the strict
+overlap error.
 
 `fixtures/workspace-terminal-v1.json` has twenty positive cases and twenty
 conflicting pairs. A runner starts from `request`, overlays `timerOverrides` and
@@ -256,7 +277,9 @@ dependencies, and coherent wire timestamps. Results cannot replace canonical
 state after optimistic replay.
 
 Adapter adoption must remove the client overlap clearing and terminal fallback
-for workspace calls. Older reducer and reconciliation adapters remain separate
+for workspace calls. Since Core 0.56.0 the same applies to `projection.apply.v2`
+and `timer.reduce.v1`: clearing the timer leaves a pre-field cancelled row with
+elapsed 0, which then conflicts with the retained terminal timer. Older reducer and reconciliation adapters remain separate
 compatibility paths. Missing authoritative terminal state, contaminated canonical
 preferences, packaged-Core verification, and supported platform transaction tests
 remain integration blockers. The main owner retains the backlog and release work.

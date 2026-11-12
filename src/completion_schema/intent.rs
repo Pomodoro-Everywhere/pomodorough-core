@@ -59,6 +59,13 @@ const ACTIONS: &[Variant] = &[
         fields: &[Field::required("taskId", Shape::String)],
     },
     Variant {
+        name: "renameTask",
+        fields: &[
+            Field::required("taskId", Shape::String),
+            Field::required("title", Shape::String),
+        ],
+    },
+    Variant {
         name: "selectTask",
         fields: &[Field::required("taskId", Shape::Nullable(&Shape::String))],
     },

@@ -70,11 +70,16 @@ fn project_pending(
     pending: &PendingQueues,
     boundary: Boundary,
 ) -> Result<PendingProjection, CoreError> {
-    let timer = boundary.replay(
+    // The base is the server's carried history. Every pending rename sorts
+    // above the canonical head, so carrying the pending edges once equals one
+    // full-order pass, as in the workspace projection.
+    let timer = crate::projection::replay_carried_timer(
         base.timer.clone(),
         base.history.clone(),
         pending.commands.clone(),
+        &pending.tasks,
         &base.server_time,
+        |timer, history, commands, now| boundary.replay(timer, history, commands, now),
     )?;
     let tasks = replay_tasks(base.tasks.clone(), pending.tasks.clone())?;
     let durations = replay_durations(Some(base.durations_ms.clone()), pending.durations.clone())?;

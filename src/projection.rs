@@ -9,7 +9,7 @@ use crate::sync_projection::{
     replay_durations, replay_selected_task, replay_tasks, validate_duration_fields,
     validate_operation_clock, validate_selected_task_fields, validate_task_operation_fields,
 };
-use crate::timer::{CanonicalTimer, HistoryItem, Outcome, WireCommand, replay};
+use crate::timer::{CanonicalTimer, HistoryItem, Outcome, WireCommand, replay_public};
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -73,7 +73,7 @@ struct WinningOperationIds {
 }
 
 pub(crate) fn apply_v2_json(input: &str) -> Result<String, CoreError> {
-    apply_json(input, replay)
+    apply_json(input, replay_public)
 }
 
 pub(crate) fn apply_workspace_json(input: &str) -> Result<String, CoreError> {
@@ -190,11 +190,13 @@ fn project(
         &str,
     ) -> Result<crate::timer::TimerReductionOutput, CoreError>,
 ) -> Result<ProjectionApplyOutput, CoreError> {
-    let timer = replay_timer(
+    let timer = replay_carried_timer(
         input.base.canonical_timer,
         input.base.history,
         input.pending.commands,
+        &input.pending.task_operations,
         &input.now,
+        replay_timer,
     )?;
     let tasks = replay_tasks(input.base.tasks, input.pending.task_operations)?;
     let durations = replay_durations(
@@ -227,6 +229,38 @@ fn project(
             selected_task: selected_task.winning_operation_id,
         },
     })
+}
+
+/// Replay the timer domain, then move the finished history that the pending
+/// renames cover. Base edges are already applied by whoever produced the
+/// base, so pending edges apply after them. This equals one pass over the
+/// full log only when no pending edge is in the base and every pending edge
+/// sorts after every base edge. Otherwise the result is a local preview that
+/// the next full pass replaces; see `tests/history_carry/reused_base.rs`.
+pub(crate) fn replay_carried_timer(
+    canonical_timer: Option<CanonicalTimer>,
+    history: Vec<HistoryItem>,
+    commands: Vec<WireCommand>,
+    task_operations: &[TaskOperation],
+    now: &str,
+    replay_timer: impl FnOnce(
+        Option<CanonicalTimer>,
+        Vec<HistoryItem>,
+        Vec<WireCommand>,
+        &str,
+    ) -> Result<crate::timer::TimerReductionOutput, CoreError>,
+) -> Result<crate::timer::TimerReductionOutput, CoreError> {
+    let mut timer = replay_timer(canonical_timer, history, commands, now)?;
+    // Same checks and wording as the task replay that follows.
+    crate::sync_projection::validate_task_log(task_operations)?;
+    let rename_edges = crate::history_carry::rename_edges(task_operations)?;
+    crate::history_carry::carry(
+        &rename_edges,
+        &crate::history_carry::session_starts(&timer.sessions)?,
+        &mut timer.history,
+        timer.canonical_timer.as_mut(),
+    )?;
+    Ok(timer)
 }
 
 fn validate_projection_shape(value: &serde_json::Value) -> Result<(), CoreError> {

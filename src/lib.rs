@@ -7,6 +7,7 @@ mod clock;
 mod completion_plan;
 mod completion_schema;
 mod fixture_projection;
+mod history_carry;
 mod legacy_dependencies;
 mod legacy_preferences;
 mod ownership_plan;
@@ -237,6 +238,7 @@ pub fn dispatch_json(operation: &str, input: &str) -> Result<String, CoreError> 
         "projection.apply.v2" => projection::apply_v2_json(input),
         "task.reduce.v1" => sync_projection::reduce_tasks_v1_json(input),
         "task.identity.v1" => task::identity_json(input),
+        "task.carryHistory.v1" => history_carry::carry_history_json(input),
         "duration.reduce.v1" => sync_projection::reduce_durations_v1_json(input),
         "autoStart.reduce.v1" => sync_projection::reduce_auto_start_v1_json(input),
         "selectedTask.reduce" => fixture_projection::reduce_selected_task_json(input),

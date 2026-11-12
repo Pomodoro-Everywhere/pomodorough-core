@@ -80,7 +80,21 @@ fn finish(prepared: Prepared, now: &str) -> Result<TimerReductionOutput, CoreErr
 }
 
 pub(crate) fn validate_native_device(value: &serde_json::Value) -> Result<(), CoreError> {
-    if let Some(device) = value["base"]["canonicalTimer"]["lastIntent"].get("deviceId") {
+    check_native_device(value["base"]["canonicalTimer"]["lastIntent"].get("deviceId"))
+}
+
+/// The parsed-timer form of `validate_native_device`, for reducers that get a
+/// typed canonical timer instead of the raw request.
+pub(crate) fn validate_timer_device(timer: Option<&CanonicalTimer>) -> Result<(), CoreError> {
+    check_native_device(
+        timer
+            .and_then(|timer| timer.last_intent.as_ref())
+            .and_then(|intent| intent.native_extensions.get("deviceId")),
+    )
+}
+
+fn check_native_device(device: Option<&serde_json::Value>) -> Result<(), CoreError> {
+    if let Some(device) = device {
         if !device.is_null() && !device.as_str().is_some_and(|device| !device.is_empty()) {
             return Err(CoreError::InvalidInput(
                 "invalid native intent device identity".into(),

@@ -180,6 +180,7 @@ const operations = [
   "projection.apply.v2",
   "task.reduce.v1",
   "task.identity.v1",
+  "task.carryHistory.v1",
   "duration.reduce.v1",
   "autoStart.reduce.v1",
   "selectedTask.reduce",

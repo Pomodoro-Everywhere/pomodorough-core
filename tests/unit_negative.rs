@@ -65,7 +65,7 @@ fn task_reducer_rejects_empty_ids_and_negative_hlc_values() {
 fn task_reducer_rejects_unknown_kind_and_noncanonical_upsert() {
     let mut unknown = valid_reducer_clock();
     unknown["taskId"] = json!("8d42fcde-20c0-8634-b2f6-4ef6a1162f71");
-    unknown["type"] = json!("rename");
+    unknown["type"] = json!("archive");
     unknown["title"] = json!("Task");
     assert_reducer_rejects("task.reduce.v1", unknown, "invalid task operation type");
 
@@ -254,4 +254,34 @@ fn timer_dispatch_rejects_each_invalid_history_boundary() {
         second[duplicate_field] = first[duplicate_field].clone();
         assert!(replay_state(Value::Null, json!([first, second])).is_err());
     }
+}
+
+#[test]
+fn task_reducer_rejects_malformed_renames() {
+    let old_id = "8d42fcde-20c0-8634-b2f6-4ef6a1162f71";
+    let same: Value = serde_json::from_str(
+        &dispatch_json("task.identity.v1", &json!({"title": "Task"}).to_string()).unwrap(),
+    )
+    .unwrap();
+    let cases = [
+        (json!(old_id), None),
+        (json!(old_id), Some(json!(""))),
+        (json!(old_id), Some(json!("  \u{0007}"))),
+        (json!(old_id), Some(json!("\u{0007}Task"))),
+        (same["id"].clone(), Some(json!("Task"))),
+    ];
+    for (task_id, title) in cases {
+        let mut rename = valid_reducer_clock();
+        rename["taskId"] = task_id;
+        rename["type"] = json!("rename");
+        if let Some(title) = title {
+            rename["title"] = title;
+        }
+        assert_reducer_rejects("task.reduce.v1", rename, "invalid task rename");
+    }
+    let mut empty_id = valid_reducer_clock();
+    empty_id["taskId"] = json!("");
+    empty_id["type"] = json!("rename");
+    empty_id["title"] = json!("Task");
+    assert_reducer_rejects("task.reduce.v1", empty_id, "invalid task identity");
 }

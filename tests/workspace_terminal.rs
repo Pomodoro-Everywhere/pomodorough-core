@@ -150,20 +150,55 @@ fn shared_conflicting_terminal_pairs_fail_closed() {
     }
 }
 
+fn public_reducer_calls(input: &Value) -> [Result<Value, String>; 2] {
+    let reduce = json!({"canonicalTimer": input["base"]["canonicalTimer"],
+        "history": input["base"]["history"], "commands": [], "now": input["now"]});
+    let apply = json!({"base": input["base"], "pending": input["local"], "now": input["now"]});
+    [
+        call("timer.reduce.v1", &reduce),
+        call("projection.apply.v2", &apply),
+    ]
+}
+
+/// Contract change in Core 0.56.0: the public reducers accept an overlap only
+/// when it is a terminal pair that `workspace.project.v1` accepts. Every pair
+/// the workspace validator rejects keeps the strict overlap error.
 #[test]
 fn public_reducers_keep_strict_overlap_contract() {
-    let input = request(&json!({}));
-    for operation in ["timer.reduce.v1", "projection.apply.v2"] {
-        let raw = if operation == "timer.reduce.v1" {
-            json!({"canonicalTimer": input["base"]["canonicalTimer"], "history": input["base"]["history"], "commands": [], "now": input["now"]})
-        } else {
-            json!({"base": input["base"], "pending": input["local"], "now": input["now"]})
-        };
-        assert!(
-            call(operation, &raw)
-                .unwrap_err()
-                .contains("canonical timer overlaps timer history")
-        );
+    let overlap = "invalid shared-core input: canonical timer overlaps timer history";
+    let fixture = fixture();
+    let only_a_pair = |case: &&Value| {
+        ["missingHistory", "cleared", "commands", "retainedCommands"]
+            .iter()
+            .all(|key| case.get(*key).is_none())
+    };
+    for case in fixture["cases"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter(only_a_pair)
+    {
+        let input = request(case);
+        let projected = call("workspace.project.v1", &input).unwrap()["workspace"].clone();
+        for output in public_reducer_calls(&input) {
+            let output = output.unwrap_or_else(|error| panic!("{}: {error}", case["name"]));
+            assert_eq!(output["history"], projected["history"], "{}", case["name"]);
+            assert_eq!(
+                output["canonicalTimer"], projected["canonicalTimer"],
+                "{}",
+                case["name"]
+            );
+        }
+    }
+    for case in fixture["rejections"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter(only_a_pair)
+    {
+        for output in public_reducer_calls(&request(case)) {
+            assert_eq!(output.unwrap_err(), overlap, "{}", case["name"]);
+        }
     }
 }
 
