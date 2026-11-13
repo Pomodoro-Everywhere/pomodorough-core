@@ -33,16 +33,106 @@ def core_task_id():
     return json.loads(result.stdout)["id"]
 
 
+def core_projected_history(request):
+    """History as Apple publishes it: Core's projection output, which records elapsedMs on every row."""
+    value = request["source"]["value"]
+    projected = core_dispatch("projection.apply.v2", {"base": value["base"], "pending": value["local"],
+                                                      "now": request["observedAt"]})
+    assert all(type(item.get("elapsedMs")) is int for item in projected["history"]), projected["history"]
+    return projected["history"]
+
+
+def core_dispatch(operation, value):
+    result = subprocess.run([str(BRIDGE)], input=json.dumps({"operation": operation, "input": value}) + "\n",
+                            text=True, capture_output=True, check=True)
+    output = json.loads(result.stdout)
+    assert "error" not in output, output
+    return output
+
+
 def core_rejects(request):
     result = subprocess.run([str(BRIDGE)], input=json.dumps({"operation": "workspace.readModel.v1", "input": request}) + "\n",
                             text=True, capture_output=True, check=True)
     return "error" in json.loads(result.stdout)
 
 
+def pwa_reads(cases):
+    """Run the PWA read path on each case; its Core calls use the same native bridge."""
+    run = subprocess.run(["node", str(ROOT / "scripts/read_model_probe_pwa.cjs")],
+                         input=json.dumps({"leg": "read", "cases": cases}), text=True, capture_output=True,
+                         env={**os.environ, "POMODOROUGH_CORE_BRIDGE": str(BRIDGE)})
+    assert run.returncode == 0, run.stderr
+    return json.loads(run.stdout)
+
+
+def pwa_case(request, **flags):
+    return {"workspace": copy.deepcopy(request["source"]["value"]), "selectedPhase": request["selectedPhase"],
+            "observedAt": request["observedAt"], **flags}
+
+
+# The PWA rings a finished timer before its clear control appears, so only the
+# completed rows vary the completion alert.
+PWA_READINESS = [(status, blocked, ringing) for status in ("running", "paused", "completed")
+                 for blocked in (False, True) for ringing in ((False, True) if status == "completed" else (False,))]
+
+
+class RuntimeChecks:
+    """Count every runtime parity check that held, so the report counts real asserts."""
+
+    def __init__(self):
+        self.passed = 0
+
+    def __call__(self, condition, *detail):
+        assert condition, detail
+        self.passed += 1
+
+
+def compare_pwa_readiness(request, check):
+    reads, cases = [], []
+    for status, blocked, ringing in PWA_READINESS:
+        timer = {**FIXTURE["timer"], "status": status}
+        if status == "completed":
+            timer["elapsedAtAnchorMs"] = timer["plannedDurationMs"]
+        request["source"]["value"]["base"]["canonicalTimer"] = timer
+        request["profile"] = "pwaStorage"
+        reads.append(core(request))
+        cases.append(pwa_case(request, blocked=blocked, ringing=ringing))
+    for row, read, pwa in zip(PWA_READINESS, reads, pwa_reads(cases), strict=True):
+        status, blocked, ringing = row
+        available, shown = read["availableIntents"], pwa["controls"]
+        check(shown["toggle"] == (not blocked and any(item in available for item in ("start", "pause", "resume"))), row)
+        check(shown["finish"] == ("finish" in available and not blocked), row)
+        check(shown["cancel"] == ("cancelAndClear" in available and not blocked), row)
+        check(shown["clear"] == (ringing and not blocked), row)
+        check(shown["skip"] == (read["cadence"]["skipDestination"] is not None and not blocked), row)
+
+
+def cadence_history(count):
+    return [{"id": f"h{i}", "timerId": f"t{i}", "phase": "focus", "status": "completed",
+             "plannedDurationMs": 1500000, "completedAt": "2026-03-08T05:00:00Z"} for i in range(count)]
+
+
+def compare_cadence(request, desktop, check):
+    cases = []
+    for row in FIXTURE["cadence"]:
+        request["source"]["value"]["base"]["history"] = cadence_history(row["count"])
+        cases.append(pwa_case(request))
+    for row, measured in zip(FIXTURE["cadence"], pwa_reads(cases), strict=True):
+        count = row["count"]
+        history = cadence_history(count)
+        request["source"]["value"]["base"]["history"] = history
+        canonical = core(request)["cadence"]
+        check(canonical["completedFocusToday"] == measured["count"] == count)
+        check(desktop["completed_focus_count_for_day"](history, request["observedAt"]) == count)
+        check(canonical["longBreakProgress"] == measured["longBreakProgress"] == desktop["long_break_progress"](count))
+        check(canonical["skipDestination"] == row["skip"])
+
+
 def desktop_methods():
     path = SUITE / "desktop/src/pomodorough/core.py"
     tree = ast.parse(path.read_text())
-    names = {"elapsed_ms", "completed_focus_count_for_day", "long_break_progress", "task_summaries_today", "timer_for_display"}
+    names = {"elapsed_ms", "completed_focus_count_for_day", "long_break_progress", "task_summaries_today", "timer_for_display",
+             "counted_run_ms", "recorded_elapsed_ms"}
     methods = [node for node in tree.body if isinstance(node, ast.FunctionDef) and node.name in names]
     assert len(methods) == len(names)
     module = ast.Module(body=[ast.ImportFrom(module="__future__", names=[ast.alias(name="annotations")], level=0),
@@ -61,16 +151,19 @@ def desktop_methods():
     exec(compile(ast.fix_missing_locations(module), str(timer_screen), "exec"), namespace)
     controller = SUITE / "desktop/src/pomodorough/timer_interaction_controller.py"
     tree = ast.parse(controller.read_text())
-    action = next(node for node in ast.walk(tree) if isinstance(node, ast.FunctionDef) and node.name == "primary_action")
-    module = ast.Module(body=[ast.ImportFrom(module="__future__", names=[ast.alias(name="annotations")], level=0), action], type_ignores=[])
-    namespace.update(TERMINAL_STATUSES={"completed", "cancelled", "superseded"},
+    # primary_action settles a pending task delete first when the controller has one.
+    names = {"primary_action", "_complete_pending_task_delete"}
+    methods = [node for node in ast.walk(tree) if isinstance(node, ast.FunctionDef) and node.name in names]
+    assert "primary_action" in {node.name for node in methods}
+    module = ast.Module(body=[ast.ImportFrom(module="__future__", names=[ast.alias(name="annotations")], level=0), *methods], type_ignores=[])
+    namespace.update(TERMINAL_STATUSES={"completed", "cancelled", "superseded"}, ACTIVE_STATUSES={"running", "paused"},
         done=lambda *effects: effects, LoadState=lambda: None, Render=lambda: None,
         Synchronize=lambda: None)
     exec(compile(ast.fix_missing_locations(module), str(controller), "exec"), namespace)
     return namespace
 
 
-def desktop_gui_primary(action, status):
+def desktop_gui_primary(action, status, pending_delete=None):
     calls = []
     context = types.SimpleNamespace(timer={"status": status},
         settings={"durationsMs": FIXTURE["request"]["source"]["value"]["base"]["durationsMs"]},
@@ -79,8 +172,11 @@ def desktop_gui_primary(action, status):
         _current_timer_value=lambda current: current.timer,
         _claim_unfinished_completion=lambda current: current,
         _selected_phase_value=lambda current: "focus",
+        _task_delete_attempts=0, _pending_task_delete_id=None,
         _ports=types.SimpleNamespace(issue_command=lambda name, _: calls.append(name),
-            mutation_blocked=lambda: False))
+            mutation_blocked=lambda: False, complete_pending_task_delete=lambda: None))
+    if pending_delete is not None:
+        owner._complete_pending_task_delete = types.MethodType(pending_delete, owner)
     action(owner)
     return calls
 
@@ -89,6 +185,10 @@ def apple_day_focus_totals(history, observed_at):
     source = (SUITE / "apple/Sources/AppStatePublisher.swift").read_text()
     start = source.index("    func dayFocusTotals(")
     method = source[start:source.index("\n    }", start) + len("\n    }")]
+    models = (SUITE / "apple/Sources/TaskHistoryModels.swift").read_text()
+    start = models.index("    var recordedElapsedMs: Int64 {")
+    recorded = models[start:models.index("\n", start)]
+    assert recorded.endswith("}"), recorded
     program = '''import Foundation
 enum TimerPhase: String, Decodable { case focus, short_break, long_break }
 struct HistoryItem: Decodable {
@@ -96,6 +196,10 @@ struct HistoryItem: Decodable {
     let status: String
     let completedAt: Date?
     let plannedDurationMs: Int64
+    var elapsedMs: Int64? = nil
+}
+extension HistoryItem {
+''' + recorded + '''
 }
 struct Snapshot { let history: [HistoryItem] }
 class SourceProbe {
@@ -115,11 +219,8 @@ print("\\(result.finishedPomodoros) \\(result.timeSpentMs)")
     return tuple(map(int, run.stdout.strip().split()))
 
 
-def compare_runtime():
-    request = copy.deepcopy(FIXTURE["request"])
-    request["source"]["value"]["base"]["canonicalTimer"] = FIXTURE["timer"]
-    result = core(request)
-    desktop = desktop_methods()
+def compare_desktop_primary(desktop, check):
+    """Desktop's primary action against Core's available intents per status."""
     for profile in ("desktopStorage", "desktopTerminal"):
         for row in FIXTURE["desktopPrimary"]:
             case = copy.deepcopy(FIXTURE["request"])
@@ -129,16 +230,14 @@ def compare_runtime():
                 case["source"]["value"]["base"]["canonicalTimer"] = {**FIXTURE["timer"], "status": status}
                 if status == "completed":
                     case["source"]["value"]["base"]["canonicalTimer"]["elapsedAtAnchorMs"] = FIXTURE["timer"]["plannedDurationMs"]
-            primary = desktop_gui_primary(desktop["primary_action"], status)
+            primary = desktop_gui_primary(desktop["primary_action"], status, desktop.get("_complete_pending_task_delete"))
             available = core(case)["availableIntents"]
-            assert available == row["intents"], (profile, status, available, primary)
-            assert primary == (["start"] if status == "idle" else ["restart"])
-    elapsed = desktop["elapsed_ms"](FIXTURE["timer"], int(datetime.fromisoformat(request["observedAt"].replace("Z", "+00:00")).timestamp() * 1000))
-    assert elapsed == result["canonical"]["elapsedMs"] == 180000
-    pwa = json.loads(subprocess.check_output(["node", str(ROOT / "scripts/read_model_probe_pwa.cjs")], text=True))
-    assert pwa["elapsed"] == elapsed
-    assert pwa["remaining"] == result["canonical"]["remainingMs"]
-    assert pwa["progress"] == result["canonical"]["progress"]
+            check(available == row["intents"], (profile, status, available, primary))
+            check(primary == (["start"] if status == "idle" else ["restart"]))
+
+
+def compare_terminal_displays(request, desktop, check):
+    """Cancelled, completed, and superseded timers display as Core reads them."""
     cancelled = FIXTURE["timer"].copy()
     cancelled["status"] = "cancelled"
     request["profile"] = "desktopStorage"
@@ -146,28 +245,22 @@ def compare_runtime():
     measured = desktop["presentation"](cancelled, selected_phase="focus",
         settings={"durationsMs": request["source"]["value"]["base"]["durationsMs"]},
         now_ms=int(datetime.fromisoformat(request["observedAt"].replace("Z", "+00:00")).timestamp() * 1000))
-    assert core(request)["display"]["elapsedMs"] == measured.elapsed == 0
+    check(core(request)["display"]["elapsedMs"] == measured.elapsed == 0)
     completed = {**FIXTURE["timer"], "status": "completed", "elapsedAtAnchorMs": FIXTURE["timer"]["plannedDurationMs"]}
     request["source"]["value"]["base"]["canonicalTimer"] = completed
-    assert core(request)["canonical"]["remainingMs"] == 0
+    check(core(request)["canonical"]["remainingMs"] == 0)
     superseded = {**FIXTURE["timer"], "status": "superseded"}
     request["profile"] = "appleWorkspace"
     request["selectedPhase"] = "short_break"
     request["source"]["value"]["base"]["canonicalTimer"] = superseded
     display = core(request)["display"]
-    assert (display["status"], display["phase"], display["elapsedMs"]) == ("idle", "short_break", 0)
+    check((display["status"], display["phase"], display["elapsedMs"]) == ("idle", "short_break", 0))
     request["selectedPhase"] = "focus"
     request["source"]["value"]["base"]["canonicalTimer"] = FIXTURE["timer"]
-    for row, measured in zip(FIXTURE["cadence"], pwa["counts"], strict=True):
-        count = row["count"]
-        history = [{"id": f"h{i}", "timerId": f"t{i}", "phase": "focus", "status": "completed",
-                    "plannedDurationMs": 1500000, "completedAt": "2026-03-08T05:00:00Z"} for i in range(count)]
-        request["source"]["value"]["base"]["history"] = history
-        canonical = core(request)["cadence"]
-        assert canonical["completedFocusToday"] == measured["count"] == count
-        assert desktop["completed_focus_count_for_day"](history, request["observedAt"]) == count
-        assert canonical["longBreakProgress"] == measured["progress"] == desktop["long_break_progress"](count)
-        assert canonical["skipDestination"] == row["skip"]
+
+
+def compare_task_totals(request, desktop, check):
+    """Desktop, PWA, and Apple daily task and focus totals against Core."""
     task_id = core_task_id()
     history = [{**item, "taskId": task_id if item["taskId"] == "current" else item["taskId"]}
                for item in FIXTURE["checkerHistory"]]
@@ -176,34 +269,24 @@ def compare_runtime():
     request["source"]["value"]["base"]["tasks"] = [{"id": task_id, "title": "Study"}]
     request["source"]["value"]["base"]["history"] = history
     read = core(request)
+    pwa_tasks = pwa_reads([pwa_case(request)])[0]["tasks"]
     expected = FIXTURE["checkerDailyTotals"]
-    assert desktop_task == {"finished": expected["currentTaskCount"],
-        "timeMs": expected["currentTaskElapsedMs"]}
-    assert read["tasks"]["completedFocusTodayByTask"][task_id] == {"count": desktop_task["finished"],
-        "elapsedMs": desktop_task["timeMs"]}
-    assert pwa["tasks"]["current"] == {"count": desktop_task["finished"], "durationMs": desktop_task["timeMs"]}
-    assert pwa["tasks"]["removed"] == {"count": 1, "durationMs": 300000}
-    assert not pwa["tasks"]["unassigned"]
-    assert read["cadence"]["completedFocusToday"] == expected["focusCount"]
-    apple_count, apple_duration = apple_day_focus_totals(history, request["observedAt"])
-    assert (apple_count, apple_duration) == (expected["focusCount"], expected["focusElapsedMs"])
-    assert (read["cadence"]["completedFocusToday"],
-        read["cadence"]["completedFocusTodayElapsedMs"]) == (apple_count, apple_duration)
-    assert "removed" not in read["tasks"]["completedFocusTodayByTask"]
-    request["source"]["value"]["base"]["history"] = []
-    for row in pwa["readiness"]:
-        timer = FIXTURE["timer"].copy()
-        timer["status"] = row["status"]
-        if row["status"] == "completed":
-            timer["elapsedAtAnchorMs"] = timer["plannedDurationMs"]
-        request["source"]["value"]["base"]["canonicalTimer"] = timer
-        request["profile"] = "pwaStorage"
-        available = core(request)["availableIntents"]
-        assert row["finish"] == ("finish" in available and not row["blocked"])
-        assert row["cancel"] == ("cancel" in available and not row["blocked"])
-        assert row["clear"] == ("clear" in available and not row["blocked"])
-        assert row["toggle"] == (not row["blocked"])
-    rejected = 0
+    check(desktop_task == {"finished": expected["currentTaskCount"],
+        "timeMs": expected["currentTaskElapsedMs"]})
+    check(read["tasks"]["completedFocusTodayByTask"][task_id] == {"count": desktop_task["finished"],
+        "elapsedMs": desktop_task["timeMs"]})
+    # The PWA renders Core's per-task totals; deleted and unassigned history has no row.
+    check(pwa_tasks == {task_id: {"count": desktop_task["finished"], "durationMs": desktop_task["timeMs"]}}, pwa_tasks)
+    check(read["cadence"]["completedFocusToday"] == expected["focusCount"])
+    apple_count, apple_duration = apple_day_focus_totals(core_projected_history(request), request["observedAt"])
+    check((apple_count, apple_duration) == (expected["focusCount"], expected["focusElapsedMs"]))
+    check((read["cadence"]["completedFocusToday"],
+        read["cadence"]["completedFocusTodayElapsedMs"]) == (apple_count, apple_duration))
+    check("removed" not in read["tasks"]["completedFocusTodayByTask"])
+
+
+def compare_rejections(check):
+    """Malformed projection sources and calendar intervals stay rejected."""
     for variant in ["projection", "timer", "history", "queue", "shortDay", "longDay"]:
         broken = copy.deepcopy(FIXTURE["request"])
         if variant in ("projection", "timer", "history", "queue"):
@@ -214,9 +297,29 @@ def compare_runtime():
         else:
             broken["calendarIntervals"] = [{"start": "2026-03-08T07:30:00Z",
                 "end": "2026-03-08T07:30:01Z" if variant == "shortDay" else "2026-03-10T07:30:00Z"}]
-        assert core_rejects(broken), variant
-        rejected += 1
-    return 13 * 4 + 3 + len(pwa["readiness"]) * 4 + 6 + 4 + rejected + len(FIXTURE["desktopPrimary"]) * 2 + 2
+        check(core_rejects(broken), variant)
+
+
+def compare_runtime():
+    request = copy.deepcopy(FIXTURE["request"])
+    request["source"]["value"]["base"]["canonicalTimer"] = FIXTURE["timer"]
+    result = core(request)
+    desktop = desktop_methods()
+    check = RuntimeChecks()
+    compare_desktop_primary(desktop, check)
+    elapsed = desktop["elapsed_ms"](FIXTURE["timer"], int(datetime.fromisoformat(request["observedAt"].replace("Z", "+00:00")).timestamp() * 1000))
+    check(elapsed == result["canonical"]["elapsedMs"] == 180000)
+    pwa, = pwa_reads([pwa_case(request)])
+    check(pwa["elapsed"] == elapsed)
+    check(pwa["remaining"] == result["canonical"]["remainingMs"])
+    check(pwa["progress"] == result["canonical"]["progress"])
+    compare_terminal_displays(request, desktop, check)
+    compare_cadence(request, desktop, check)
+    compare_task_totals(request, desktop, check)
+    request["source"]["value"]["base"]["history"] = []
+    compare_pwa_readiness(request, check)
+    compare_rejections(check)
+    return check.passed
 
 
 def source_predicates():
@@ -229,6 +332,7 @@ def source_predicates():
         "android": SUITE / "android/app/src/main/java/me/egigoka/pomodorough/domain/TimerPresentation.kt",
         "hero": SUITE / "android/app/src/main/java/me/egigoka/pomodorough/ui/TimerHero.kt",
         "android_tasks": SUITE / "android/app/src/main/java/me/egigoka/pomodorough/ui/PatternHistoryViews.kt",
+        "android_elapsed": SUITE / "android/app/src/main/java/me/egigoka/pomodorough/domain/HistoryElapsed.kt",
         "controls": SUITE / "android/app/src/main/java/me/egigoka/pomodorough/ui/UiComponents.kt",
         "desktop_screen": SUITE / "desktop/src/pomodorough/timer_screen.py",
         "desktop_controller": SUITE / "desktop/src/pomodorough/timer_interaction_controller.py",
@@ -236,13 +340,15 @@ def source_predicates():
     }
     predicates = {
         "apple": ["completedFocusCountToday % 4 == 3", "((completedFocusCountToday - 1) % 4) + 1", "selectedPhase.isBreak ? .focus", "timer.remaining(at: effectivePhysicalNow() ?? now())", "canonicalTimer?.status == .running || canonicalTimer?.status == .paused"],
-        "apple_tasks": ["calendar.isDate(completedAt, inSameDayAs: date)", "current.timeMs + item.plannedDurationMs", "func dayFocusTotals(", "timeMs += item.plannedDurationMs"],
+        "apple_tasks": ["calendar.isDate(completedAt, inSameDayAs: date)", "current.timeMs + item.recordedElapsedMs", "func dayFocusTotals(", "timeMs += item.recordedElapsedMs"],
         "watch": ["if isRunning {", "anchored + max(0, date.timeIntervalSince(anchorAt))"],
         "dial": ["let elapsed = model.elapsedForDisplay(timer)", "let remaining = model.remainingForDisplay(timer)"],
         "machine": ["if let timer = model.activeTimer", "IdleTimerDial("],
         "android": ["it.completedAt ?: it.endedAt", "((completedFocusCount - 1) % 4) + 1", "timer.status == TimerStatus.Running"],
         "hero": ["timer.status == TimerStatus.Completed) 0", "enabled = state.ready", "status == TimerStatus.Running || status == TimerStatus.Paused"],
-        "android_tasks": ["items.sumOf { it.plannedDurationMs }", "taskId == null -> stringResource(R.string.unassigned)"],
+        "android_tasks": ["items.sumOf { it.countedElapsedMs() }", "taskId == null -> stringResource(R.string.unassigned)"],
+        # Android, like Apple, counts the elapsedMs that Core's projection records on every row.
+        "android_elapsed": ["fun HistoryItem.countedElapsedMs(): Long = elapsedMs ?: 0L"],
         "controls": ["timer?.status == TimerStatus.Completed", "settings.durationMsFor(phase)"],
         "desktop_screen": ['if status == "cancelled":', "elapsed = 0"],
         "desktop_controller": ['elif status == "idle":', 'elif status in TERMINAL_STATUSES:', 'context.store.queue_restart('],

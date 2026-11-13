@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Compare Core follow-up dependencies with unchanged production source methods."""
+"""Compare Core follow-up dependencies with unchanged production source.
+
+Android and Apple run extracted methods; the PWA runs both finishes through
+its browser modules over fake IndexedDB.
+"""
 
 import copy
 from datetime import datetime
@@ -12,8 +16,8 @@ import tempfile
 import completion_mutation_source_probe as baseline
 
 
-def core_followup(profile):
-    request = baseline.generated_request(profile, 3)
+def core_followup(profile, request=None):
+    request = request or baseline.generated_request(profile, 3)
     first = baseline.core(request)
     next_request = copy.deepcopy(request)
     next_request["stage"] = "finishCommit"
@@ -22,6 +26,8 @@ def core_followup(profile):
     next_request["selection"] = first["selection"]
     next_request["allocation"] = first["allocation"]
     next_request["observation"] = first["observation"]
+    if "lifecycle" in request:
+        next_request["lifecycle"] = first["lifecycle"]
     next_request["ownership"]["timerId"] = first["commands"][1]["timerId"]
     stamp = "2026-07-20T12:01:01Z"
     next_request["clock"].update(occurredAt=stamp, physicalNow=stamp, observedAt=stamp)
@@ -37,25 +43,29 @@ def core_followup(profile):
     return first, next_request, planned
 
 
-def pwa_source(first, request, planned):
-    source = baseline.between(baseline.SOURCES["pwa"],
-                              "  function finishTimerCommand(", "  function generatedBreakCommand(")
-    program = source + "\nconst item=JSON.parse(require('fs').readFileSync(0,'utf8'));\n"
-    program += "process.stdout.write(JSON.stringify(finishTimerCommand(item.timer,item.input,item.id,item.position)));\n"
-    command = planned["commands"][0]
-    timer = {**request["requestedTimer"], "dependsOnCommandId": first["commands"][0]["id"]}
-    payload = {"timer": timer, "id": command["id"],
-               "input": {"deviceId": request["allocation"]["deviceId"],
-                         "observedElapsedMs": command["observedElapsedMs"]},
-               "position": {"highestSequence": command["deviceSequence"] - 1,
-                            "occurredAt": command["occurredAt"], "wallMs": command["hlcWallMs"],
-                            "firstCounter": command["hlcCounter"]}}
-    run = subprocess.run(["node", "-e", program], input=json.dumps(payload),
-                         text=True, capture_output=True, check=True)
-    actual = json.loads(run.stdout)
-    assert actual["dependsOnCommandId"] == first["commands"][0]["id"]
-    assert planned["commands"][0]["dependsOnCommandId"] == first["commands"][1]["id"]
-    return actual["dependsOnCommandId"]
+def pwa_followup():
+    """Run both finishes through the PWA's IndexedDB; return Core's chain and the PWA's."""
+    request = baseline.pwa_request(baseline.generated_request("pwaStorage", 3))
+    request["leaseDurationMs"] = baseline.pwa_lease_ms()
+    first, next_request, planned = core_followup("pwaStorage", request)
+    next_ms = int(datetime.fromisoformat(next_request["clock"]["physicalNow"].replace("Z", "+00:00")).timestamp() * 1000)
+    source, = baseline.pwa_run("followup", [{"input": request, "nextAtMs": next_ms}])
+    return first, next_request, planned, source
+
+
+def pwa_source(first, request, planned, source):
+    # Since server 2ac5fed Core builds the PWA's commands; the PWA decision is
+    # keeping Core's timer dependencies in IndexedDB and presenting the break
+    # it reloaded, so the follow-up finish reaches Core with that chain.
+    assert source["first"] == first["commands"], source["first"]
+    assert source["presented"] == request["requestedTimer"], source["presented"]
+    assert source["sent"]["requestedTimer"] == request["requestedTimer"], source["sent"]
+    assert source["next"] == {"outcome": "planned", "reason": "", "commands": planned["commands"]}, source["next"]
+    edges = [(item["operationId"], item["dependsOnOperationId"]) for item in source["after"]["timerDependencies"]]
+    assert edges == [(item["operationId"], item["dependsOnOperationId"])
+                     for item in planned["workspace"]["timerDependencies"]], edges
+    assert source["after"]["commands"] == first["commands"] + planned["commands"], source["after"]["commands"]
+    return edges[-1][1]
 
 
 def android_source(first, planned, temporary):
@@ -138,8 +148,12 @@ def main():
         for profile, source in (("pwaStorage", pwa_source),
                                 ("androidCoordinator", android_source),
                                 ("appleWorkspace", apple_source)):
-            first, request, planned = core_followup(profile)
-            actual = source(first, request, planned) if profile == "pwaStorage" else source(first, planned, temporary)
+            if profile == "pwaStorage":
+                first, request, planned, pwa = pwa_followup()
+                actual = source(first, request, planned, pwa)
+            else:
+                first, request, planned = core_followup(profile)
+                actual = source(first, planned, temporary)
             expected = planned["workspace"]["timerDependencies"][1]["dependsOnOperationId"]
             status = "parity" if actual == expected else "source divergence"
             print(f"{profile}: {status}; source parent={actual}, Core parent={expected}")

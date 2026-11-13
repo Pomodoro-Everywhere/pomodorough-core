@@ -352,6 +352,11 @@ history, as the integration requirements above state.
 terminal comparisons. It names six intentional legacy-history differences: the
 two earlier synthetic-command cases, and four cases where Desktop's timer-clearing
 legacy input meets a row without `elapsedMs` and therefore writes the pre-field
-default. Its Apple leg matches thirty-three of thirty-four timers and stays red on
-the nullable-timer Finish reconstruction. Apple's `terminalElapsed` still returns
-the planned duration for a completed row and must read the row's `elapsedMs`.
+default. Its Apple leg feeds every room command to `projection.apply.v2` as
+pending, as `IrohRoomProjection.project` does, and matches all thirty-four
+timers. That includes the nullable-timer Finish and Cancel reconstruction, which
+now reads the row's `elapsedMs`. The leg names two intentional differences from
+`workspace.project.v1`. `projection.apply.v2` has no send-state suppression, so
+it applies a Clear that the workspace path holds back as uncertain. It also
+applies a retained Finish, so that timer's `lastIntent` carries the command's
+`deviceId`.

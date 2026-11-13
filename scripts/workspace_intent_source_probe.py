@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
-"""Run production-source intent probes without importing client applications.
+"""Run production-source intent probes against the native Core dispatcher.
 
-Extracted methods execute unchanged. Stubs provide storage, clocks, model
-constants, and localization only. The native bridge runs the production Core
-dispatcher. This is partial source parity, not a client integration test.
+Desktop, Apple, and Android methods are extracted and execute unchanged; stubs
+provide storage, clocks, model constants, and localization only. The PWA leg
+composes the unchanged browser modules over fake IndexedDB
+(scripts/pwa_probe_runtime.cjs). This is partial source parity, not a client
+integration test.
 """
 import ast
 import copy
@@ -30,6 +32,7 @@ SOURCES = {
     "pwa": SUITE / "server/web/app-storage.js",
     "pwa_clock": SUITE / "server/web/app-state.js",
     "pwa_view": SUITE / "server/web/app-view.js",
+    "pwa_requests": SUITE / "server/web/sync-storage.js",
 }
 
 
@@ -213,17 +216,16 @@ def android(temporary):
     return len(cases)
 
 
+def pwa_steps(steps):
+    """Run each step in a fresh PWA tab whose IndexedDB holds the step's request records."""
+    run = subprocess.run(["node", str(ROOT / "scripts/workspace_intent_probe_pwa.cjs")],
+                         input=json.dumps({"leg": "step", "cases": steps}), text=True, capture_output=True,
+                         env={**os.environ, "POMODOROUGH_CORE_BRIDGE": str(BRIDGE), "TZ": "UTC"})
+    assert run.returncode == 0, run.stderr
+    return json.loads(run.stdout)
+
+
 def pwa(temporary):
-    methods = between(SOURCES["pwa"], "    timerCommandContext(", "    async persistCommand(")
-    timing = between(SOURCES["pwa_clock"], "  function positiveNumber(", "  function bindActions(")
-    elapsed = between(SOURCES["pwa_clock"], "    elapsedFor(timer,", "\n  }\n\n  class SharedTaskCore")
-    display = between(SOURCES["pwa_view"], "    timerDisplayView(timer,", "    renderTimerClock(")
-    program = timing + 'class ClockProbe {\n' + elapsed + '\n}\n'
-    program += 'class ViewProbe {\n' + display + '}\n'
-    program += 'class Probe {\n' + methods + '}\n'
-    program += (ROOT / "scripts/workspace_intent_probe_pwa.cjs").read_text()
-    path = temporary / "probe.cjs"
-    path.write_text(program)
     cases = []
     for action, status in [("start", "idle"), ("pause", "running"), ("resume", "paused"), ("cancel", "running"), ("clear", "completed")]:
         for phase in ("focus", "short_break", "long_break"):
@@ -231,16 +233,16 @@ def pwa(temporary):
             value["selection"]["phase"] = phase
             output = core(value)
             cases.append({"input": value, "command": output["commands"][0]})
-    sequences = pwa_active_sequences()
-    result = subprocess.run(["node", str(path)], input=json.dumps({"cases": cases, "sequences": sequences}), text=True,
-                             capture_output=True, check=True)
-    observed = json.loads(result.stdout)
-    assert observed["ordinary"] == [case["command"] for case in cases]
-    for sequence, actual in zip(sequences, observed["active"], strict=True):
-        for step, source in zip(sequence, actual, strict=True):
-            expected = step["command"] or pwa_display(step["reading"])
-            assert source == expected, (step["input"]["intent"], source, expected)
-    return len(cases) + sum(len(sequence) for sequence in sequences)
+    # A sequence step's records carry the observation the previous Core result
+    # persisted, so each step replays in a fresh tab without losing continuity.
+    steps = [step for sequence in pwa_active_sequences() for step in sequence]
+    observed = pwa_steps([{"input": case["input"], "read": False} for case in cases]
+                         + [{"input": step["input"], "read": step["command"] is None} for step in steps])
+    assert observed[:len(cases)] == [case["command"] for case in cases]
+    for step, source in zip(steps, observed[len(cases):], strict=True):
+        expected = step["command"] or pwa_display(step["reading"])
+        assert source == expected, (step["input"]["intent"], source, expected)
+    return len(cases) + len(steps)
 
 
 def pwa_display(reading):

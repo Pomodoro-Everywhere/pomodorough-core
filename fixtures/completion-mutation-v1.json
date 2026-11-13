@@ -26,10 +26,11 @@
   "pwaParityCases": [
     {"name": "missing-canonical-foreign-start", "stage": "automaticFinishCommit", "expectedOutcome": "planned", "expectedReason": "", "retryAtMsPresent": false},
     {"name": "manual-foreign-timer-owner", "stage": "finishCommit", "expectedOutcome": "planned", "expectedReason": "", "retryAtMsPresent": false},
-    {"name": "foreign-owner-denied", "stage": "automaticFinishCommit", "expectedOutcome": "noop", "expectedReason": "not_owner", "retryAtMsPresent": false, "retryDelayMs": 5001},
+    {"name": "foreign-owner-denied", "stage": "automaticFinishCommit", "expectedOutcome": "noop", "expectedReason": "not_owner", "retryAtMsPresent": false, "retryDelayMs": 15001},
     {"name": "peer-lease-live", "stage": "automaticFinishCommit", "expectedOutcome": "noop", "expectedReason": "not_owner", "retryAtMsPresent": true, "retryAtMs": 1784548870000, "retryDelayMs": 10001},
     {"name": "same-tab-missing-lease", "stage": "automaticFinishCommit", "expectedOutcome": "planned", "expectedReason": "", "retryAtMsPresent": false}
   ],
+  "pwaTimerOwnerLeaseMs": 60000,
   "snapshotCases": [
     {"name": "desktop-task-changed", "profile": "desktopStorage", "outcome": "noop", "changes": [
       {"path": "workspace.base.canonicalTimer.taskId", "value": "task-new"},

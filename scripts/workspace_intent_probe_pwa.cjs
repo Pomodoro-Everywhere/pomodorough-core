@@ -1,45 +1,40 @@
-const fs = require("node:fs");
-const { cases, sequences } = JSON.parse(fs.readFileSync(0, "utf8"));
-function sourceCommand(clock, input, command, timer) {
-  const probe = new Probe();
-  const base = input.workspace.base;
-  probe.state = {
-    timer, selectedPhase: input.selection.phase,
-    durationsMs: base.durationsMs, deviceId: input.allocation.deviceId
-  };
-  probe.host = { crypto: { randomUUID: () => input.identities.timerUuid } };
-  const now = Date.parse(input.clock.observedAt);
-  const monotonic = input.clock.monotonicNowMs ?? null;
-  probe.use = {
-    phaseConfig: () => base.durationsMs,
-    trustedNow: () => now,
-    elapsedFor: (active, at) => clock.elapsedFor(active, at, monotonic),
-    selectedTaskIdForNextFocus: () => base.selectedTaskId,
-    tr: (_key, _args, fallback) => fallback
-  };
-  if (!command) {
-    const view = new ViewProbe();
-    view.use = { elapsedFor: (active) => clock.elapsedFor(active, now, monotonic) };
-    const display = view.timerDisplayView(timer, timer.status);
-    return {
-      elapsedMs: timer.plannedDurationMs - display.remaining,
-      remainingMs: display.remaining, totalSeconds: display.totalSeconds,
-      timeText: display.timeText
-    };
-  }
-  const context = probe.timerCommandContext(input.intent.kind, {}, Date.parse(input.clock.physicalNow));
-  return probe.buildTimerCommand(context, {
-    id: input.identities.commandUuids[0], deviceSequence: command.deviceSequence,
-    wallMs: command.hlcWallMs, counter: command.hlcCounter
-  });
+"use strict";
+
+// Replay each Core intent request through the PWA: seed IndexedDB with the
+// request's records, point the browser clocks at its clock, then either issue
+// the intent through persistCommand or read the timer view.
+const { createPwa, setClock, seedWorkspace, main } = require("./pwa_probe_runtime.cjs");
+
+function reading(pwa) {
+  const timer = pwa.call("displayTimer");
+  const status = pwa.state.readModel?.display.status || pwa.state.timer.status;
+  const view = pwa.call("timerDisplayView", timer, status);
+  return { elapsedMs: timer.plannedDurationMs - view.remaining, remainingMs: view.remaining,
+    totalSeconds: view.totalSeconds, timeText: view.timeText };
 }
-const ordinary = cases.map(({ input, command }) =>
-  sourceCommand(new ClockProbe(), input, command, input.workspace.base.canonicalTimer));
-const active = sequences.map((sequence) => {
-  let clock = new ClockProbe();
-  return sequence.map((step) => {
-    if (step.resetClock) clock = new ClockProbe();
-    return sourceCommand(clock, step.input, step.command, step.timer);
-  });
-});
-process.stdout.write(JSON.stringify({ ordinary, active }));
+
+async function seeded(input) {
+  const pwa = createPwa({ updateTimerCompletion: () => {}, startCompletionAlert: () => {},
+    activeCompletionAlertTimerId: () => null });
+  pwa.clock.timerUuid = input.identities.timerUuid;
+  setClock(pwa, input.clock);
+  await seedWorkspace(pwa, input);
+  return pwa;
+}
+
+async function step({ input, read }) {
+  const pwa = await seeded(input);
+  return read ? reading(pwa) : pwa.call("persistCommand", input.intent.kind);
+}
+
+// Retarget the displayed timer through persistRetargetOperation and report the
+// intent request it handed Core with the command it kept.
+async function retarget({ input }) {
+  const pwa = await seeded(input);
+  const command = await pwa.call("persistRetargetOperation", pwa.state.timer.id, input.intent.taskId);
+  const sent = pwa.log.filter((entry) => entry.operation === "workspace.intent.v1").map((entry) => entry.input);
+  if (sent.length !== 1) throw new Error(`expected one intent request, saw ${sent.length}`);
+  return { command, intent: sent[0].intent, requestedTimer: sent[0].requestedTimer ?? null };
+}
+
+main({ step, retarget });

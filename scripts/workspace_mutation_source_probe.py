@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Compare extracted production mutation decisions with native Core intent plans."""
+"""Compare production mutation decisions with native Core intent plans.
+
+Desktop, Apple, and Android methods are extracted; the PWA retarget runs
+through its browser modules over fake IndexedDB.
+"""
 
 import ast
 from datetime import datetime
@@ -116,12 +120,12 @@ def android(tmp):
     return len(output)
 
 
-def android_add(tmp):
+def android_add_program(identity):
+    """Kotlin program running the unchanged addTask once per androidAdd case."""
     source = SUITE / "android/app/src/main/java/me/egigoka/pomodorough/data/TimerRepository.kt"
     method = section(source, "    override suspend fun addTask(title: String): Boolean {",
                      "    override suspend fun deleteTask(taskId: String) {")
     method = method.replace("override suspend fun addTask", "suspend fun addTask", 1)
-    identity = core("task.identity.v1", {"title": "Café"})
     program = "import kotlin.coroutines.*\n"
     program += "data class FocusTask(val id: String, val title: String)\n"
     program += "object TaskOperationType { const val Upsert = \"upsert\" }\n"
@@ -129,6 +133,10 @@ def android_add(tmp):
     program += f'val canonical = FocusTask("{identity["id"]}", "{identity["title"]}")\n'
     program += "val tasks = if (known) listOf(canonical) else emptyList()\nvar route = \"none\"\n"
     program += "suspend fun initialize() {}\nfun taskFromSharedCore(title: String) = canonical\n"
+    # addTask refuses before a local workspace exists (R54-A09, released in
+    # Android 0.56.0 at 86a884c) and settles a pending task deletion first; the
+    # probe's workspace is always loaded and has no pending deletion.
+    program += "lateinit var local: Any\ninit { local = Unit }\nsuspend fun completePendingTaskDeletion() {}\n"
     program += "suspend fun selectTask(taskId: String?) { route = \"select\" }\n"
     program += "suspend fun issueTaskOperation(type: String, task: FocusTask, select: Boolean, identityValidated: Boolean): Boolean { route = \"upsert\"; return !active }\n"
     program += method + "}\n"
@@ -138,7 +146,12 @@ def android_add(tmp):
         known = str(case["existing"]).lower()
         active = str(case["status"] in ("running", "paused")).lower()
         program += f'run {{ val probe = Probe({known}, {active}); val saved = runSync {{ probe.addTask("Cafe\\u0301") }}; println("${{probe.route}}|$saved") }}\n'
-    program += "}\n"
+    return program + "}\n"
+
+
+def android_add(tmp):
+    identity = core("task.identity.v1", {"title": "Café"})
+    program = android_add_program(identity)
     path = tmp / "add-task.kt"
     path.write_text(program)
     compiler = os.environ.get("KOTLINC", "/Applications/Android Studio.app/Contents/plugins/Kotlin/kotlinc/bin/kotlinc")
@@ -175,30 +188,25 @@ def android_add(tmp):
     return len(lines)
 
 
-def pwa(tmp):
-    source = SUITE / "server/web/app-storage.js"
-    method = section(source, "    buildRetargetCommand(timer, taskId, allocation) {", "    async persistRetargetOperation(")
-    program = "const input = JSON.parse(process.argv[2]);\nclass Probe {\n" + method + "}\n"
-    program += "const probe = new Probe(); probe.state = {deviceId: 'device-local'};\n"
-    program += "probe.syncCore = {retargetRequestFields: (taskId) => ({taskId})};\n"
-    program += "probe.use = {trustedNow: () => 1784548810000, elapsedFor: () => 15000};\n"
-    program += "console.log(JSON.stringify(probe.buildRetargetCommand(input.timer, input.taskId, input.allocation)));\n"
-    path = tmp / "retarget.cjs"
-    path.write_text(program)
+def pwa():
+    # Since server 2ac5fed persistRetargetOperation hands Core a selectTask
+    # intent with the displayed timer and keeps the command Core builds.
     value = request("pwaStorage", {"kind": "selectTask", "taskId": None})
     identity = core("task.identity.v1", {"title": "Café"})
     value["workspace"]["base"]["tasks"] = [{"id": identity["id"], "title": identity["title"]}]
     value["workspace"]["base"]["selectedTaskId"] = identity["id"]
     value["workspace"]["base"]["canonicalTimer"] = {**TIMER, "taskId": identity["id"]}
-    result = core("workspace.intent.v1", value)["commands"][0]
-    supplied = {"timer": TIMER, "taskId": None, "allocation": {"id": result["id"],
-                "deviceSequence": result["deviceSequence"], "wallMs": result["hlcWallMs"],
-                "counter": result["hlcCounter"]}}
-    actual = json.loads(subprocess.run(["node", str(path), json.dumps(supplied)],
-                        capture_output=True, text=True, check=True).stdout)
-    for field in ("id", "deviceId", "deviceSequence", "timerId", "type", "phase", "plannedDurationMs",
-                  "hlcWallMs", "hlcCounter", "observedElapsedMs", "taskId"):
-        assert actual[field] == result[field], (field, actual[field], result[field])
+    run = subprocess.run(["node", str(ROOT / "scripts/workspace_intent_probe_pwa.cjs")],
+                         input=json.dumps({"leg": "retarget", "cases": [{"input": value}]}),
+                         capture_output=True, text=True, env=dict(os.environ, POMODOROUGH_CORE_BRIDGE=str(BRIDGE)))
+    assert run.returncode == 0, run.stderr
+    actual, = json.loads(run.stdout)
+    assert actual["intent"] == value["intent"], actual["intent"]
+    assert actual["requestedTimer"] == value["workspace"]["base"]["canonicalTimer"], actual["requestedTimer"]
+    value["requestedTimer"] = actual["requestedTimer"]
+    result = core("workspace.intent.v1", value)["commands"]
+    assert len(result) == 1 and result[0]["type"] == "retarget", result
+    assert actual["command"] == result[0], (actual["command"], result[0])
     return 1
 
 
@@ -207,4 +215,4 @@ if __name__ == "__main__":
         temporary = Path(directory)
         print({"desktop": desktop(), "apple": apple(temporary),
                "androidDuration": android(temporary), "androidAdd": android_add(temporary),
-               "pwa": pwa(temporary)})
+               "pwa": pwa()})

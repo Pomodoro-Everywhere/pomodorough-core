@@ -1,81 +1,85 @@
 "use strict";
 
-// Execute unchanged PWA storage against IndexedDB and the existing bundled Core.
-const fs = require("node:fs");
+// Replay Core completion requests through the composed PWA: seed IndexedDB
+// with the request's records, point the browser clocks at its clock, then run
+// the production completion path and read back what IndexedDB kept.
 const path = require("node:path");
-const crypto = require("node:crypto");
-const web = path.resolve(__dirname, "../../server/web");
-const { indexedDB } = require(path.resolve(web, "../node_modules/fake-indexeddb"));
-const storage = require(path.join(web, "sync-storage.js"));
-const { SharedCore } = require(path.join(web, "shared-core.js"));
-globalThis.crypto ||= crypto.webcrypto;
+const { createPwa, setClock, seedWorkspace, readMeta, main } = require("./pwa_probe_runtime.cjs");
 
-async function database(name) {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open(name, 1);
-    request.onupgradeneeded = () => {
-      for (const store of ["meta", "pending", "pendingTasks", "pendingDurations", "pendingAutoStarts", "pendingSelectedTasks"]) {
-        request.result.createObjectStore(store, { keyPath: store === "meta" ? "key" : "id" });
-      }
-    };
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
-  });
+const { TIMING_MS } = require(path.resolve(__dirname, "../../server/web/app-runtime.js"));
+const COMPLETION = "workspace.completionMutation.v1";
+const AFTER_KEYS = ["timerOwner", "settings", "deviceSequence", "hlc", "uuidV7"];
+const SENT_KEYS = ["stage", "localTabId", "leaseNowMs", "leaseDurationMs", "ownership", "requestedTimer"];
+const ALERTS = { updateTimerCompletion: () => {}, startCompletionAlert: () => {},
+  activeCompletionAlertTimerId: () => null };
+
+// wallMs moves only the tab's wall clock, which the PWA uses as its lease
+// clock; the Core request clock still names the completion instant.
+async function seeded(input, wallMs, overrides = ALERTS) {
+  const pwa = createPwa(overrides);
+  pwa.clock.timerUuid = input.identities.timerUuid;
+  setClock(pwa, wallMs == null ? input.clock : { physicalNow: new Date(wallMs).toISOString() });
+  const database = await seedWorkspace(pwa, input);
+  return { pwa, database };
 }
 
-async function runCase(input, name, core) {
-  const connection = await database(`completion-probe-${name}`);
-  try {
-    const transaction = connection.transaction(["meta", "pending"], "readwrite");
-    const meta = transaction.objectStore("meta");
-    const base = input.workspace.base;
-    meta.put({ key: "snapshot", value: { ...base, user: { id: "user-1" }, revision: 0,
-      serverTime: "2026-07-20T12:00:00Z" } });
-    meta.put({ key: "deviceSequence", value: input.allocation.deviceSequence });
-    meta.put({ key: "hlc", value: input.allocation.hlc });
-    meta.put({ key: "settings", value: { selectedPhase: input.selection.phase } });
-    if (input.ownership) meta.put({ key: "timerOwner", value: input.ownership });
-    for (const command of input.workspace.local.commands) transaction.objectStore("pending").put(command);
-    await storage.transactionDone(transaction);
-    const automatic = input.stage === "automaticFinishCommit";
-    const outcome = await storage.finishTimer(connection, {
-      expectedUserId: "user-1", timerId: input.requestedTimer.id,
-      phase: input.requestedTimer.phase, requestedTimer: input.requestedTimer,
-      deviceId: input.allocation.deviceId, tabId: input.localTabId || "tab-local",
-      nowMs: Date.parse(input.clock.occurredAt), localNowMs: input.leaseNowMs,
-       leaseMs: input.leaseDurationMs ?? 30_000, manual: !automatic, requireOwner: automatic,
-       observedElapsedMs: 60_000, withUuidV7: true,
-       breakTimerId: input.identities.timerUuid,
-      entropy: (bytes) => { bytes.fill(0); bytes[bytes.length - 1] = 1; return bytes; },
-      settings: { selectedPhase: input.selection.phase }, sharedCore: core
-    });
-    const after = connection.transaction(["meta", "pending"], "readonly");
-    const [owner, commands, sequence, hlc, uuidV7] = await Promise.all([
-      storage.requestResult(after.objectStore("meta").get("timerOwner")),
-      storage.requestResult(after.objectStore("pending").getAll()),
-      storage.requestResult(after.objectStore("meta").get("deviceSequence")),
-      storage.requestResult(after.objectStore("meta").get("hlc")),
-      storage.requestResult(after.objectStore("meta").get("uuidV7"))
-    ]);
-    return { transitioned: outcome.transitioned, reason: outcome.reason,
-      ...(Object.hasOwn(outcome, "retryAtMs") ? { retryAtMs: outcome.retryAtMs } : {}),
-      commands: outcome.commands, selectedPhase: outcome.selectedPhase ?? null,
-       finishCount: commands.filter((command) => command.type === "finish").length,
-       startCount: commands.filter((command) => command.type === "start").length,
-      ownerAfter: owner?.value ?? null, sequence: sequence?.value,
-      hlc: hlc?.value, uuidV7: uuidV7?.value ?? null };
-  } finally {
-    connection.close();
-  }
+function sentRequest(pwa) {
+  const sent = pwa.log.filter((entry) => entry.operation === COMPLETION).map((entry) => entry.input);
+  if (sent.length !== 1) throw new Error(`expected one completion request, saw ${sent.length}`);
+  return Object.fromEntries(SENT_KEYS.map((key) => [key, sent[0][key] ?? null]));
 }
 
-async function main() {
-  const inputs = JSON.parse(fs.readFileSync(0, "utf8"));
-  const core = await SharedCore.fromBytes(fs.readFileSync(path.join(web, "pomodorough_core.wasm")));
-  storage.setSharedCore(core);
-  const results = [];
-  for (const { name, input } of inputs) results.push({ name, ...await runCase(input, name, core) });
-  process.stdout.write(JSON.stringify(results));
+// TimerLifecycle.finishTimer presents a copy of the tab's displayed timer.
+// presentRequested replays a copy taken before IndexedDB moved under the tab.
+async function complete({ input, wallMs, presentRequested }) {
+  const { pwa, database } = await seeded(input, wallMs);
+  const presented = presentRequested ? input.requestedTimer : structuredClone(pwa.state.timer);
+  const plan = await pwa.call("persistWorkspaceCompletion", input.stage, presented);
+  const after = await readMeta(database, AFTER_KEYS);
+  return { outcome: plan.outcome, reason: plan.reason ?? "",
+    ...(Object.hasOwn(plan, "retryAtMs") ? { retryAtMs: plan.retryAtMs } : {}),
+    commands: plan.commands, selection: plan.selection ?? null, after, sent: sentRequest(pwa) };
 }
 
-main().catch((error) => { console.error(error); process.exitCode = 1; });
+// Automatic finish through TimerLifecycle.finishTimer: a denied tab keeps the
+// timer and schedules its retry from Core's lease answer.
+async function retry({ input, nowMs }) {
+  const { pwa } = await seeded(input);
+  const delays = [];
+  pwa.host.setTimeout = (_callback, delay) => { delays.push(delay); return delays.length; };
+  const saved = await pwa.call("finishTimer", true);
+  const delay = (outcome) => pwa.call("completionRetryDelay", outcome, nowMs);
+  return { saved, delays, sent: sentRequest(pwa), heartbeatMs: pwa.call("timerOwnerHeartbeatMs"),
+    leaseMs: TIMING_MS.timerOwnerLease, missing: delay({ reason: "not_owner" }),
+    nullLease: delay({ reason: "not_owner", retryAtMs: null }),
+    camelCase: delay({ reason: "notOwner" }), none: delay({ reason: "stale" }) };
+}
+
+// The expiry gate in TimerLifecycle.updateTimerCompletion decides whether a
+// render starts an automatic finish; count the completions it starts.
+async function expiry({ input, status, remaining }) {
+  const stages = [];
+  const { pwa } = await seeded(input, null, { startCompletionAlert: () => {},
+    activeCompletionAlertTimerId: () => null,
+    persistWorkspaceCompletion: async (stage) => { stages.push(stage); return { outcome: "noop", reason: "notExpired", commands: [] }; } });
+  pwa.call("updateTimerCompletion", pwa.state.timer, status, remaining, false);
+  await new Promise((resolve) => setImmediate(resolve));
+  return stages;
+}
+
+// A manual finish of the break an automatic finish generated: IndexedDB must
+// hand Core the dependency the first commit kept, so Core can chain the
+// follow-up finish to that break's start.
+async function followup({ input, nextAtMs }) {
+  const { pwa, database } = await seeded(input);
+  const first = await pwa.call("persistWorkspaceCompletion", input.stage, structuredClone(pwa.state.timer));
+  setClock(pwa, { physicalNow: new Date(nextAtMs).toISOString() });
+  pwa.log.length = 0;
+  const presented = structuredClone(pwa.state.timer);
+  const next = await pwa.call("persistWorkspaceCompletion", "finishCommit", presented);
+  const after = await readMeta(database, ["timerDependencies"]);
+  return { first: first.commands, presented, sent: sentRequest(pwa), next: { outcome: next.outcome,
+    reason: next.reason ?? "", commands: next.commands }, after };
+}
+
+main({ complete, retry, expiry, followup });

@@ -116,8 +116,10 @@ def apple_program():
     models = SUITE / "apple/Sources/TimerOperationModels.swift"
     history = SUITE / "apple/Sources/TaskHistoryModels.swift"
     mapper = SUITE / "apple/Sources/IrohRoomProjection.swift"
+    # HistoryItem rounds its recorded minutes through TaskTimeText.
+    time_text = (SUITE / "apple/Sources/TaskTimeText.swift").read_text().replace("import Foundation\n", "", 1)
     return APPLE_MODELS + section(models, "struct TimerIntent:", "extension CanonicalTimer.Status") + \
-        section(history, "struct HistoryItem:", "struct FocusTask:") + \
+        section(history, "struct HistoryItem:", "struct FocusTask:") + time_text + \
         "enum SourceProbe {\n" + section(mapper, "    private static func restoreIntentDevice(",
                                          "    private static func projectedState(") + APPLE_RUNNER
 
@@ -189,16 +191,44 @@ while let line=readLine() {
     "    func physicalCanonicalTimer(", "    mutating func advanceClock("))
 
 
+def apple_projection(value):
+    """IrohRoomProjection.project: every room command goes to projection.apply.v2 as pending.
+
+    Apple never calls workspace.project.v1, so no retained command is filtered
+    out; the mapper's commands and Core's pending are the same list.
+    """
+    base = {key: value["base"][key] for key in
+            ("canonicalTimer", "history", "tasks", "durationsMs", "autoStartBreaks", "selectedTaskId")}
+    return dispatch("projection.apply.v2", dict(base=base, pending=value["local"], now=value["now"]))
+
+
+def room_difference(room_timer, workspace_timer):
+    """Name the one intended reason a room projection differs from workspace.project.v1."""
+    if room_timer is None:
+        # workspace.project.v1 holds back a Clear whose send state is uncertain;
+        # projection.apply.v2 has no send state, so it applies that Clear.
+        assert workspace_timer["status"] in {"completed", "cancelled", "superseded"}, workspace_timer
+        return "unsuppressedClear"
+    # Core applies the retained command and restores its device on lastIntent.
+    stripped = copy.deepcopy(room_timer)
+    assert stripped["lastIntent"].pop("deviceId") is not None
+    assert wire(stripped) == wire(workspace_timer), (room_timer, workspace_timer)
+    return "appliedIntentDevice"
+
+
 def apple(vectors, physical_vectors, temporary):
-    storage_input = method(SUITE / "desktop/src/pomodorough/storage.py", "_projection_input", {})
     rows = []
     expected_timers = []
+    differences = {"unsuppressedClear": 0, "appliedIntentDevice": 0}
     for value, expected in vectors:
-        legacy = legacy_projection(value, storage_input)
-        rows.append(dict(timer=value["base"]["canonicalTimer"], history=legacy["history"],
-            projected=legacy["canonicalTimer"], commands=value["local"]["commands"],
-            outcomes={key: outcome["outcome"] for key, outcome in legacy["timerOutcomes"].items()}))
-        expected_timers.append(expected["canonicalTimer"])
+        output = apple_projection(value)
+        rows.append(dict(timer=value["base"]["canonicalTimer"], history=output["history"],
+            projected=output["canonicalTimer"], commands=value["local"]["commands"],
+            outcomes={key: outcome["outcome"] for key, outcome in output["timerOutcomes"].items()}))
+        expected_timers.append(output["canonicalTimer"])
+        if wire(output["canonicalTimer"]) != wire(expected["canonicalTimer"]):
+            differences[room_difference(output["canonicalTimer"], expected["canonicalTimer"])] += 1
+    assert differences == {"unsuppressedClear": 1, "appliedIntentDevice": 1}, differences
     for kind, elapsed in [("finish", 60000), ("cancel", 17000)]:
         value = request({"missingHistory": True})
         value["base"]["canonicalTimer"].update(status="paused", elapsedAtAnchorMs=1000, lastIntent=None)
@@ -224,7 +254,7 @@ def apple(vectors, physical_vectors, temporary):
     assert len(actual) == len(expected_timers)
     for timer, expected in zip(actual, expected_timers):
         assert wire(timer) == wire(expected), (timer, expected)
-    return len(expected_timers)
+    return dict(terminalMatches=len(expected_timers), intentionalWorkspaceDifferences=differences)
 
 
 def main():

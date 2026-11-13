@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """Compare bounded finish decisions with extracted client production methods.
 
-This exercises command builders on Desktop, Android, and PWA, and Apple's
-provisional phase-advance method. It does not execute platform transactions.
+This exercises command builders on Desktop and Android and Apple's
+provisional phase-advance method; those legs do not execute platform
+transactions. The PWA legs run the unchanged browser modules' completion path
+over fake IndexedDB (scripts/completion_mutation_probe_pwa.cjs).
 """
 import ast
 import copy
@@ -80,16 +82,20 @@ def snapshot_request(case):
     return value
 
 
+def set_clock(value, at):
+    """Move a request to instant `at`, with the finish UUID that instant reserves."""
+    value["clock"].update(occurredAt=at, physicalNow=at, observedAt=at)
+    ms = int(datetime.fromisoformat(at.replace("Z", "+00:00")).timestamp() * 1000)
+    stamp = f"{ms:012x}"
+    value["identities"]["commandUuids"] = [f"{stamp[:8]}-{stamp[8:]}-7000-8000-000000000001"]
+    return value
+
+
 def active_cases(profile):
     for status in CASES["states"]:
         for at in ("2026-07-20T12:00:10Z", "2026-07-20T12:00:59.999Z",
                    "2026-07-20T12:01:00Z", "2026-07-20T12:01:00.001Z"):
-            value = request(profile, status)
-            value["clock"].update(occurredAt=at, physicalNow=at, observedAt=at)
-            ms = int(datetime.fromisoformat(at.replace("Z", "+00:00")).timestamp() * 1000)
-            stamp = f"{ms:012x}"
-            value["identities"]["commandUuids"] = [f"{stamp[:8]}-{stamp[8:]}-7000-8000-000000000001"]
-            yield status, value
+            yield status, set_clock(request(profile, status), at)
 
 
 def core(value):
@@ -153,63 +159,90 @@ def desktop():
     return count
 
 
+def pwa_run(leg, cases):
+    """Run one PWA leg on each case; its Core calls use the same native bridge."""
+    run = subprocess.run(["node", str(ROOT / "scripts/completion_mutation_probe_pwa.cjs")],
+                         input=json.dumps({"leg": leg, "cases": cases}), text=True, capture_output=True,
+                         env={**os.environ, "POMODOROUGH_CORE_BRIDGE": str(BRIDGE), "TZ": "UTC"})
+    assert run.returncode == 0, run.stderr
+    return json.loads(run.stdout)
+
+
+def pwa_lease_ms():
+    """The PWA lease the browser asks Core to grant, pinned by the fixture.
+
+    Reading app-runtime TIMING_MS alone would let a lease change pass, because
+    the same value would build both the expected request and the Core input.
+    """
+    runtime = SUITE / "server/web/app-runtime.js"
+    program = f"process.stdout.write(String(require({json.dumps(str(runtime))}).TIMING_MS.timerOwnerLease))"
+    source = int(subprocess.run(["node", "-e", program], text=True, capture_output=True, check=True).stdout)
+    assert source == CASES["pwaTimerOwnerLeaseMs"], (source, CASES["pwaTimerOwnerLeaseMs"])
+    return CASES["pwaTimerOwnerLeaseMs"]
+
+
+# A timer the PWA persisted carries the start intent that created it, and the
+# PWA keeps the completion lifecycle Core returned with that start
+# (workspace-transaction.js writePlan). Core 0.55 plans a PWA finish with
+# finish evidence through natural completion, which needs both.
+PWA_LIFECYCLE = {"consumedCompletions": [], "pendingBreaks": [], "finishEvidence": []}
+PWA_START = {"type": "start", "commandId": "start-existing", "deviceId": "device-local",
+             "occurredAt": "2026-07-20T11:59:55Z"}
+
+
+def pwa_request(value):
+    value["lifecycle"] = copy.deepcopy(PWA_LIFECYCLE)
+    for timer in (value["requestedTimer"], value["workspace"]["base"]["canonicalTimer"]):
+        if timer is not None:
+            timer["lastIntent"] = dict(PWA_START)
+    return value
+
+
+def clock_ms(value):
+    return int(datetime.fromisoformat(value["clock"]["physicalNow"].replace("Z", "+00:00")).timestamp() * 1000)
+
+
+def pwa_sent(value, lease_now_ms, lease):
+    """The completion fields the PWA must hand Core for this request."""
+    return {"stage": value["stage"], "localTabId": "tab-local", "leaseNowMs": lease_now_ms,
+            "leaseDurationMs": lease, "ownership": value["ownership"], "requestedTimer": value["requestedTimer"]}
+
+
 def pwa():
-    builder = between(SOURCES["pwa"], "  function finishTimerCommand(", "  function generatedBreakCommand(")
-    program = builder + "\nconst cases = JSON.parse(require('fs').readFileSync(0, 'utf8'));\n"
-    program += "process.stdout.write(JSON.stringify(cases.map(({timer,input,id,position}) => finishTimerCommand(timer,input,id,position))));\n"
-    cases = []
-    expected = []
-    for status, value in active_cases("pwaStorage"):
+    # Manual finish: persistWorkspaceCompletion builds the Core request from
+    # IndexedDB, then keeps Core's finish command and owner removal.
+    values = [pwa_request(value) for _status, value in active_cases("pwaStorage")]
+    lease = pwa_lease_ms()
+    for value, source in zip(values, pwa_run("complete", [{"input": value} for value in values]), strict=True):
         result = core(value)
-        command = result["commands"][0]
-        cases.append({"timer": value["requestedTimer"], "input": {"deviceId": value["allocation"]["deviceId"],
-            "observedElapsedMs": command["observedElapsedMs"]}, "id": command["id"],
-            "position": {"highestSequence": command["deviceSequence"] - 1,
-                         "occurredAt": command["occurredAt"], "wallMs": command["hlcWallMs"],
-                         "firstCounter": command["hlcCounter"]}})
-        expected.append(command)
         assert result["ownershipWrites"] == [{"kind": "removeTimerOwner"}]
-    output = subprocess.run(["node", "-e", program], input=json.dumps(cases), text=True,
-                            capture_output=True, check=True)
-    assert json.loads(output.stdout) == expected
-    return len(cases)
+        assert source["sent"] == pwa_sent(value, clock_ms(value), lease), source["sent"]
+        assert source["commands"] == source["after"]["commands"] == result["commands"], (source, result)
+        assert source["after"]["timerOwner"] is None, source
+    return len(values)
 
 
 def pwa_owner():
-    source = SOURCES["pwa"]
-    program = 'const TIMER_OWNER_KEY = "timerOwner";\n'
-    program += between(source, "  function timerOwnerValue(", "  function retainedCommands(")
-    program += between(source, "  function finishTimerOwnership(", "  function completionOwnership(")
-    program += "\nconst cases = JSON.parse(require('fs').readFileSync(0, 'utf8'));\n"
-    program += "process.stdout.write(JSON.stringify(cases.map(({owner,input,timer,commands}) => {\n"
-    program += " const writes = []; const metaStore = {put: row => writes.push(row)};\n"
-    program += " const results = {timerOwner: {value: owner}, snapshot: {value: {canonicalTimer: timer}}};\n"
-    program += " const decision = finishTimerOwnership(metaStore,results,input,commands,timer);\n"
-    program += " return {owned: decision.ownerGranted, reason: decision.denied?.reason ?? '',\n"
-    program += "   ...(Object.hasOwn(decision.denied ?? {},'retryAtMs') ? {retryAtMs: decision.denied.retryAtMs} : {})};\n})));\n"
-    cases = []
-    for case in owner_cases("pwaStorage"):
-        request_value = automatic(case)
-        result = core(request_value)
-        assert (result["outcome"] == "planned") == (case["expected"] == "planned"), case
-        owner = request_value["ownership"]
-        cases.append({"owner": owner, "timer": request_value["requestedTimer"], "commands": [], "input": {
-            "timerId": "existing-timer", "deviceId": "device-local", "tabId": "tab-local",
-            "nowMs": case["leaseNowMs"], "localNowMs": case["leaseNowMs"], "leaseMs": 30000,
-            "manual": False, "requireOwner": True}})
-    output = subprocess.run(["node", "-e", program], input=json.dumps(cases),
-                            text=True, capture_output=True, check=True)
-    for case, actual in zip(owner_cases("pwaStorage"), json.loads(output.stdout), strict=True):
-        expected = {"owned": case["expected"] == "planned",
-                    "reason": "" if case["expected"] == "planned" else "not_owner"}
+    # The tab's wall clock is the PWA lease clock, so each case runs at its
+    # leaseNowMs and the Core request must carry the tab, lease, and claim.
+    cases = owner_cases("pwaStorage")
+    inputs = [{"input": pwa_request(automatic(case)), "wallMs": case["leaseNowMs"]} for case in cases]
+    lease = pwa_lease_ms()
+    for case, item, source in zip(cases, inputs, pwa_run("complete", inputs), strict=True):
+        planned = case["expected"] == "planned"
+        result = core(item["input"])
+        assert (result["outcome"] == "planned") == planned, case
+        assert source["sent"] == pwa_sent(item["input"], case["leaseNowMs"], lease), (case, source["sent"])
+        expected = {"outcome": "planned" if planned else "noop", "reason": "" if planned else "not_owner"}
         if "retryAtMs" in case:
             expected["retryAtMs"] = case["retryAtMs"]
+        actual = {key: source[key] for key in ("outcome", "reason", "retryAtMs") if key in source}
         assert actual == expected, (case, actual)
     return len(cases)
 
 
 def pwa_parity_input(case):
-    value = automatic(owner_cases("pwaStorage")[0])
+    value = pwa_request(automatic(owner_cases("pwaStorage")[0]))
     name = case["name"]
     value["stage"] = case["stage"]
     if name == "missing-canonical-foreign-start":
@@ -228,6 +261,11 @@ def pwa_parity_input(case):
             **workspace, "now": "1970-01-01T00:00:00Z"})["workspace"]["canonicalTimer"]
     elif name == "manual-foreign-timer-owner":
         value["ownership"]["timerId"] = "other-timer"
+        # Past expiry, Core plans a PWA finish as natural completion, which is
+        # lease-gated even for finishCommit (tests/aggregate_artifact/
+        # pwa_natural_cases.mjs natural-lease-false-*). A manual finish that
+        # ignores the owner record needs a live timer.
+        set_clock(value, "2026-07-20T12:00:10Z")
     elif name == "foreign-owner-denied":
         value["ownership"]["deviceId"] = "device-foreign"
     elif name == "peer-lease-live":
@@ -241,106 +279,92 @@ def pwa_parity_input(case):
 
 def pwa_indexeddb():
     cases = CASES["pwaParityCases"]
-    inputs = [{"name": case["name"], "input": pwa_parity_input(case)} for case in cases]
-    output = subprocess.run(["node", str(ROOT / "scripts/completion_mutation_probe_pwa.cjs")],
-                            input=json.dumps(inputs), text=True, capture_output=True, check=True)
-    for case, source, item in zip(cases, json.loads(output.stdout), inputs, strict=True):
+    inputs = [{"input": pwa_parity_input(case)} for case in cases]
+    for case, source, item in zip(cases, pwa_run("complete", inputs), inputs, strict=True):
         name = case["name"]
         result = core(item["input"])
-        expected = {"outcome": "planned" if source["transitioned"] else "noop",
-                    "reason": source["reason"]}
+        expected = {"outcome": source["outcome"], "reason": source["reason"]}
         assert expected == {"outcome": case["expectedOutcome"], "reason": case["expectedReason"]}, (name, source)
         assert {"outcome": result["outcome"], "reason": result["reason"]} == expected, (name, result, source)
         assert ("retryAtMs" in source) == ("retryAtMs" in result) == case["retryAtMsPresent"], (name, result, source)
         if case["retryAtMsPresent"]:
             assert result["retryAtMs"] == source["retryAtMs"] == case["retryAtMs"], name
         assert source["commands"] == result["commands"], (name, source, result)
-        assert source["finishCount"] == len(result["commands"]), name
-        if source["transitioned"]:
-            assert source["ownerAfter"] is None, name
-            assert source["selectedPhase"] == result["selection"]["phase"], name
+        assert source["sent"] == pwa_sent(item["input"], clock_ms(item["input"]), pwa_lease_ms()), (name, source["sent"])
+        after = source["after"]
+        assert sum(command["type"] == "finish" for command in after["commands"]) == len(result["commands"]), name
+        if source["outcome"] == "planned":
+            assert after["timerOwner"] is None, name
+            assert after["settings"]["selectedPhase"] == result["selection"]["phase"], name
         else:
-            assert source["sequence"] == item["input"]["allocation"]["deviceSequence"], name
-            assert source["hlc"] == item["input"]["allocation"]["hlc"], name
-            assert source["uuidV7"] is None, name
+            assert after["deviceSequence"] == item["input"]["allocation"]["deviceSequence"], name
+            assert after["hlc"] == item["input"]["allocation"]["hlc"], name
+            assert after["uuidV7"] is None, name
     return len(cases)
 
 
 def pwa_generated_indexeddb():
     cases = json.loads((ROOT / "fixtures/completion-generated-break-v1.json").read_text())
+    # The PWA, not the fixture, chooses the lease it asks Core to grant.
+    lease = pwa_lease_ms()
     inputs = []
     for case in cases["focusCounts"]:
-        value = automatic(owner_cases("pwaStorage")[0])
-        value["workspace"]["base"]["autoStartBreaks"] = True
-        value["identities"]["commandUuids"] = cases["commandUuids"]
-        value["identities"]["timerUuid"] = cases["timerUuid"]
-        value["leaseDurationMs"] = cases["leaseDurationMs"]
-        for index in range(case["prior"]):
-            value["workspace"]["base"]["history"].append({
-                "id": f"past-{index}", "timerId": f"past-timer-{index}",
-                "commandId": f"past-finish-{index}", "phase": "focus",
-                "status": "completed", "plannedDurationMs": 60000,
-                "completedAt": "2026-07-20T11:00:00Z"})
-        inputs.append({"name": f"generated-{case['prior']}", "input": value})
-    output = subprocess.run(["node", str(ROOT / "scripts/completion_mutation_probe_pwa.cjs")],
-                            input=json.dumps(inputs), text=True, capture_output=True, check=True)
-    for item, source in zip(inputs, json.loads(output.stdout), strict=True):
+        value = pwa_request(generated_request("pwaStorage", case["prior"]))
+        value["leaseDurationMs"] = lease
+        inputs.append({"input": value})
+    for item, source in zip(inputs, pwa_run("complete", inputs), strict=True):
         expected = core(item["input"])
-        name = item["name"]
-        assert source["transitioned"] and source["finishCount"] == source["startCount"] == 1, name
+        name = len(item["input"]["workspace"]["base"]["history"])
+        after = source["after"]
+        types_after = [command["type"] for command in after["commands"]]
+        assert source["outcome"] == "planned" and types_after.count("finish") == types_after.count("start") == 1, name
+        assert source["sent"] == pwa_sent(item["input"], clock_ms(item["input"]), lease), (name, source["sent"])
         assert source["commands"] == expected["commands"], (name, source, expected)
-        assert source["ownerAfter"] == {key: value for key, value in expected["ownershipWrites"][0].items()
-                                        if key != "kind"}, name
-        assert source["selectedPhase"] == expected["selection"]["phase"], name
-        assert source["hlc"] == expected["allocation"]["hlc"], name
-        assert source["sequence"] == expected["allocation"]["deviceSequence"], name
-        assert source["uuidV7"] == expected["allocation"]["lastUuid"], name
+        assert after["timerOwner"] == {key: value for key, value in expected["ownershipWrites"][0].items()
+                                       if key != "kind"}, name
+        assert after["settings"]["selectedPhase"] == expected["selection"]["phase"], name
+        assert after["hlc"] == expected["allocation"]["hlc"], name
+        assert after["deviceSequence"] == expected["allocation"]["deviceSequence"], name
+        assert after["uuidV7"] == expected["allocation"]["lastUuid"], name
     return len(inputs)
 
 
 def pwa_action_retry():
-    source = SOURCES["pwa_actions"]
-    program = 'const TIMER_OWNER_LEASE_MS=30000,TIMER_OWNER_HEARTBEAT_MS=5000;\n'
-    program += 'class TimerLifecycle {\n'
-    program += between(source, "    finishTimerRequest(", "    recordLastCommand(")
-    program += between(source, "    completionRetryDelay(", "    completionAlertTitle(")
-    program += '}\n'
-    program += 'const obj=new TimerLifecycle();obj.state={deviceId:"device-local",autoStartBreaks:false};\n'
-    program += 'obj.host={crypto:{randomUUID:()=>"break-uuid"}};\n'
-    program += 'obj.use={captureAccountContext:()=>({}),tabId:()=>"tab-local",elapsedFor:()=>60000,settingsValue:()=>({})};\n'
-    program += 'const timer={id:"existing-timer",phase:"focus"},now=1784548860000;\n'
-    program += 'const request=obj.finishTimerRequest(timer,true,now,now,"owner");\n'
-    program += 'const denied=obj.completionRetryDelay({reason:"not_owner",retryAtMs:1784548870000},now);\n'
-    program += 'process.stdout.write(JSON.stringify({manual:request.manual,requireOwner:request.requireOwner,tabId:request.tabId,leaseNowMs:request.localNowMs,denied,missing:obj.completionRetryDelay({reason:"not_owner"},now),nullLease:obj.completionRetryDelay({reason:"not_owner",retryAtMs:null},now),camelCase:obj.completionRetryDelay({reason:"notOwner"},now),none:obj.completionRetryDelay({reason:"stale"},now)}));\n'
-    output = subprocess.run(["node", "-e", program], text=True, capture_output=True, check=True)
-    actual = json.loads(output.stdout)
-    assert actual == {"manual": False, "requireOwner": True, "tabId": "tab-local",
-                      "leaseNowMs": 1784548860000, "denied": 10001,
-                      "missing": 5001, "nullLease": 250, "camelCase": None, "none": None}, actual
-    owner = core(automatic(owner_cases("pwaStorage")[1]))
-    assert owner["retryAtMs"] - actual["leaseNowMs"] + 1 == actual["denied"]
-    missing = core(automatic(next(case for case in owner_cases("pwaStorage") if case["name"] == "pwa-foreign-expired")))
-    assert missing["reason"] == "not_owner" and "retryAtMs" not in missing
-    assert next(case for case in CASES["pwaParityCases"] if case["name"] == "foreign-owner-denied")["retryDelayMs"] == actual["missing"]
-    assert next(case for case in CASES["pwaParityCases"] if case["name"] == "peer-lease-live")["retryDelayMs"] == actual["denied"]
-    return 1
+    # TimerLifecycle.finishTimer(true) on a denied tab schedules its retry
+    # from Core's retryAtMs, or one heartbeat later when Core names none.
+    peer = next(case for case in owner_cases("pwaStorage") if case["name"] == "pwa-peer-live")
+    foreign = next(case for case in owner_cases("pwaStorage") if case["name"] == "pwa-foreign-expired")
+    now = peer["leaseNowMs"]
+    inputs = [{"input": pwa_request(automatic(case)), "nowMs": now} for case in (peer, foreign)]
+    denied, missing = pwa_run("retry", inputs)
+    lease = pwa_lease_ms()
+    for item, actual in zip(inputs, (denied, missing)):
+        assert actual["saved"] is True, actual
+        assert actual["sent"] == pwa_sent(item["input"], now, lease), actual["sent"]
+    heartbeat = denied["heartbeatMs"]
+    assert {key: denied[key] for key in ("missing", "nullLease", "camelCase", "none")} == {
+        "missing": heartbeat + 1, "nullLease": 250, "camelCase": None, "none": None}, denied
+    owner = core(inputs[0]["input"])
+    assert denied["delays"] == [owner["retryAtMs"] - now + 1], denied
+    assert next(case for case in CASES["pwaParityCases"] if case["name"] == "peer-lease-live")["retryDelayMs"] == denied["delays"][0]
+    foreign_result = core(inputs[1]["input"])
+    assert foreign_result["reason"] == "not_owner" and "retryAtMs" not in foreign_result
+    # Core names no retryAtMs for a foreign owner, so the tab retries one
+    # app-runtime TIMING_MS.timerOwnerHeartbeat later.
+    assert missing["delays"] == [heartbeat + 1], missing
+    assert next(case for case in CASES["pwaParityCases"] if case["name"] == "foreign-owner-denied")["retryDelayMs"] == missing["delays"][0]
+    return len(inputs)
 
 
 def pwa_expiry_gate():
-    source = SOURCES["pwa_actions"]
-    program = 'class TimerLifecycle {\n'
-    program += between(source, "    updateTimerCompletion(", "    heartbeatTimerOwnership(")
-    program += '}\n'
-    program += 'const cases=JSON.parse(require("fs").readFileSync(0,"utf8"));\n'
-    program += 'process.stdout.write(JSON.stringify(cases.map(([status,remaining])=>{\n'
-    program += 'const timer={id:"existing-timer"};let calls=0;const lifecycle=new TimerLifecycle();\n'
-    program += 'lifecycle.host={clearTimeout:()=>{}};lifecycle.finishTimer=()=>{calls++;return Promise.resolve(true)};\n'
-    program += 'lifecycle.startCompletionAlert=()=>{};lifecycle.updateTimerCompletion(timer,status,remaining,false);\n'
-    program += 'return calls;})));\n'
+    # The seeded clock (12:00:10) leaves the timer unexpired, so only the
+    # gate call below can start an automatic finish.
     cases = [["running", 1], ["running", 0], ["running", -1], ["paused", -1]]
-    output = subprocess.run(["node", "-e", program], input=json.dumps(cases),
-                            text=True, capture_output=True, check=True)
-    assert json.loads(output.stdout) == [0, 1, 1, 0]
+    value = request("pwaStorage", "running")
+    stages = pwa_run("expiry", [{"input": value, "status": status, "remaining": remaining}
+                                for status, remaining in cases])
+    finish = ["automaticFinishCommit"]
+    assert stages == [[], finish, finish, []], stages
     request_value = automatic(owner_cases("pwaStorage")[0])
     request_value["requestedTimer"]["status"] = "paused"
     request_value["workspace"]["base"]["canonicalTimer"]["status"] = "paused"
@@ -349,26 +373,30 @@ def pwa_expiry_gate():
 
 
 def pwa_concurrent_finish():
-    source = SOURCES["pwa"]
-    program = 'const BootstrapGateError=Error;const assertAccountOwnership=()=>{};const core={compareTimerCommands:()=>0};\n'
-    program += 'const projectState=({snapshot})=>({canonicalTimer:snapshot.canonicalTimer});\n'
-    program += between(source, "  function finishProjection(", "  function finishAppliedCompletion(")
-    program += between(source, "  function applyFinishedTimer(", "  function finishTimer(database")
-    program += 'const timer={id:"existing-timer",phase:"focus",status:"running",lastIntent:{type:"finish"}};\n'
-    program += 'const result=applyFinishedTimer({}, {timerId:timer.id,phase:timer.phase,requestedTimer:timer,nowMs:1784548860000}, {snapshot:{value:{canonicalTimer:timer}},commands:[]});\n'
-    program += 'process.stdout.write(JSON.stringify(result));\n'
-    output = subprocess.run(["node", "-e", program], text=True, capture_output=True, check=True)
-    assert json.loads(output.stdout) == {"transitioned": False, "reason": "stale", "commands": []}
-    input_value = automatic(owner_cases("pwaStorage")[0])
-    input_value["workspace"]["base"]["canonicalTimer"]["lastIntent"] = {
-        "type": "finish", "commandId": "old-finish", "occurredAt": "2026-07-20T12:00:20Z"}
-    input_value["requestedTimer"] = copy.deepcopy(input_value["workspace"]["base"]["canonicalTimer"])
-    assert core(input_value)["reason"] == "staleTimer"
+    # Another device's finish reached IndexedDB after this tab copied its
+    # running timer; the tab's attempt is stale and keeps no new command.
+    input_value = pwa_request(automatic(owner_cases("pwaStorage")[0]))
+    base = input_value["workspace"]["base"]
+    base["canonicalTimer"].update(status="completed", elapsedAtAnchorMs=25000, anchorAt="2026-07-20T12:00:20Z",
+        lastIntent={"type": "finish", "commandId": "old-finish", "deviceId": "device-foreign",
+                    "occurredAt": "2026-07-20T12:00:20Z"})
+    base["history"] = [{"id": "old-finish-row", "timerId": "existing-timer", "commandId": "old-finish",
+                        "phase": "focus", "status": "completed", "plannedDurationMs": 60000,
+                        "completedAt": "2026-07-20T12:00:20Z"}]
+    source, = pwa_run("complete", [{"input": input_value, "presentRequested": True}])
+    assert source["sent"]["requestedTimer"] == input_value["requestedTimer"], source["sent"]
+    result = core(input_value)
+    assert result["reason"] == "staleTimer"
+    assert {key: source[key] for key in ("outcome", "reason", "commands")} == {
+        "outcome": result["outcome"], "reason": result["reason"], "commands": result["commands"]}, source
+    assert source["after"]["commands"] == [], source
     return 1
 
 
 def android_owner(temporary):
-    repository = between(SOURCES["android_repository"], "    private fun canFinishTimer(", "    private suspend fun issueCommand(")
+    # Stop at canFinishTimer's own closing brace: the functions that follow it
+    # move with unrelated repository work and need collaborators the probe lacks.
+    repository = between(SOURCES["android_repository"], "    private fun canFinishTimer(", "\n    }\n") + "\n    }\n"
     elapsed = between(SOURCES["presentation"], "    fun elapsedAt(", "\n}")
     program = "import java.time.Instant\nobject TimerStatus { const val Running = \"running\" }\n"
     program += "data class CanonicalTimer(val id:String,val status:String,val plannedDurationMs:Long,val elapsedAtAnchorMs:Long,val anchorAt:String)\n"
