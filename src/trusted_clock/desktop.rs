@@ -71,6 +71,8 @@ fn parsed(value: &Value) -> Result<Option<Sample>, CoreError> {
     if value.is_null() {
         return Ok(None);
     }
+    // Serde would read a positional JSON array as a sample.
+    crate::strict_json::object(value, "state.sample")?;
     let sample: Sample = serde_json::from_value(value.clone())?;
     signed(sample.offset_ms)?;
     uncertainty(sample.uncertainty_ms)?;

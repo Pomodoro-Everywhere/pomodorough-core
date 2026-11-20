@@ -9,9 +9,13 @@ pub(super) fn parse(value: &Value) -> Result<Input, CoreError> {
     let lifecycle = legacy
         .as_object_mut()
         .and_then(|object| object.remove("lifecycle"));
-    if lifecycle.is_some() {
-        crate::strict_json::shape::validate(value, &crate::completion_schema::intent::REQUEST, "")?;
-    }
+    let schema = if lifecycle.is_some() {
+        &crate::completion_schema::intent::REQUEST
+    } else {
+        &super::model::LEGACY_OBJECTS
+    };
+    crate::strict_json::shape::validate(value, schema, "")?;
+    crate::strict_json::shape::validate(value, &super::model::INTENT_ARRAYS, "")?;
     let mut input: Input = serde_json::from_value(legacy)?;
     if let Some(lifecycle) = lifecycle {
         if input.compatibility != Compatibility::PwaStorage

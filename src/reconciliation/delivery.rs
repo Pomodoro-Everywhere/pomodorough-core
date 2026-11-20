@@ -76,7 +76,7 @@ impl Policy {
     ) -> Result<PendingQueues, CoreError> {
         // Never move retained clocks: acknowledged ordering barriers are absent
         // from later queues. The canonical head covers those barriers on restart.
-        let head = (response.server_hlc_wall_ms, response.server_hlc_counter);
+        let head = response.canonical_head();
         self.project_queues(pending, Some(head))
     }
 

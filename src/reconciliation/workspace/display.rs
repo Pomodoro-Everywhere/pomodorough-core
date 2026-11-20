@@ -1,24 +1,20 @@
 //! Raw persisted PWA display records are not delivery evidence.
 use std::collections::{BTreeMap, BTreeSet};
 
-use serde::Deserialize;
 use serde_json::{Value, json};
 
 use super::super::delivery::QUEUES;
+use crate::strict_json::shape::{Field, Shape};
 use crate::{CoreError, strict_json};
 
-#[derive(Deserialize)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
-struct Context {
-    profile: Profile,
-    projection_pending: super::super::RequiredNullable<Value>,
-}
-
-#[derive(Deserialize)]
-enum Profile {
-    #[serde(rename = "pwaStorage")]
-    PwaStorage,
-}
+/// The stored display record, checked over the raw value so that a missing
+/// profile, another profile or an extra field names its path instead of
+/// returning Serde's text. `projectionPending` keeps its presence message in
+/// `stored` and its object checks in `validate_stored`.
+const CONTEXT: Shape = Shape::Record(&[
+    Field::required("profile", Shape::StringEnum(&["pwaStorage"])),
+    Field::optional("projectionPending", Shape::Any),
+]);
 
 fn invalid(reason: &str) -> CoreError {
     CoreError::InvalidInput(reason.into())
@@ -39,9 +35,8 @@ pub(crate) fn stored(workspace: &Value) -> Result<Option<Value>, CoreError> {
     if !object.contains_key("projectionPending") {
         return Err(invalid("missing displayContext.projectionPending"));
     }
-    let context: Context = serde_json::from_value(raw.clone())?;
-    let Profile::PwaStorage = context.profile;
-    Ok(Some(context.projection_pending.0.unwrap_or(Value::Null)))
+    strict_json::shape::validate(raw, &CONTEXT, "displayContext")?;
+    Ok(Some(object["projectionPending"].clone()))
 }
 
 pub(crate) fn context(queues: Value) -> Value {
@@ -80,7 +75,12 @@ fn fresh_records(workspace: &Value, stored: &Value, name: &str) -> Result<Vec<Va
             // Bootstrap consults this selector before its complete timer replay.
             serde_json::from_value::<crate::timer::WireCommand>(operation.clone())?;
         }
-        if identities.contains(operation["id"].as_str().unwrap()) {
+        // Legacy preference planning selects from raw rows before its own
+        // retained identity check, so this is the first read of a row identity.
+        let id = operation["id"]
+            .as_str()
+            .ok_or_else(|| invalid("invalid retained legacy identity"))?;
+        if identities.contains(id) {
             continue;
         }
         let proven = workspace["neverSent"][name]

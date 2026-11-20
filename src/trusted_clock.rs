@@ -11,7 +11,10 @@ use model::*;
 use serde_json::Value;
 
 pub(crate) fn observe_json(input: &str) -> Result<String, CoreError> {
-    crate::strict_json::parse(input)?;
+    let value = crate::strict_json::parse(input)?;
+    crate::strict_json::object(&value, "clock observation")?;
+    crate::strict_json::shape::validate(&value, &model::OBSERVATION_OBJECTS, "")?;
+    drop(value);
     observations::validate(input)?;
     let input: Input = serde_json::from_str(input)?;
     if input.schema_version != 1 {

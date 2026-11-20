@@ -39,7 +39,7 @@ pub(super) fn request(input: &Input) -> Result<Value, CoreError> {
 }
 
 fn source_projection(workspace: &Value, input: &Input) -> Result<Value, CoreError> {
-    let decorated = decorated(workspace, input);
+    let decorated = decorated(workspace, input)?;
     let request =
         json!({"base": decorated["base"], "pending": decorated["local"], "now": workspace["now"]})
             .to_string();
@@ -71,7 +71,7 @@ fn source_projection(workspace: &Value, input: &Input) -> Result<Value, CoreErro
 }
 
 pub(super) fn project(workspace: &Value, input: &Input) -> Result<(), CoreError> {
-    crate::reconciliation::workspace::project_json(&decorated(workspace, input).to_string())?;
+    crate::reconciliation::workspace::project_json(&decorated(workspace, input)?.to_string())?;
     Ok(())
 }
 
@@ -117,7 +117,7 @@ fn owner(input: &Input) -> Result<(), CoreError> {
     Ok(())
 }
 
-fn decorated(workspace: &Value, input: &Input) -> Value {
+fn decorated(workspace: &Value, input: &Input) -> Result<Value, CoreError> {
     let mut copy = workspace.clone();
     for field in ["local", "displayContext"] {
         let queues = if field == "local" {
@@ -129,7 +129,11 @@ fn decorated(workspace: &Value, input: &Input) -> Value {
             continue;
         }
         for domain in DOMAINS {
-            for operation in queues[domain].as_array_mut().unwrap() {
+            // The request schema admits a stored display container without every queue.
+            let operations = queues[domain]
+                .as_array_mut()
+                .ok_or_else(|| invalid("missing raw legacy queue"))?;
+            for operation in operations {
                 if operation.get("deviceId").is_none()
                     && (domain != "commands" || input.profile == Profile::AndroidCentralized)
                 {
@@ -138,7 +142,7 @@ fn decorated(workspace: &Value, input: &Input) -> Value {
             }
         }
     }
-    copy
+    Ok(copy)
 }
 
 fn calendar(input: &Input) -> Result<(), CoreError> {

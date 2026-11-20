@@ -5,6 +5,8 @@ use crate::CoreError;
 
 #[derive(Clone, Copy)]
 pub(crate) enum Shape {
+    // Any value: a later check owns this position's representation and its messages.
+    Any,
     // Serde retains primitive validation and its shipped numeric error envelopes.
     Scalar,
     Object,
@@ -71,6 +73,7 @@ pub(crate) fn validate(value: &Value, shape: &Shape, path: &str) -> Result<(), C
                 validate(value, inner, path)
             };
         }
+        Shape::Any => (true, "value"),
         Shape::Object => (value.is_object(), "object"),
         Shape::Scalar => (!value.is_object() && !value.is_array(), "scalar"),
         Shape::String => (value.is_string(), "string"),

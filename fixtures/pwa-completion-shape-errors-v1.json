@@ -52,7 +52,7 @@
     "operation": "workspace.readModel.v1",
     "inputRaw": "null",
     "priorEnvelope": "{\"error\":\"invalid shared-core JSON: invalid type: null, expected struct Input\",\"ok\":false}",
-    "correctedEnvelope": "{\"error\":\"invalid shared-core input:  must be a JSON object\",\"ok\":false}",
+    "correctedEnvelope": "{\"error\":\"invalid shared-core input: read model must be a JSON object\",\"ok\":false}",
     "reason": "Concrete representation admission now rejects malformed JSON before Serde can accept positional records or enum objects."
   },
   {
@@ -60,7 +60,7 @@
     "operation": "workspace.readModel.v1",
     "inputRaw": "[]",
     "priorEnvelope": "{\"error\":\"invalid shared-core JSON: invalid length 0, expected struct Input with 6 elements\",\"ok\":false}",
-    "correctedEnvelope": "{\"error\":\"invalid shared-core input:  must be a JSON object\",\"ok\":false}",
+    "correctedEnvelope": "{\"error\":\"invalid shared-core input: read model must be a JSON object\",\"ok\":false}",
     "reason": "Concrete representation admission now rejects malformed JSON before Serde can accept positional records or enum objects."
   },
   {
@@ -68,7 +68,7 @@
     "operation": "workspace.completionMutation.v1",
     "inputRaw": "null",
     "priorEnvelope": "{\"error\":\"invalid shared-core input: missing completion ownership\",\"ok\":false}",
-    "correctedEnvelope": "{\"error\":\"invalid shared-core input:  must be a JSON object\",\"ok\":false}",
+    "correctedEnvelope": "{\"error\":\"invalid shared-core input: completion mutation must be a JSON object\",\"ok\":false}",
     "reason": "Concrete representation admission now rejects malformed JSON before Serde can accept positional records or enum objects."
   },
   {
@@ -76,7 +76,7 @@
     "operation": "workspace.completionMutation.v1",
     "inputRaw": "[]",
     "priorEnvelope": "{\"error\":\"invalid shared-core input: missing completion ownership\",\"ok\":false}",
-    "correctedEnvelope": "{\"error\":\"invalid shared-core input:  must be a JSON object\",\"ok\":false}",
+    "correctedEnvelope": "{\"error\":\"invalid shared-core input: completion mutation must be a JSON object\",\"ok\":false}",
     "reason": "Concrete representation admission now rejects malformed JSON before Serde can accept positional records or enum objects."
   }
 ]

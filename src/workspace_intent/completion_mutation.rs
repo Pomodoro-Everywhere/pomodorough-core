@@ -132,6 +132,8 @@ pub(crate) fn plan_json(raw: &str) -> Result<String, CoreError> {
 
 fn plan_raw(raw: &str) -> Result<String, CoreError> {
     let value = crate::strict_json::parse(raw)?;
+    // Name the root here: the shape path stays empty so nested errors keep their field paths.
+    crate::strict_json::object(&value, "completion mutation")?;
     if matches!(
         value["stage"].as_str(),
         Some("expiryObservation" | "deferredBreakOpportunity")

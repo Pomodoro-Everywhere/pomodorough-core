@@ -41,6 +41,11 @@ const REQUIRED_RESPONSE_FIELDS: [(&str, &str); 15] = [
     ("serverHlcCounter", "response.serverHlcCounter"),
 ];
 
+const CANONICAL_HEAD_FIELDS: [(&str, &str); 2] = [
+    ("canonicalHlcWallMs", "response.canonicalHlcWallMs"),
+    ("canonicalHlcCounter", "response.canonicalHlcCounter"),
+];
+
 pub(super) fn request_structure(input: &Value) -> Result<(), CoreError> {
     let root = crate::strict_json::object(input, "reconciliation")?;
     let local = local_queues(root)?;
@@ -50,6 +55,7 @@ pub(super) fn request_structure(input: &Value) -> Result<(), CoreError> {
     queue_shape(local, "local")?;
     queue_shape(sent, "sent")?;
     response_shape(response)?;
+    canonical_head_fields(response)?;
     crate::strict_json::object_array_field(root, "timerDependencies", "timerDependencies", false)
 }
 
@@ -60,6 +66,45 @@ fn required_response_fields(response: &Map<String, Value>) -> Result<(), CoreErr
         }
     }
     Ok(())
+}
+
+/// The canonical head pair is optional for older servers. A present pair must
+/// be complete and JavaScript-safe, and it must not be above the server HLC,
+/// which covers every ordered operation plus the server's physical clock.
+/// The server HLC is the ceiling, so a present pair first requires a
+/// JavaScript-safe server HLC and blames the server HLC when it is not; a
+/// response without the pair leaves that check to `canonical_response`.
+fn canonical_head_fields(response: &Map<String, Value>) -> Result<(), CoreError> {
+    let present = CANONICAL_HEAD_FIELDS.map(|(field, _)| response.contains_key(field));
+    if present == [false, false] {
+        return Ok(());
+    }
+    let [Some(server_wall_ms), Some(server_counter)] =
+        ["serverHlcWallMs", "serverHlcCounter"].map(|field| safe_integer(&response[field]))
+    else {
+        return invalid_response("server HLC");
+    };
+    for ((_, projection), present) in CANONICAL_HEAD_FIELDS.into_iter().zip(present) {
+        if !present {
+            return Err(CoreError::MissingProjection(projection));
+        }
+    }
+    let [Some(wall_ms), Some(counter)] =
+        CANONICAL_HEAD_FIELDS.map(|(field, _)| safe_integer(&response[field]))
+    else {
+        return invalid_response("canonical HLC");
+    };
+    if (wall_ms, counter) > (server_wall_ms, server_counter) {
+        return invalid_response("canonical HLC");
+    }
+    Ok(())
+}
+
+fn safe_integer(value: &Value) -> Option<i64> {
+    value
+        .as_u64()
+        .and_then(|value| i64::try_from(value).ok())
+        .filter(|value| *value <= MAX_SAFE_INTEGER)
 }
 
 fn local_queues(root: &Map<String, Value>) -> Result<&Map<String, Value>, CoreError> {

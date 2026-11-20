@@ -106,6 +106,7 @@ pub(crate) fn plan_json(input: &str) -> Result<String, CoreError> {
     crate::check_input_len(input)?;
     // The extension must not change the shipped unknown-field error envelope.
     let mut value = crate::strict_json::parse(input)?;
+    crate::strict_json::object(&value, "completion state")?;
     if value["kind"] == "install" {
         crate::strict_json::shape::validate(&value, &crate::completion_schema::INSTALL, "")?;
     }

@@ -81,6 +81,10 @@ const INTERVAL: Shape = Shape::Record(&[
     Field::required("start", Shape::String),
     Field::required("end", Shape::String),
 ]);
+/// The shared workspace schema admits a null display context, but this plan
+/// needs the raw PWA one. Queue decoration indexed a null into an object
+/// without `profile`, which then reached Serde.
+const RAW_DISPLAY: Shape = Shape::Fields(&[Field::optional("displayContext", Shape::Object)]);
 pub(super) const REQUEST: Shape = Shape::Record(&[
     Field::required(
         "profile",
@@ -113,6 +117,7 @@ pub(super) fn records(raw: &Value) -> Result<(), CoreError> {
     admitted["timerDependencies"] = serde_json::json!([]);
     crate::reconciliation::workspace::validate_shape(&admitted)?;
     validate(&admitted, &crate::completion_schema::WORKSPACE, "workspace")?;
+    validate(&raw["workspace"], &RAW_DISPLAY, "workspace")?;
     validate(&raw["workspace"]["local"], &QUEUES, "local")?;
     let stored = &raw["workspace"]["displayContext"]["projectionPending"];
     if !stored.is_null() {

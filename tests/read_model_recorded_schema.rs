@@ -114,7 +114,7 @@ fn only_the_listed_frozen_captures_keep_read_model_schema_version_1() {
     let found = recorded_returns(&fixture_files());
     let allowed: BTreeSet<String> = FROZEN_VERSION_1_RETURNS.map(str::to_owned).into();
     assert_eq!(found.version_1, allowed);
-    assert_eq!(found.current, 26, "recorded schema version 2 returns");
+    assert_eq!(found.current, 28, "recorded schema version 2 returns");
 }
 
 #[test]

@@ -1,0 +1,264 @@
+{
+  "description": "R55-C05: non-object request roots of workspace.completionMutation.v1, workspace.readModel.v1 and workspace.ownershipPlan.v1 returned 'invalid shared-core input:  must be a JSON object' (empty path). Root rows pin the named message; control rows carry the complete envelope captured before the fix (valid requests, object roots, nested field paths, other operations' root messages). Exception: R55-C07 re-pinned three control rows to its named root message, so other-workspace.intent.v1-root-array, other-timer.completionState.v1-root-array and other-sync.batchPlan.v1-root-array carry the envelope after R55-C07, not the one captured before R55-C05.",
+  "rows": [
+    {
+      "name": "completion-root-array-empty",
+      "kind": "root",
+      "operation": "workspace.completionMutation.v1",
+      "input": "[]",
+      "expected": "{\"error\":\"invalid shared-core input: completion mutation must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "completion-root-array-object",
+      "kind": "root",
+      "operation": "workspace.completionMutation.v1",
+      "input": "[{}]",
+      "expected": "{\"error\":\"invalid shared-core input: completion mutation must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "completion-root-string",
+      "kind": "root",
+      "operation": "workspace.completionMutation.v1",
+      "input": "\"x\"",
+      "expected": "{\"error\":\"invalid shared-core input: completion mutation must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "completion-root-number",
+      "kind": "root",
+      "operation": "workspace.completionMutation.v1",
+      "input": "7",
+      "expected": "{\"error\":\"invalid shared-core input: completion mutation must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "completion-root-boolean",
+      "kind": "root",
+      "operation": "workspace.completionMutation.v1",
+      "input": "true",
+      "expected": "{\"error\":\"invalid shared-core input: completion mutation must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "completion-root-null",
+      "kind": "root",
+      "operation": "workspace.completionMutation.v1",
+      "input": "null",
+      "expected": "{\"error\":\"invalid shared-core input: completion mutation must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "read-model-root-array-empty",
+      "kind": "root",
+      "operation": "workspace.readModel.v1",
+      "input": "[]",
+      "expected": "{\"error\":\"invalid shared-core input: read model must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "read-model-root-array-object",
+      "kind": "root",
+      "operation": "workspace.readModel.v1",
+      "input": "[{}]",
+      "expected": "{\"error\":\"invalid shared-core input: read model must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "read-model-root-string",
+      "kind": "root",
+      "operation": "workspace.readModel.v1",
+      "input": "\"x\"",
+      "expected": "{\"error\":\"invalid shared-core input: read model must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "read-model-root-number",
+      "kind": "root",
+      "operation": "workspace.readModel.v1",
+      "input": "7",
+      "expected": "{\"error\":\"invalid shared-core input: read model must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "read-model-root-boolean",
+      "kind": "root",
+      "operation": "workspace.readModel.v1",
+      "input": "true",
+      "expected": "{\"error\":\"invalid shared-core input: read model must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "read-model-root-null",
+      "kind": "root",
+      "operation": "workspace.readModel.v1",
+      "input": "null",
+      "expected": "{\"error\":\"invalid shared-core input: read model must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "ownership-root-array-empty",
+      "kind": "root",
+      "operation": "workspace.ownershipPlan.v1",
+      "input": "[]",
+      "expected": "{\"error\":\"invalid shared-core input: ownership plan must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "ownership-root-array-object",
+      "kind": "root",
+      "operation": "workspace.ownershipPlan.v1",
+      "input": "[{}]",
+      "expected": "{\"error\":\"invalid shared-core input: ownership plan must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "ownership-root-string",
+      "kind": "root",
+      "operation": "workspace.ownershipPlan.v1",
+      "input": "\"x\"",
+      "expected": "{\"error\":\"invalid shared-core input: ownership plan must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "ownership-root-number",
+      "kind": "root",
+      "operation": "workspace.ownershipPlan.v1",
+      "input": "7",
+      "expected": "{\"error\":\"invalid shared-core input: ownership plan must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "ownership-root-boolean",
+      "kind": "root",
+      "operation": "workspace.ownershipPlan.v1",
+      "input": "true",
+      "expected": "{\"error\":\"invalid shared-core input: ownership plan must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "ownership-root-null",
+      "kind": "root",
+      "operation": "workspace.ownershipPlan.v1",
+      "input": "null",
+      "expected": "{\"error\":\"invalid shared-core input: ownership plan must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "completion-valid-expiry",
+      "kind": "control",
+      "operation": "workspace.completionMutation.v1",
+      "input": "{\"allocation\":{\"deviceId\":\"device-local\",\"deviceSequence\":7,\"hlc\":{\"counter\":0,\"wallMs\":1784548800000},\"lastUuid\":null},\"calendarIntervals\":[{\"end\":\"2026-07-21T00:00:00Z\",\"start\":\"2026-07-20T00:00:00Z\"}],\"centralizedSession\":{\"authenticated\":false,\"userId\":null},\"clock\":{\"observedAt\":\"2026-07-20T12:00:55.000Z\",\"occurredAt\":\"2026-07-20T12:00:55.000Z\",\"physicalNow\":\"2026-07-20T12:00:55.000Z\"},\"compatibility\":\"appleWorkspace\",\"event\":{\"kind\":\"observation\"},\"identities\":{\"commandUuids\":[\"019f7f66-8cd8-7000-8000-000000000010\"],\"timerUuid\":\"12345678-1234-4234-8234-123456789012\"},\"lifecycle\":{\"consumedCompletions\":[],\"pendingBreaks\":[]},\"observation\":{\"canonicalAnchorAt\":null,\"commandTimes\":{}},\"ownership\":{\"deviceId\":\"device-local\",\"timerId\":\"existing-timer\"},\"previousObservation\":{\"canonicalAnchorAt\":null,\"commandTimes\":{}},\"previousWorkspace\":{\"base\":{\"autoStartBreaks\":true,\"canonicalTimer\":{\"anchorAt\":\"2026-07-20T12:00:00Z\",\"elapsedAtAnchorMs\":5000,\"id\":\"existing-timer\",\"phase\":\"focus\",\"plannedDurationMs\":60000,\"startedByDeviceId\":\"device-local\",\"status\":\"running\"},\"durationsMs\":{\"focus\":60000,\"long_break\":180000,\"short_break\":120000},\"history\":[],\"selectedTaskId\":null,\"tasks\":[]},\"canonicalHead\":{\"counter\":0,\"wallMs\":1784548800000},\"local\":{\"autoStartOperations\":[],\"commands\":[],\"durationOperations\":[],\"selectedTaskOperations\":[],\"taskOperations\":[]},\"neverSent\":{},\"timerDependencies\":[]},\"replicationMode\":\"iroh\",\"requestedTimer\":{\"anchorAt\":\"2026-07-20T12:00:00Z\",\"elapsedAtAnchorMs\":5000,\"id\":\"existing-timer\",\"phase\":\"focus\",\"plannedDurationMs\":60000,\"startedByDeviceId\":\"device-local\",\"status\":\"running\"},\"selection\":{\"explicit\":false,\"generation\":\"5\",\"phase\":\"focus\"},\"stage\":\"expiryObservation\",\"workspace\":{\"base\":{\"autoStartBreaks\":true,\"canonicalTimer\":{\"anchorAt\":\"2026-07-20T12:00:00Z\",\"elapsedAtAnchorMs\":5000,\"id\":\"existing-timer\",\"phase\":\"focus\",\"plannedDurationMs\":60000,\"startedByDeviceId\":\"device-local\",\"status\":\"running\"},\"durationsMs\":{\"focus\":60000,\"long_break\":180000,\"short_break\":120000},\"history\":[],\"selectedTaskId\":null,\"tasks\":[]},\"canonicalHead\":{\"counter\":0,\"wallMs\":1784548800000},\"local\":{\"autoStartOperations\":[],\"commands\":[],\"durationOperations\":[],\"selectedTaskOperations\":[],\"taskOperations\":[]},\"neverSent\":{},\"timerDependencies\":[]}}",
+      "expected": "{\"ok\":true,\"value\":{\"allocation\":{\"deviceId\":\"device-local\",\"deviceSequence\":8,\"hlc\":{\"counter\":0,\"wallMs\":1784548855000},\"lastUuid\":\"019f7f66-8cd8-7000-8000-000000000010\"},\"atomicCommandIds\":[\"command-019f7f66-8cd8-7000-8000-000000000010\"],\"commandOutcomes\":[{\"id\":\"command-019f7f66-8cd8-7000-8000-000000000010\",\"outcome\":\"applied\"}],\"commands\":[{\"deviceId\":\"device-local\",\"deviceSequence\":8,\"hlcCounter\":0,\"hlcWallMs\":1784548855000,\"id\":\"command-019f7f66-8cd8-7000-8000-000000000010\",\"observedElapsedMs\":0,\"occurredAt\":\"2026-07-20T12:00:55.000Z\",\"phase\":\"short_break\",\"plannedDurationMs\":120000,\"timerId\":\"timer-12345678-1234-4234-8234-123456789012\",\"type\":\"start\"}],\"completionRecords\":{\"pendingAutoBreak\":null,\"phaseAdvance\":null,\"provisionalBreak\":null},\"durableCommands\":[{\"deviceSequence\":8,\"hlcCounter\":0,\"hlcWallMs\":1784548855000,\"id\":\"command-019f7f66-8cd8-7000-8000-000000000010\",\"observedElapsedMs\":0,\"occurredAt\":\"2026-07-20T12:00:55.000Z\",\"phase\":\"short_break\",\"plannedDurationMs\":120000,\"timerId\":\"timer-12345678-1234-4234-8234-123456789012\",\"type\":\"start\"}],\"effectsAfterCommit\":[{\"kind\":\"launchSync\"},{\"durationMs\":120000,\"kind\":\"scheduleAlarm\",\"phase\":\"short_break\",\"timerId\":\"timer-12345678-1234-4234-8234-123456789012\"}],\"lifecycle\":{\"consumedCompletions\":[{\"commandId\":null,\"phase\":\"focus\",\"timerId\":\"existing-timer\"}],\"pendingBreaks\":[]},\"nextPhase\":\"short_break\",\"observation\":{\"canonicalAnchorAt\":null,\"commandTimes\":{\"command-019f7f66-8cd8-7000-8000-000000000010\":\"2026-07-20T12:00:55.000Z\"}},\"outcome\":\"planned\",\"ownershipWrites\":[{\"deviceId\":\"device-local\",\"kind\":\"recordLocalStart\",\"startCommandId\":\"command-019f7f66-8cd8-7000-8000-000000000010\",\"timerId\":\"timer-12345678-1234-4234-8234-123456789012\"}],\"projection\":{\"autoStartBreaks\":true,\"canonicalTimer\":{\"anchorAt\":\"2026-07-20T12:00:55Z\",\"elapsedAtAnchorMs\":0,\"id\":\"timer-12345678-1234-4234-8234-123456789012\",\"lastIntent\":{\"commandId\":\"command-019f7f66-8cd8-7000-8000-000000000010\",\"deviceId\":\"device-local\",\"occurredAt\":\"2026-07-20T12:00:55Z\",\"type\":\"start\"},\"phase\":\"short_break\",\"plannedDurationMs\":120000,\"startedByDeviceId\":\"device-local\",\"status\":\"running\"},\"durationsMs\":{\"focus\":60000,\"long_break\":180000,\"short_break\":120000},\"history\":[{\"completedAt\":\"2026-07-20T12:00:55Z\",\"elapsedMs\":60000,\"endedAt\":\"2026-07-20T12:00:55Z\",\"id\":\"existing-timer\",\"phase\":\"focus\",\"plannedDurationMs\":60000,\"status\":\"completed\",\"timerId\":\"existing-timer\"}],\"selectedTaskId\":null,\"tasks\":[],\"timerOutcomes\":{\"command-019f7f66-8cd8-7000-8000-000000000010\":{\"outcome\":\"applied\",\"reason\":\"\"}},\"winningOperationIds\":{\"autoStart\":null,\"durations\":{},\"selectedTask\":null,\"tasks\":{}}},\"reason\":\"\",\"retiredTriggerIds\":[],\"schemaVersion\":1,\"selection\":{\"explicit\":false,\"generation\":\"5\",\"phase\":\"short_break\"},\"source\":{\"completedAt\":\"2026-07-20T12:00:55Z\",\"elapsedMs\":60000,\"endedAt\":\"2026-07-20T12:00:55Z\",\"id\":\"existing-timer\",\"phase\":\"focus\",\"plannedDurationMs\":60000,\"status\":\"completed\",\"timerId\":\"existing-timer\"},\"sourceStatus\":\"naturalExpiry\",\"workspace\":{\"base\":{\"autoStartBreaks\":true,\"canonicalTimer\":{\"anchorAt\":\"2026-07-20T12:00:00Z\",\"elapsedAtAnchorMs\":5000,\"id\":\"existing-timer\",\"phase\":\"focus\",\"plannedDurationMs\":60000,\"startedByDeviceId\":\"device-local\",\"status\":\"running\"},\"durationsMs\":{\"focus\":60000,\"long_break\":180000,\"short_break\":120000},\"history\":[],\"selectedTaskId\":null,\"tasks\":[]},\"canonicalHead\":{\"counter\":0,\"wallMs\":1784548800000},\"local\":{\"autoStartOperations\":[],\"commands\":[{\"deviceId\":\"device-local\",\"deviceSequence\":8,\"hlcCounter\":0,\"hlcWallMs\":1784548855000,\"id\":\"command-019f7f66-8cd8-7000-8000-000000000010\",\"observedElapsedMs\":0,\"occurredAt\":\"2026-07-20T12:00:55.000Z\",\"phase\":\"short_break\",\"plannedDurationMs\":120000,\"timerId\":\"timer-12345678-1234-4234-8234-123456789012\",\"type\":\"start\"}],\"durationOperations\":[],\"selectedTaskOperations\":[],\"taskOperations\":[]},\"neverSent\":{\"commands\":[\"command-019f7f66-8cd8-7000-8000-000000000010\"]},\"timerDependencies\":[]}}}"
+    },
+    {
+      "name": "completion-valid-deferred",
+      "kind": "control",
+      "operation": "workspace.completionMutation.v1",
+      "input": "{\"allocation\":{\"deviceId\":\"device-local\",\"deviceSequence\":8,\"hlc\":{\"counter\":0,\"wallMs\":1784548810000},\"lastUuid\":\"019f7f65-dd10-7000-8000-000000000001\"},\"calendarIntervals\":[{\"end\":\"2026-07-21T00:00:00Z\",\"start\":\"2026-07-20T00:00:00Z\"}],\"centralizedSession\":{\"authenticated\":true,\"userId\":null},\"clock\":{\"observedAt\":\"2026-07-20T12:01:00.000Z\",\"occurredAt\":\"2026-07-20T12:01:00.000Z\",\"physicalNow\":\"2026-07-20T12:01:00.000Z\"},\"compatibility\":\"desktopStorage\",\"event\":{\"kind\":\"opportunity\"},\"identities\":{\"commandUuids\":[\"019f7f66-a060-7000-8000-000000000010\"],\"timerUuid\":\"12345678-1234-4234-8234-123456789012\"},\"lifecycle\":{\"consumedCompletions\":[],\"pendingBreaks\":[{\"finishCommandId\":\"019f7f65-dd10-7000-8000-000000000001\",\"finishDeviceSequence\":8,\"timerId\":\"existing-timer\"}]},\"observation\":{\"canonicalAnchorAt\":null,\"commandTimes\":{\"019f7f65-dd10-7000-8000-000000000001\":\"2026-07-20T12:00:10Z\"}},\"ownership\":{\"deviceId\":\"device-local\",\"timerId\":\"existing-timer\"},\"replicationMode\":\"centralized\",\"selection\":{\"explicit\":false,\"generation\":\"5\",\"phase\":\"short_break\"},\"stage\":\"deferredBreakOpportunity\",\"workspace\":{\"base\":{\"autoStartBreaks\":true,\"canonicalTimer\":{\"anchorAt\":\"2026-07-20T12:00:00Z\",\"elapsedAtAnchorMs\":5000,\"id\":\"existing-timer\",\"phase\":\"focus\",\"plannedDurationMs\":60000,\"startedByDeviceId\":\"device-local\",\"status\":\"running\"},\"durationsMs\":{\"focus\":60000,\"long_break\":180000,\"short_break\":120000},\"history\":[],\"selectedTaskId\":null,\"tasks\":[]},\"canonicalHead\":{\"counter\":0,\"wallMs\":1784548800000},\"local\":{\"autoStartOperations\":[],\"commands\":[{\"deviceId\":\"device-local\",\"deviceSequence\":8,\"hlcCounter\":0,\"hlcWallMs\":1784548810000,\"id\":\"019f7f65-dd10-7000-8000-000000000001\",\"observedElapsedMs\":15000,\"occurredAt\":\"2026-07-20T12:00:10.000Z\",\"phase\":\"focus\",\"plannedDurationMs\":60000,\"timerId\":\"existing-timer\",\"type\":\"finish\"}],\"durationOperations\":[],\"selectedTaskOperations\":[],\"taskOperations\":[]},\"neverSent\":{\"commands\":[\"019f7f65-dd10-7000-8000-000000000001\"]},\"timerDependencies\":[]}}",
+      "expected": "{\"ok\":true,\"value\":{\"allocation\":{\"deviceId\":\"device-local\",\"deviceSequence\":9,\"hlc\":{\"counter\":0,\"wallMs\":1784548860000},\"lastUuid\":\"019f7f66-a060-7000-8000-000000000010\"},\"atomicCommandIds\":[\"019f7f66-a060-7000-8000-000000000010\"],\"commandOutcomes\":[{\"id\":\"019f7f66-a060-7000-8000-000000000010\",\"outcome\":\"applied\"}],\"commands\":[{\"deviceId\":\"device-local\",\"deviceSequence\":9,\"hlcCounter\":0,\"hlcWallMs\":1784548860000,\"id\":\"019f7f66-a060-7000-8000-000000000010\",\"observedElapsedMs\":0,\"occurredAt\":\"2026-07-20T12:01:00.000Z\",\"phase\":\"short_break\",\"plannedDurationMs\":120000,\"timerId\":\"12345678-1234-4234-8234-123456789012\",\"type\":\"start\"}],\"completionRecords\":{\"pendingAutoBreak\":null,\"phaseAdvance\":null,\"provisionalBreak\":{\"breakTimerId\":\"12345678-1234-4234-8234-123456789012\",\"finishCommandId\":\"019f7f65-dd10-7000-8000-000000000001\",\"focusTimerId\":\"existing-timer\",\"selectedPhaseVersion\":\"5\",\"startCommandId\":\"019f7f66-a060-7000-8000-000000000010\"}},\"durableCommands\":[{\"deviceSequence\":9,\"hlcCounter\":0,\"hlcWallMs\":1784548860000,\"id\":\"019f7f66-a060-7000-8000-000000000010\",\"observedElapsedMs\":0,\"occurredAt\":\"2026-07-20T12:01:00.000Z\",\"phase\":\"short_break\",\"plannedDurationMs\":120000,\"timerId\":\"12345678-1234-4234-8234-123456789012\",\"type\":\"start\"}],\"effectsAfterCommit\":[{\"kind\":\"launchSync\"},{\"durationMs\":120000,\"kind\":\"scheduleAlarm\",\"phase\":\"short_break\",\"timerId\":\"12345678-1234-4234-8234-123456789012\"}],\"lifecycle\":{\"consumedCompletions\":[],\"pendingBreaks\":[]},\"nextPhase\":\"short_break\",\"observation\":{\"canonicalAnchorAt\":null,\"commandTimes\":{\"019f7f65-dd10-7000-8000-000000000001\":\"2026-07-20T12:00:10Z\",\"019f7f66-a060-7000-8000-000000000010\":\"2026-07-20T12:01:00.000Z\"}},\"outcome\":\"planned\",\"ownershipWrites\":[{\"deviceId\":\"device-local\",\"kind\":\"recordStart\",\"startCommandId\":\"019f7f66-a060-7000-8000-000000000010\",\"timerId\":\"12345678-1234-4234-8234-123456789012\"}],\"projection\":{\"autoStartBreaks\":true,\"canonicalTimer\":{\"anchorAt\":\"2026-07-20T12:01:00Z\",\"elapsedAtAnchorMs\":0,\"id\":\"12345678-1234-4234-8234-123456789012\",\"lastIntent\":{\"commandId\":\"019f7f66-a060-7000-8000-000000000010\",\"deviceId\":\"device-local\",\"occurredAt\":\"2026-07-20T12:01:00Z\",\"type\":\"start\"},\"phase\":\"short_break\",\"plannedDurationMs\":120000,\"startedByDeviceId\":\"device-local\",\"status\":\"running\"},\"durationsMs\":{\"focus\":60000,\"long_break\":180000,\"short_break\":120000},\"history\":[{\"commandId\":\"019f7f65-dd10-7000-8000-000000000001\",\"completedAt\":\"2026-07-20T12:00:10Z\",\"elapsedMs\":15000,\"endedAt\":\"2026-07-20T12:00:10Z\",\"id\":\"existing-timer\",\"phase\":\"focus\",\"plannedDurationMs\":60000,\"status\":\"completed\",\"timerId\":\"existing-timer\"}],\"selectedTaskId\":null,\"tasks\":[],\"timerOutcomes\":{\"019f7f65-dd10-7000-8000-000000000001\":{\"outcome\":\"applied\",\"reason\":\"\"},\"019f7f66-a060-7000-8000-000000000010\":{\"outcome\":\"applied\",\"reason\":\"\"}},\"winningOperationIds\":{\"autoStart\":null,\"durations\":{},\"selectedTask\":null,\"tasks\":{}}},\"reason\":\"\",\"retiredTriggerIds\":[\"019f7f65-dd10-7000-8000-000000000001\"],\"schemaVersion\":1,\"selection\":{\"explicit\":false,\"generation\":\"5\",\"phase\":\"short_break\"},\"source\":{\"commandId\":\"019f7f65-dd10-7000-8000-000000000001\",\"completedAt\":\"2026-07-20T12:00:10Z\",\"elapsedMs\":15000,\"endedAt\":\"2026-07-20T12:00:10Z\",\"id\":\"existing-timer\",\"phase\":\"focus\",\"plannedDurationMs\":60000,\"status\":\"completed\",\"timerId\":\"existing-timer\"},\"sourceStatus\":\"pending\",\"workspace\":{\"base\":{\"autoStartBreaks\":true,\"canonicalTimer\":{\"anchorAt\":\"2026-07-20T12:00:00Z\",\"elapsedAtAnchorMs\":5000,\"id\":\"existing-timer\",\"phase\":\"focus\",\"plannedDurationMs\":60000,\"startedByDeviceId\":\"device-local\",\"status\":\"running\"},\"durationsMs\":{\"focus\":60000,\"long_break\":180000,\"short_break\":120000},\"history\":[],\"selectedTaskId\":null,\"tasks\":[]},\"canonicalHead\":{\"counter\":0,\"wallMs\":1784548800000},\"local\":{\"autoStartOperations\":[],\"commands\":[{\"deviceId\":\"device-local\",\"deviceSequence\":8,\"hlcCounter\":0,\"hlcWallMs\":1784548810000,\"id\":\"019f7f65-dd10-7000-8000-000000000001\",\"observedElapsedMs\":15000,\"occurredAt\":\"2026-07-20T12:00:10.000Z\",\"phase\":\"focus\",\"plannedDurationMs\":60000,\"timerId\":\"existing-timer\",\"type\":\"finish\"},{\"deviceId\":\"device-local\",\"deviceSequence\":9,\"hlcCounter\":0,\"hlcWallMs\":1784548860000,\"id\":\"019f7f66-a060-7000-8000-000000000010\",\"observedElapsedMs\":0,\"occurredAt\":\"2026-07-20T12:01:00.000Z\",\"phase\":\"short_break\",\"plannedDurationMs\":120000,\"timerId\":\"12345678-1234-4234-8234-123456789012\",\"type\":\"start\"}],\"durationOperations\":[],\"selectedTaskOperations\":[],\"taskOperations\":[]},\"neverSent\":{\"commands\":[\"019f7f65-dd10-7000-8000-000000000001\",\"019f7f66-a060-7000-8000-000000000010\"]},\"timerDependencies\":[{\"dependsOnOperationId\":\"019f7f65-dd10-7000-8000-000000000001\",\"generatedBreak\":true,\"operationId\":\"019f7f66-a060-7000-8000-000000000010\",\"sourceDayEnd\":\"2026-07-21T00:00:00Z\",\"sourceDayStart\":\"2026-07-20T00:00:00Z\"}]}}}"
+    },
+    {
+      "name": "ownership-valid-renew",
+      "kind": "control",
+      "operation": "workspace.ownershipPlan.v1",
+      "input": "{\"profile\":\"pwaStorage\",\"action\":{\"kind\":\"renew\",\"timerId\":\"ownership-timer\"},\"localDeviceId\":\"device-local\",\"localTabId\":\"tab-local\",\"ownership\":null,\"clock\":{\"nowMs\":1784548801000,\"leaseDurationMs\":30000},\"workspace\":{\"base\":{\"canonicalTimer\":null,\"history\":[],\"tasks\":[],\"durationsMs\":{\"focus\":1500000,\"short_break\":300000,\"long_break\":900000},\"autoStartBreaks\":false,\"selectedTaskId\":null},\"local\":{\"commands\":[{\"id\":\"retained-start\",\"deviceId\":\"device-foreign\",\"deviceSequence\":1,\"timerId\":\"ownership-timer\",\"type\":\"start\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"occurredAt\":\"2026-07-20T12:00:00Z\",\"hlcWallMs\":1784548800000,\"hlcCounter\":0,\"observedElapsedMs\":0,\"extension\":{\"retained\":true}}],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]},\"canonicalHead\":null,\"neverSent\":{},\"timerDependencies\":[],\"displayContext\":{\"profile\":\"pwaStorage\",\"projectionPending\":null}}}",
+      "expected": "{\"ok\":true,\"value\":{\"effectsAfterCommit\":[],\"ownership\":{\"deviceId\":\"device-local\",\"leaseExpiresAtMs\":1784548831000,\"tabId\":\"tab-local\",\"timerId\":\"ownership-timer\"},\"ownershipWrites\":[{\"deviceId\":\"device-local\",\"kind\":\"recordTimerOwner\",\"leaseExpiresAtMs\":1784548831000,\"tabId\":\"tab-local\",\"timerId\":\"ownership-timer\"},{\"deviceId\":\"device-local\",\"kind\":\"recordTimerOwner\",\"leaseExpiresAtMs\":1784548831000,\"tabId\":\"tab-local\",\"timerId\":\"ownership-timer\"}],\"reason\":\"\",\"renewed\":true,\"schemaVersion\":1,\"workspace\":{\"base\":{\"autoStartBreaks\":false,\"canonicalTimer\":null,\"durationsMs\":{\"focus\":1500000,\"long_break\":900000,\"short_break\":300000},\"history\":[],\"selectedTaskId\":null,\"tasks\":[]},\"canonicalHead\":null,\"displayContext\":{\"profile\":\"pwaStorage\",\"projectionPending\":null},\"local\":{\"autoStartOperations\":[],\"commands\":[{\"deviceId\":\"device-foreign\",\"deviceSequence\":1,\"extension\":{\"retained\":true},\"hlcCounter\":0,\"hlcWallMs\":1784548800000,\"id\":\"retained-start\",\"observedElapsedMs\":0,\"occurredAt\":\"2026-07-20T12:00:00Z\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"timerId\":\"ownership-timer\",\"type\":\"start\"}],\"durationOperations\":[],\"selectedTaskOperations\":[],\"taskOperations\":[]},\"neverSent\":{},\"timerDependencies\":[]}}}"
+    },
+    {
+      "name": "completion-root-empty-object",
+      "kind": "control",
+      "operation": "workspace.completionMutation.v1",
+      "input": "{}",
+      "expected": "{\"error\":\"invalid shared-core input: missing completion ownership\",\"ok\":false}"
+    },
+    {
+      "name": "read-model-root-empty-object",
+      "kind": "control",
+      "operation": "workspace.readModel.v1",
+      "input": "{}",
+      "expected": "{\"error\":\"invalid shared-core JSON: missing field `profile`\",\"ok\":false}"
+    },
+    {
+      "name": "ownership-root-empty-object",
+      "kind": "control",
+      "operation": "workspace.ownershipPlan.v1",
+      "input": "{}",
+      "expected": "{\"error\":\"invalid shared-core input: missing required JSON field profile\",\"ok\":false}"
+    },
+    {
+      "name": "completion-nested-display-context",
+      "kind": "control",
+      "operation": "workspace.completionMutation.v1",
+      "input": "{\"compatibility\":\"pwaStorage\",\"replicationMode\":\"centralized\",\"workspace\":{\"base\":{\"canonicalTimer\":null,\"history\":[],\"tasks\":[],\"durationsMs\":{\"focus\":1500000,\"short_break\":300000,\"long_break\":900000},\"autoStartBreaks\":false,\"selectedTaskId\":null},\"local\":{\"commands\":[{\"deviceId\":\"p222-device\",\"deviceSequence\":8,\"hlcCounter\":3,\"hlcWallMs\":1788177600000,\"id\":\"01a057b0-ce00-7000-8000-000000000015\",\"observedElapsedMs\":0,\"occurredAt\":\"2026-08-31T12:00:00.000Z\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"timerId\":\"d68d2324-d368-4ce8-9700-d6c7218faeb5\",\"type\":\"start\"}],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]},\"neverSent\":{\"commands\":[],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]},\"canonicalHead\":{\"wallMs\":1788177600000,\"counter\":3},\"timerDependencies\":[],\"displayContext\":true},\"selection\":{\"phase\":\"focus\",\"generation\":\"0\",\"explicit\":false},\"allocation\":{\"deviceId\":\"p222-device\",\"deviceSequence\":8,\"hlc\":{\"counter\":3,\"wallMs\":1788177600000},\"lastUuid\":\"01a057b0-ce00-7000-8000-000000000015\"},\"observation\":{\"canonicalAnchorAt\":null,\"commandTimes\":{\"01a057b0-ce00-7000-8000-000000000015\":\"2026-08-31T12:00:00.000Z\"}},\"clock\":{\"occurredAt\":\"2026-08-31T12:00:03Z\",\"physicalNow\":\"2026-08-31T12:00:03Z\",\"observedAt\":\"2026-08-31T12:00:03Z\"},\"identities\":{\"commandUuids\":[\"01a057b0-d9b8-7000-8000-000000000001\"],\"timerUuid\":\"12345678-1234-4234-8234-123456789012\"},\"calendarIntervals\":[{\"start\":\"2026-08-31T00:00:00Z\",\"end\":\"2026-09-01T00:00:00Z\"}],\"requestedTimer\":{\"id\":\"existing-timer\",\"phase\":\"focus\",\"status\":\"running\",\"plannedDurationMs\":60000,\"elapsedAtAnchorMs\":5000,\"anchorAt\":\"2026-07-20T12:00:00Z\",\"startedByDeviceId\":\"device-local\"},\"stage\":\"finishCommit\",\"ownership\":null}",
+      "expected": "{\"error\":\"invalid shared-core input: workspace.displayContext must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "completion-nested-lifecycle-workspace",
+      "kind": "control",
+      "operation": "workspace.completionMutation.v1",
+      "input": "{\"allocation\":{\"deviceId\":\"device-local\",\"deviceSequence\":7,\"hlc\":{\"counter\":0,\"wallMs\":1784548800000},\"lastUuid\":null},\"calendarIntervals\":[{\"end\":\"2026-07-21T00:00:00Z\",\"start\":\"2026-07-20T00:00:00Z\"}],\"centralizedSession\":{\"authenticated\":false,\"userId\":null},\"clock\":{\"observedAt\":\"2026-07-20T12:00:15Z\",\"occurredAt\":\"2026-07-20T12:00:10Z\",\"physicalNow\":\"2026-07-20T12:00:15Z\"},\"compatibility\":\"desktopStorage\",\"event\":{\"kind\":\"opportunity\"},\"identities\":{\"commandUuids\":[\"019f7f65-dd10-7000-8000-000000000001\",\"019f7f65-dd10-7000-8000-000000000002\"],\"timerUuid\":\"12345678-1234-4234-8234-123456789012\"},\"lifecycle\":{\"consumedCompletions\":[],\"pendingBreaks\":[]},\"observation\":{\"canonicalAnchorAt\":\"2026-07-20T12:00:15Z\",\"commandTimes\":{}},\"ownership\":null,\"replicationMode\":\"centralized\",\"selection\":{\"explicit\":true,\"generation\":\"5\",\"phase\":\"focus\"},\"stage\":\"deferredBreakOpportunity\",\"workspace\":[]}",
+      "expected": "{\"error\":\"invalid shared-core input: workspace must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "read-model-nested-display-context",
+      "kind": "control",
+      "operation": "workspace.readModel.v1",
+      "input": "{\"profile\":\"pwaStorage\",\"source\":{\"kind\":\"workspace\",\"value\":{\"base\":{\"canonicalTimer\":null,\"history\":[],\"tasks\":[],\"durationsMs\":{\"focus\":1500000,\"short_break\":300000,\"long_break\":900000},\"autoStartBreaks\":false,\"selectedTaskId\":null},\"local\":{\"commands\":[{\"deviceId\":\"p222-device\",\"deviceSequence\":8,\"hlcCounter\":3,\"hlcWallMs\":1788177600000,\"id\":\"01a057b0-ce00-7000-8000-000000000015\",\"observedElapsedMs\":0,\"occurredAt\":\"2026-08-31T12:00:00.000Z\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"timerId\":\"d68d2324-d368-4ce8-9700-d6c7218faeb5\",\"type\":\"start\"}],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]},\"neverSent\":{\"commands\":[],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]},\"canonicalHead\":{\"wallMs\":1788177600000,\"counter\":3},\"timerDependencies\":[],\"displayContext\":true}},\"selectedPhase\":\"focus\",\"observedAt\":\"2026-08-31T12:00:01Z\",\"calendarIntervals\":[{\"start\":\"2026-08-31T00:00:00Z\",\"end\":\"2026-09-01T00:00:00Z\"}]}",
+      "expected": "{\"error\":\"invalid shared-core input: source.value.displayContext must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "read-model-nested-source",
+      "kind": "control",
+      "operation": "workspace.readModel.v1",
+      "input": "{\"profile\":\"appleWorkspace\",\"source\":[],\"selectedPhase\":\"focus\",\"observedAt\":\"2026-03-08T07:30:00Z\",\"calendarIntervals\":[{\"start\":\"2026-03-08T05:00:00Z\",\"end\":\"2026-03-09T04:00:00Z\"}]}",
+      "expected": "{\"error\":\"invalid shared-core input: source must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "ownership-nested-clock",
+      "kind": "control",
+      "operation": "workspace.ownershipPlan.v1",
+      "input": "{\"profile\":\"pwaStorage\",\"action\":{\"kind\":\"renew\",\"timerId\":\"ownership-timer\"},\"localDeviceId\":\"device-local\",\"localTabId\":\"tab-local\",\"ownership\":null,\"clock\":[],\"workspace\":{\"base\":{\"canonicalTimer\":null,\"history\":[],\"tasks\":[],\"durationsMs\":{\"focus\":1500000,\"short_break\":300000,\"long_break\":900000},\"autoStartBreaks\":false,\"selectedTaskId\":null},\"local\":{\"commands\":[{\"id\":\"retained-start\",\"deviceId\":\"device-foreign\",\"deviceSequence\":1,\"timerId\":\"ownership-timer\",\"type\":\"start\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"occurredAt\":\"2026-07-20T12:00:00Z\",\"hlcWallMs\":1784548800000,\"hlcCounter\":0,\"observedElapsedMs\":0,\"extension\":{\"retained\":true}}],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]},\"canonicalHead\":null,\"neverSent\":{},\"timerDependencies\":[],\"displayContext\":{\"profile\":\"pwaStorage\",\"projectionPending\":null}}}",
+      "expected": "{\"error\":\"invalid shared-core input: clock must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "ownership-nested-action",
+      "kind": "control",
+      "operation": "workspace.ownershipPlan.v1",
+      "input": "{\"profile\":\"pwaStorage\",\"action\":\"renew\",\"localDeviceId\":\"device-local\",\"localTabId\":\"tab-local\",\"ownership\":null,\"clock\":{\"nowMs\":1784548801000,\"leaseDurationMs\":30000},\"workspace\":{\"base\":{\"canonicalTimer\":null,\"history\":[],\"tasks\":[],\"durationsMs\":{\"focus\":1500000,\"short_break\":300000,\"long_break\":900000},\"autoStartBreaks\":false,\"selectedTaskId\":null},\"local\":{\"commands\":[{\"id\":\"retained-start\",\"deviceId\":\"device-foreign\",\"deviceSequence\":1,\"timerId\":\"ownership-timer\",\"type\":\"start\",\"phase\":\"focus\",\"plannedDurationMs\":1500000,\"occurredAt\":\"2026-07-20T12:00:00Z\",\"hlcWallMs\":1784548800000,\"hlcCounter\":0,\"observedElapsedMs\":0,\"extension\":{\"retained\":true}}],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]},\"canonicalHead\":null,\"neverSent\":{},\"timerDependencies\":[],\"displayContext\":{\"profile\":\"pwaStorage\",\"projectionPending\":null}}}",
+      "expected": "{\"error\":\"invalid shared-core input: action must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "other-workspace.legacyDependencyPlan.v1-root-array",
+      "kind": "control",
+      "operation": "workspace.legacyDependencyPlan.v1",
+      "input": "[]",
+      "expected": "{\"error\":\"invalid shared-core input: legacy dependency plan must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "other-workspace.legacyPreferences.v1-root-array",
+      "kind": "control",
+      "operation": "workspace.legacyPreferences.v1",
+      "input": "[]",
+      "expected": "{\"error\":\"invalid shared-core input: legacy migration must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "other-workspace.project.v1-root-array",
+      "kind": "control",
+      "operation": "workspace.project.v1",
+      "input": "[]",
+      "expected": "{\"error\":\"invalid shared-core input: workspace must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "other-workspace.intent.v1-root-array",
+      "kind": "control",
+      "operation": "workspace.intent.v1",
+      "input": "[]",
+      "expected": "{\"error\":\"invalid shared-core input: workspace intent must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "other-timer.completionState.v1-root-array",
+      "kind": "control",
+      "operation": "timer.completionState.v1",
+      "input": "[]",
+      "expected": "{\"error\":\"invalid shared-core input: completion state must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "other-sync.batchPlan.v1-root-array",
+      "kind": "control",
+      "operation": "sync.batchPlan.v1",
+      "input": "[]",
+      "expected": "{\"error\":\"invalid shared-core input: batch plan must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "other-bootstrap.workspacePlan.v1-root-array",
+      "kind": "control",
+      "operation": "bootstrap.workspacePlan.v1",
+      "input": "[]",
+      "expected": "{\"error\":\"invalid shared-core input: bootstrap must be a JSON object\",\"ok\":false}"
+    }
+  ]
+}

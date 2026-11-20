@@ -1,0 +1,831 @@
+{
+  "description": "R55-C07: fourteen operations decoded their request with Serde and never checked that the top level is a JSON object, so arrays were read field by field (ok:true for some) and other roots returned raw Serde text. Root rows pin the named '<name> must be a JSON object' message. Control rows carry the complete envelope, byte-identical before and after the fix (a valid request and an empty object per operation). Unknown-field rows pin the deny_unknown_fields rejection added where no client sends extra fields.",
+  "rows": [
+    {
+      "name": "selectedTask.classify-root-array-empty",
+      "kind": "root",
+      "operation": "selectedTask.classify",
+      "input": "[]",
+      "expected": "{\"error\":\"invalid shared-core input: selected task envelope must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "selectedTask.classify-root-array-positional",
+      "kind": "root",
+      "operation": "selectedTask.classify",
+      "input": "[\"task-a\"]",
+      "expected": "{\"error\":\"invalid shared-core input: selected task envelope must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "selectedTask.classify-root-null",
+      "kind": "root",
+      "operation": "selectedTask.classify",
+      "input": "null",
+      "expected": "{\"error\":\"invalid shared-core input: selected task envelope must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "selectedTask.classify-root-number",
+      "kind": "root",
+      "operation": "selectedTask.classify",
+      "input": "7",
+      "expected": "{\"error\":\"invalid shared-core input: selected task envelope must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "selectedTask.classify-root-string",
+      "kind": "root",
+      "operation": "selectedTask.classify",
+      "input": "\"x\"",
+      "expected": "{\"error\":\"invalid shared-core input: selected task envelope must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "selectedTask.classify-root-boolean",
+      "kind": "root",
+      "operation": "selectedTask.classify",
+      "input": "true",
+      "expected": "{\"error\":\"invalid shared-core input: selected task envelope must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "selectedTask.classify-valid",
+      "kind": "control",
+      "operation": "selectedTask.classify",
+      "input": "{\"selectedTaskId\":\"task-a\"}",
+      "expected": "{\"ok\":true,\"value\":\"selected:task-a\"}"
+    },
+    {
+      "name": "selectedTask.classify-empty-object",
+      "kind": "control",
+      "operation": "selectedTask.classify",
+      "input": "{}",
+      "expected": "{\"ok\":true,\"value\":\"omitted\"}"
+    },
+    {
+      "name": "selectedTask.classify-unknown-field",
+      "kind": "unknown-field",
+      "operation": "selectedTask.classify",
+      "input": "{\"selectedTaskId\":\"task-a\",\"futureField\":1}",
+      "expected": "{\"error\":\"invalid shared-core JSON: unknown field `futureField`, expected `selectedTaskId` at line 1 column 40\",\"ok\":false}"
+    },
+    {
+      "name": "bootstrap.plan.v1-root-array-empty",
+      "kind": "root",
+      "operation": "bootstrap.plan.v1",
+      "input": "[]",
+      "expected": "{\"error\":\"invalid shared-core input: bootstrap plan must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "bootstrap.plan.v1-root-array-positional",
+      "kind": "root",
+      "operation": "bootstrap.plan.v1",
+      "input": "[null,\"user-1\",[],[],false,true]",
+      "expected": "{\"error\":\"invalid shared-core input: bootstrap plan must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "bootstrap.plan.v1-root-null",
+      "kind": "root",
+      "operation": "bootstrap.plan.v1",
+      "input": "null",
+      "expected": "{\"error\":\"invalid shared-core input: bootstrap plan must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "bootstrap.plan.v1-root-number",
+      "kind": "root",
+      "operation": "bootstrap.plan.v1",
+      "input": "7",
+      "expected": "{\"error\":\"invalid shared-core input: bootstrap plan must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "bootstrap.plan.v1-root-string",
+      "kind": "root",
+      "operation": "bootstrap.plan.v1",
+      "input": "\"x\"",
+      "expected": "{\"error\":\"invalid shared-core input: bootstrap plan must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "bootstrap.plan.v1-root-boolean",
+      "kind": "root",
+      "operation": "bootstrap.plan.v1",
+      "input": "true",
+      "expected": "{\"error\":\"invalid shared-core input: bootstrap plan must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "bootstrap.plan.v1-valid",
+      "kind": "control",
+      "operation": "bootstrap.plan.v1",
+      "input": "{\"localOwnerId\":null,\"currentUserId\":\"user-1\",\"localHistory\":[],\"remoteHistory\":[],\"hasLocalState\":false,\"hasRemoteState\":true}",
+      "expected": "{\"ok\":true,\"value\":{\"mode\":\"auto\",\"reason\":\"empty\",\"strategy\":\"keep_remote\"}}"
+    },
+    {
+      "name": "bootstrap.plan.v1-empty-object",
+      "kind": "control",
+      "operation": "bootstrap.plan.v1",
+      "input": "{}",
+      "expected": "{\"ok\":true,\"value\":{\"mode\":\"auto\",\"reason\":\"empty\",\"strategy\":\"keep_remote\"}}"
+    },
+    {
+      "name": "bootstrap.plan.v1-unknown-field",
+      "kind": "unknown-field",
+      "operation": "bootstrap.plan.v1",
+      "input": "{\"localOwnerId\":null,\"currentUserId\":\"user-1\",\"localHistory\":[],\"remoteHistory\":[],\"hasLocalState\":false,\"hasRemoteState\":true,\"futureField\":1}",
+      "expected": "{\"error\":\"invalid shared-core JSON: unknown field `futureField`, expected one of `localOwnerId`, `currentUserId`, `localHistory`, `remoteHistory`, `hasLocalState`, `hasRemoteState`\",\"ok\":false}"
+    },
+    {
+      "name": "task.identity.v1-root-array-empty",
+      "kind": "root",
+      "operation": "task.identity.v1",
+      "input": "[]",
+      "expected": "{\"error\":\"invalid shared-core input: task identity must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "task.identity.v1-root-array-positional",
+      "kind": "root",
+      "operation": "task.identity.v1",
+      "input": "[\"Write report\"]",
+      "expected": "{\"error\":\"invalid shared-core input: task identity must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "task.identity.v1-root-null",
+      "kind": "root",
+      "operation": "task.identity.v1",
+      "input": "null",
+      "expected": "{\"error\":\"invalid shared-core input: task identity must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "task.identity.v1-root-number",
+      "kind": "root",
+      "operation": "task.identity.v1",
+      "input": "7",
+      "expected": "{\"error\":\"invalid shared-core input: task identity must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "task.identity.v1-root-string",
+      "kind": "root",
+      "operation": "task.identity.v1",
+      "input": "\"x\"",
+      "expected": "{\"error\":\"invalid shared-core input: task identity must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "task.identity.v1-root-boolean",
+      "kind": "root",
+      "operation": "task.identity.v1",
+      "input": "true",
+      "expected": "{\"error\":\"invalid shared-core input: task identity must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "task.identity.v1-valid",
+      "kind": "control",
+      "operation": "task.identity.v1",
+      "input": "{\"title\":\"Write report\"}",
+      "expected": "{\"ok\":true,\"value\":{\"id\":\"15bfc719-8f59-8f40-ad92-6a2c8c78a5c2\",\"title\":\"Write report\",\"utf8Bytes\":12}}"
+    },
+    {
+      "name": "task.identity.v1-empty-object",
+      "kind": "control",
+      "operation": "task.identity.v1",
+      "input": "{}",
+      "expected": "{\"error\":\"invalid shared-core JSON: missing field `title` at line 1 column 2\",\"ok\":false}"
+    },
+    {
+      "name": "task.identity.v1-unknown-field",
+      "kind": "unknown-field",
+      "operation": "task.identity.v1",
+      "input": "{\"title\":\"Write report\",\"futureField\":1}",
+      "expected": "{\"error\":\"invalid shared-core JSON: unknown field `futureField`, expected `title` at line 1 column 37\",\"ok\":false}"
+    },
+    {
+      "name": "hlc.head.v1-root-array-empty",
+      "kind": "root",
+      "operation": "hlc.head.v1",
+      "input": "[]",
+      "expected": "{\"error\":\"invalid shared-core input: hlc head must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "hlc.head.v1-root-array-positional",
+      "kind": "root",
+      "operation": "hlc.head.v1",
+      "input": "[5,[{\"wallMs\":3,\"counter\":1}]]",
+      "expected": "{\"error\":\"invalid shared-core input: hlc head must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "hlc.head.v1-root-null",
+      "kind": "root",
+      "operation": "hlc.head.v1",
+      "input": "null",
+      "expected": "{\"error\":\"invalid shared-core input: hlc head must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "hlc.head.v1-root-number",
+      "kind": "root",
+      "operation": "hlc.head.v1",
+      "input": "7",
+      "expected": "{\"error\":\"invalid shared-core input: hlc head must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "hlc.head.v1-root-string",
+      "kind": "root",
+      "operation": "hlc.head.v1",
+      "input": "\"x\"",
+      "expected": "{\"error\":\"invalid shared-core input: hlc head must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "hlc.head.v1-root-boolean",
+      "kind": "root",
+      "operation": "hlc.head.v1",
+      "input": "true",
+      "expected": "{\"error\":\"invalid shared-core input: hlc head must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "hlc.head.v1-valid",
+      "kind": "control",
+      "operation": "hlc.head.v1",
+      "input": "{\"physicalNowMs\":5,\"observed\":[{\"wallMs\":3,\"counter\":1}]}",
+      "expected": "{\"ok\":true,\"value\":{\"counter\":0,\"wallMs\":5}}"
+    },
+    {
+      "name": "hlc.head.v1-empty-object",
+      "kind": "control",
+      "operation": "hlc.head.v1",
+      "input": "{}",
+      "expected": "{\"error\":\"invalid shared-core JSON: missing field `physicalNowMs` at line 1 column 2\",\"ok\":false}"
+    },
+    {
+      "name": "hlc.tick.v1-root-array-empty",
+      "kind": "root",
+      "operation": "hlc.tick.v1",
+      "input": "[]",
+      "expected": "{\"error\":\"invalid shared-core input: hlc tick must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "hlc.tick.v1-root-array-positional",
+      "kind": "root",
+      "operation": "hlc.tick.v1",
+      "input": "[{\"wallMs\":3,\"counter\":1},null,5]",
+      "expected": "{\"error\":\"invalid shared-core input: hlc tick must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "hlc.tick.v1-root-null",
+      "kind": "root",
+      "operation": "hlc.tick.v1",
+      "input": "null",
+      "expected": "{\"error\":\"invalid shared-core input: hlc tick must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "hlc.tick.v1-root-number",
+      "kind": "root",
+      "operation": "hlc.tick.v1",
+      "input": "7",
+      "expected": "{\"error\":\"invalid shared-core input: hlc tick must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "hlc.tick.v1-root-string",
+      "kind": "root",
+      "operation": "hlc.tick.v1",
+      "input": "\"x\"",
+      "expected": "{\"error\":\"invalid shared-core input: hlc tick must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "hlc.tick.v1-root-boolean",
+      "kind": "root",
+      "operation": "hlc.tick.v1",
+      "input": "true",
+      "expected": "{\"error\":\"invalid shared-core input: hlc tick must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "hlc.tick.v1-valid",
+      "kind": "control",
+      "operation": "hlc.tick.v1",
+      "input": "{\"local\":{\"wallMs\":3,\"counter\":1},\"remote\":null,\"physicalNowMs\":5}",
+      "expected": "{\"ok\":true,\"value\":{\"counter\":0,\"wallMs\":5}}"
+    },
+    {
+      "name": "hlc.tick.v1-empty-object",
+      "kind": "control",
+      "operation": "hlc.tick.v1",
+      "input": "{}",
+      "expected": "{\"error\":\"invalid shared-core JSON: missing field `local` at line 1 column 2\",\"ok\":false}"
+    },
+    {
+      "name": "hlc.tick.v1-unknown-field",
+      "kind": "unknown-field",
+      "operation": "hlc.tick.v1",
+      "input": "{\"local\":{\"wallMs\":3,\"counter\":1},\"remote\":null,\"physicalNowMs\":5,\"futureField\":1}",
+      "expected": "{\"error\":\"invalid shared-core JSON: unknown field `futureField`, expected one of `local`, `remote`, `physicalNowMs` at line 1 column 79\",\"ok\":false}"
+    },
+    {
+      "name": "uuidv7.fromParts.v1-root-array-empty",
+      "kind": "root",
+      "operation": "uuidv7.fromParts.v1",
+      "input": "[]",
+      "expected": "{\"error\":\"invalid shared-core input: UUIDv7 parts must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "uuidv7.fromParts.v1-root-array-positional",
+      "kind": "root",
+      "operation": "uuidv7.fromParts.v1",
+      "input": "[1645557742000,\"330d8c4dc0c0c07398f\"]",
+      "expected": "{\"error\":\"invalid shared-core input: UUIDv7 parts must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "uuidv7.fromParts.v1-root-null",
+      "kind": "root",
+      "operation": "uuidv7.fromParts.v1",
+      "input": "null",
+      "expected": "{\"error\":\"invalid shared-core input: UUIDv7 parts must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "uuidv7.fromParts.v1-root-number",
+      "kind": "root",
+      "operation": "uuidv7.fromParts.v1",
+      "input": "7",
+      "expected": "{\"error\":\"invalid shared-core input: UUIDv7 parts must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "uuidv7.fromParts.v1-root-string",
+      "kind": "root",
+      "operation": "uuidv7.fromParts.v1",
+      "input": "\"x\"",
+      "expected": "{\"error\":\"invalid shared-core input: UUIDv7 parts must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "uuidv7.fromParts.v1-root-boolean",
+      "kind": "root",
+      "operation": "uuidv7.fromParts.v1",
+      "input": "true",
+      "expected": "{\"error\":\"invalid shared-core input: UUIDv7 parts must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "uuidv7.fromParts.v1-valid",
+      "kind": "control",
+      "operation": "uuidv7.fromParts.v1",
+      "input": "{\"timestampMs\":1645557742000,\"randomValueHex\":\"330d8c4dc0c0c07398f\"}",
+      "expected": "{\"ok\":true,\"value\":{\"timestampMs\":1645557742000,\"uuid\":\"017f22e2-79b0-7cc3-98c4-dc0c0c07398f\"}}"
+    },
+    {
+      "name": "uuidv7.fromParts.v1-empty-object",
+      "kind": "control",
+      "operation": "uuidv7.fromParts.v1",
+      "input": "{}",
+      "expected": "{\"error\":\"invalid shared-core JSON: missing field `timestampMs` at line 1 column 2\",\"ok\":false}"
+    },
+    {
+      "name": "uuidv7.fromParts.v1-unknown-field",
+      "kind": "unknown-field",
+      "operation": "uuidv7.fromParts.v1",
+      "input": "{\"timestampMs\":1645557742000,\"randomValueHex\":\"330d8c4dc0c0c07398f\",\"futureField\":1}",
+      "expected": "{\"error\":\"invalid shared-core JSON: unknown field `futureField`, expected `timestampMs` or `randomValueHex` at line 1 column 81\",\"ok\":false}"
+    },
+    {
+      "name": "timer.reduce.v1-root-array-empty",
+      "kind": "root",
+      "operation": "timer.reduce.v1",
+      "input": "[]",
+      "expected": "{\"error\":\"invalid shared-core input: timer reduction must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "timer.reduce.v1-root-array-positional",
+      "kind": "root",
+      "operation": "timer.reduce.v1",
+      "input": "[[{\"id\":\"command-1\",\"deviceId\":\"device-a\",\"deviceSequence\":1,\"timerId\":\"timer-a\",\"type\":\"start\",\"phase\":\"focus\",\"plannedDurationMs\":60000,\"occurredAt\":\"2026-09-13T12:00:01Z\",\"hlcWallMs\":1789300800000,\"hlcCounter\":0,\"observedElapsedMs\":0}],null,[],\"2026-09-13T12:05:00Z\"]",
+      "expected": "{\"error\":\"invalid shared-core input: timer reduction must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "timer.reduce.v1-root-null",
+      "kind": "root",
+      "operation": "timer.reduce.v1",
+      "input": "null",
+      "expected": "{\"error\":\"invalid shared-core input: timer reduction must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "timer.reduce.v1-root-number",
+      "kind": "root",
+      "operation": "timer.reduce.v1",
+      "input": "7",
+      "expected": "{\"error\":\"invalid shared-core input: timer reduction must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "timer.reduce.v1-root-string",
+      "kind": "root",
+      "operation": "timer.reduce.v1",
+      "input": "\"x\"",
+      "expected": "{\"error\":\"invalid shared-core input: timer reduction must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "timer.reduce.v1-root-boolean",
+      "kind": "root",
+      "operation": "timer.reduce.v1",
+      "input": "true",
+      "expected": "{\"error\":\"invalid shared-core input: timer reduction must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "timer.reduce.v1-valid",
+      "kind": "control",
+      "operation": "timer.reduce.v1",
+      "input": "{\"commands\":[{\"id\":\"command-1\",\"deviceId\":\"device-a\",\"deviceSequence\":1,\"timerId\":\"timer-a\",\"type\":\"start\",\"phase\":\"focus\",\"plannedDurationMs\":60000,\"occurredAt\":\"2026-09-13T12:00:01Z\",\"hlcWallMs\":1789300800000,\"hlcCounter\":0,\"observedElapsedMs\":0}],\"now\":\"2026-09-13T12:05:00Z\"}",
+      "expected": "{\"ok\":true,\"value\":{\"canonicalTimer\":{\"anchorAt\":\"2026-09-13T12:01:01Z\",\"elapsedAtAnchorMs\":60000,\"id\":\"timer-a\",\"lastIntent\":{\"commandId\":\"command-1\",\"occurredAt\":\"2026-09-13T12:00:01Z\",\"type\":\"start\"},\"phase\":\"focus\",\"plannedDurationMs\":60000,\"startedByDeviceId\":\"device-a\",\"status\":\"completed\"},\"history\":[{\"completedAt\":\"2026-09-13T12:01:01Z\",\"elapsedMs\":60000,\"endedAt\":\"2026-09-13T12:01:01Z\",\"id\":\"timer-a\",\"phase\":\"focus\",\"plannedDurationMs\":60000,\"status\":\"completed\",\"timerId\":\"timer-a\"}],\"outcomes\":{\"command-1\":{\"outcome\":\"applied\",\"reason\":\"\"}},\"sessions\":[{\"anchorAt\":\"2026-09-13T12:01:01Z\",\"elapsedAtAnchorMs\":60000,\"endedAt\":\"2026-09-13T12:01:01Z\",\"lastCommandId\":\"command-1\",\"lastIntent\":{\"commandId\":\"command-1\",\"occurredAt\":\"2026-09-13T12:00:01Z\",\"type\":\"start\"},\"phase\":\"focus\",\"plannedDurationMs\":60000,\"startedAt\":\"2026-09-13T12:00:01Z\",\"startedByDeviceId\":\"device-a\",\"status\":\"completed\",\"timerId\":\"timer-a\"}]}}"
+    },
+    {
+      "name": "timer.reduce.v1-empty-object",
+      "kind": "control",
+      "operation": "timer.reduce.v1",
+      "input": "{}",
+      "expected": "{\"error\":\"invalid shared-core JSON: missing field `now` at line 1 column 2\",\"ok\":false}"
+    },
+    {
+      "name": "timer.reduce-root-array-empty",
+      "kind": "root",
+      "operation": "timer.reduce",
+      "input": "[]",
+      "expected": "{\"error\":\"invalid shared-core input: timer fixture must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "timer.reduce-root-array-positional",
+      "kind": "root",
+      "operation": "timer.reduce",
+      "input": "[\"2026-07-20T12:00:00.000Z\",40000,[{\"id\":\"c1\",\"sequence\":1,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"start\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":0,\"wallMs\":100,\"counter\":0,\"elapsedMs\":0,\"taskId\":\"task-source\"},{\"id\":\"c2\",\"sequence\":2,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"pause\",\"phase\":\"short_break\",\"durationMs\":300000,\"atMs\":10000,\"wallMs\":200,\"counter\":0,\"elapsedMs\":10000},{\"id\":\"c3\",\"sequence\":3,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"resume\",\"phase\":\"long_break\",\"durationMs\":900000,\"atMs\":20000,\"wallMs\":300,\"counter\":0,\"elapsedMs\":10000},{\"id\":\"c4\",\"sequence\":4,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"finish\",\"phase\":\"short_break\",\"durationMs\":300000,\"atMs\":40000,\"wallMs\":400,\"counter\":0,\"elapsedMs\":30000}]]",
+      "expected": "{\"error\":\"invalid shared-core input: timer fixture must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "timer.reduce-root-null",
+      "kind": "root",
+      "operation": "timer.reduce",
+      "input": "null",
+      "expected": "{\"error\":\"invalid shared-core input: timer fixture must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "timer.reduce-root-number",
+      "kind": "root",
+      "operation": "timer.reduce",
+      "input": "7",
+      "expected": "{\"error\":\"invalid shared-core input: timer fixture must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "timer.reduce-root-string",
+      "kind": "root",
+      "operation": "timer.reduce",
+      "input": "\"x\"",
+      "expected": "{\"error\":\"invalid shared-core input: timer fixture must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "timer.reduce-root-boolean",
+      "kind": "root",
+      "operation": "timer.reduce",
+      "input": "true",
+      "expected": "{\"error\":\"invalid shared-core input: timer fixture must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "timer.reduce-valid",
+      "kind": "control",
+      "operation": "timer.reduce",
+      "input": "{\"epoch\":\"2026-07-20T12:00:00.000Z\",\"nowMs\":40000,\"commands\":[{\"id\":\"c1\",\"sequence\":1,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"start\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":0,\"wallMs\":100,\"counter\":0,\"elapsedMs\":0,\"taskId\":\"task-source\"},{\"id\":\"c2\",\"sequence\":2,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"pause\",\"phase\":\"short_break\",\"durationMs\":300000,\"atMs\":10000,\"wallMs\":200,\"counter\":0,\"elapsedMs\":10000},{\"id\":\"c3\",\"sequence\":3,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"resume\",\"phase\":\"long_break\",\"durationMs\":900000,\"atMs\":20000,\"wallMs\":300,\"counter\":0,\"elapsedMs\":10000},{\"id\":\"c4\",\"sequence\":4,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"finish\",\"phase\":\"short_break\",\"durationMs\":300000,\"atMs\":40000,\"wallMs\":400,\"counter\":0,\"elapsedMs\":30000}]}",
+      "expected": "{\"ok\":true,\"value\":{\"history\":[{\"commandId\":\"c4\",\"durationMs\":60000,\"elapsedMs\":30000,\"endedMs\":40000,\"phase\":\"focus\",\"status\":\"completed\",\"taskId\":\"task-source\",\"timerId\":\"timer-a\"}],\"timer\":{\"anchorMs\":40000,\"durationMs\":60000,\"elapsedMs\":30000,\"id\":\"timer-a\",\"lastCommandId\":\"c4\",\"phase\":\"focus\",\"status\":\"completed\",\"taskId\":\"task-source\"}}}"
+    },
+    {
+      "name": "timer.reduce-empty-object",
+      "kind": "control",
+      "operation": "timer.reduce",
+      "input": "{}",
+      "expected": "{\"error\":\"invalid shared-core JSON: missing field `epoch` at line 1 column 2\",\"ok\":false}"
+    },
+    {
+      "name": "timer.reduce-unknown-field",
+      "kind": "unknown-field",
+      "operation": "timer.reduce",
+      "input": "{\"epoch\":\"2026-07-20T12:00:00.000Z\",\"nowMs\":40000,\"commands\":[{\"id\":\"c1\",\"sequence\":1,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"start\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":0,\"wallMs\":100,\"counter\":0,\"elapsedMs\":0,\"taskId\":\"task-source\"},{\"id\":\"c2\",\"sequence\":2,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"pause\",\"phase\":\"short_break\",\"durationMs\":300000,\"atMs\":10000,\"wallMs\":200,\"counter\":0,\"elapsedMs\":10000},{\"id\":\"c3\",\"sequence\":3,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"resume\",\"phase\":\"long_break\",\"durationMs\":900000,\"atMs\":20000,\"wallMs\":300,\"counter\":0,\"elapsedMs\":10000},{\"id\":\"c4\",\"sequence\":4,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"finish\",\"phase\":\"short_break\",\"durationMs\":300000,\"atMs\":40000,\"wallMs\":400,\"counter\":0,\"elapsedMs\":30000}],\"futureField\":1}",
+      "expected": "{\"error\":\"invalid shared-core JSON: unknown field `futureField`, expected one of `epoch`, `nowMs`, `commands` at line 1 column 805\",\"ok\":false}"
+    },
+    {
+      "name": "timer.replay.page.v1-root-array-empty",
+      "kind": "root",
+      "operation": "timer.replay.page.v1",
+      "input": "[]",
+      "expected": "{\"error\":\"invalid shared-core input: timer replay page must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "timer.replay.page.v1-root-array-positional",
+      "kind": "root",
+      "operation": "timer.replay.page.v1",
+      "input": "[[{\"id\":\"command-1\",\"deviceId\":\"device-a\",\"deviceSequence\":1,\"timerId\":\"timer-a\",\"type\":\"start\",\"phase\":\"focus\",\"plannedDurationMs\":60000,\"occurredAt\":\"2026-09-13T12:00:01Z\",\"hlcWallMs\":1789300800000,\"hlcCounter\":0,\"observedElapsedMs\":0}],[],null,null,null]",
+      "expected": "{\"error\":\"invalid shared-core input: timer replay page must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "timer.replay.page.v1-root-null",
+      "kind": "root",
+      "operation": "timer.replay.page.v1",
+      "input": "null",
+      "expected": "{\"error\":\"invalid shared-core input: timer replay page must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "timer.replay.page.v1-root-number",
+      "kind": "root",
+      "operation": "timer.replay.page.v1",
+      "input": "7",
+      "expected": "{\"error\":\"invalid shared-core input: timer replay page must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "timer.replay.page.v1-root-string",
+      "kind": "root",
+      "operation": "timer.replay.page.v1",
+      "input": "\"x\"",
+      "expected": "{\"error\":\"invalid shared-core input: timer replay page must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "timer.replay.page.v1-root-boolean",
+      "kind": "root",
+      "operation": "timer.replay.page.v1",
+      "input": "true",
+      "expected": "{\"error\":\"invalid shared-core input: timer replay page must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "timer.replay.page.v1-valid",
+      "kind": "control",
+      "operation": "timer.replay.page.v1",
+      "input": "{\"commands\":[{\"id\":\"command-1\",\"deviceId\":\"device-a\",\"deviceSequence\":1,\"timerId\":\"timer-a\",\"type\":\"start\",\"phase\":\"focus\",\"plannedDurationMs\":60000,\"occurredAt\":\"2026-09-13T12:00:01Z\",\"hlcWallMs\":1789300800000,\"hlcCounter\":0,\"observedElapsedMs\":0}],\"sessions\":[],\"currentTimerId\":null,\"after\":null}",
+      "expected": "{\"ok\":true,\"value\":{\"after\":{\"deviceId\":\"device-a\",\"hlcCounter\":0,\"hlcWallMs\":1789300800000,\"id\":\"command-1\"},\"canonicalTimer\":{\"anchorAt\":\"2026-09-13T12:00:01Z\",\"elapsedAtAnchorMs\":0,\"id\":\"timer-a\",\"lastIntent\":{\"commandId\":\"command-1\",\"occurredAt\":\"2026-09-13T12:00:01Z\",\"type\":\"start\"},\"phase\":\"focus\",\"plannedDurationMs\":60000,\"startedByDeviceId\":\"device-a\",\"status\":\"running\"},\"currentTimerId\":\"timer-a\",\"history\":[],\"outcomes\":{\"command-1\":{\"outcome\":\"applied\",\"reason\":\"\"}},\"sessions\":[{\"anchorAt\":\"2026-09-13T12:00:01Z\",\"elapsedAtAnchorMs\":0,\"lastCommandId\":\"command-1\",\"lastIntent\":{\"commandId\":\"command-1\",\"occurredAt\":\"2026-09-13T12:00:01Z\",\"type\":\"start\"},\"phase\":\"focus\",\"plannedDurationMs\":60000,\"startedAt\":\"2026-09-13T12:00:01Z\",\"startedByDeviceId\":\"device-a\",\"status\":\"running\",\"timerId\":\"timer-a\"}]}}"
+    },
+    {
+      "name": "timer.replay.page.v1-empty-object",
+      "kind": "control",
+      "operation": "timer.replay.page.v1",
+      "input": "{}",
+      "expected": "{\"error\":\"invalid shared-core JSON: missing field `commands`\",\"ok\":false}"
+    },
+    {
+      "name": "workspace.intent.v1-root-array-empty",
+      "kind": "root",
+      "operation": "workspace.intent.v1",
+      "input": "[]",
+      "expected": "{\"error\":\"invalid shared-core input: workspace intent must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "workspace.intent.v1-root-array-positional",
+      "kind": "root",
+      "operation": "workspace.intent.v1",
+      "input": "[{}]",
+      "expected": "{\"error\":\"invalid shared-core input: workspace intent must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "workspace.intent.v1-root-null",
+      "kind": "root",
+      "operation": "workspace.intent.v1",
+      "input": "null",
+      "expected": "{\"error\":\"invalid shared-core input: workspace intent must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "workspace.intent.v1-root-number",
+      "kind": "root",
+      "operation": "workspace.intent.v1",
+      "input": "7",
+      "expected": "{\"error\":\"invalid shared-core input: workspace intent must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "workspace.intent.v1-root-string",
+      "kind": "root",
+      "operation": "workspace.intent.v1",
+      "input": "\"x\"",
+      "expected": "{\"error\":\"invalid shared-core input: workspace intent must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "workspace.intent.v1-root-boolean",
+      "kind": "root",
+      "operation": "workspace.intent.v1",
+      "input": "true",
+      "expected": "{\"error\":\"invalid shared-core input: workspace intent must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "workspace.intent.v1-valid",
+      "kind": "control",
+      "operation": "workspace.intent.v1",
+      "input": "{\"compatibility\":\"pwaStorage\",\"replicationMode\":\"centralized\",\"intent\":{\"kind\":\"start\"},\"workspace\":{\"base\":{\"canonicalTimer\":null,\"history\":[],\"tasks\":[],\"durationsMs\":{\"focus\":60000,\"short_break\":120000,\"long_break\":180000},\"autoStartBreaks\":false,\"selectedTaskId\":null},\"local\":{\"commands\":[],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]},\"canonicalHead\":{\"wallMs\":1784548800000,\"counter\":0},\"neverSent\":{},\"timerDependencies\":[]},\"selection\":{\"phase\":\"focus\",\"generation\":\"5\",\"explicit\":true},\"allocation\":{\"deviceId\":\"device-local\",\"deviceSequence\":7,\"hlc\":{\"wallMs\":1784548800000,\"counter\":0},\"lastUuid\":null},\"observation\":{\"canonicalAnchorAt\":null,\"commandTimes\":{}},\"clock\":{\"occurredAt\":\"2026-07-20T12:00:10Z\",\"physicalNow\":\"2026-07-20T12:00:10Z\",\"observedAt\":\"2026-07-20T12:00:10Z\"},\"identities\":{\"commandUuids\":[\"019f7f65-dd10-7000-8000-000000000001\"],\"timerUuid\":\"12345678-1234-4234-8234-123456789012\"},\"calendarIntervals\":[{\"start\":\"2026-07-20T00:00:00Z\",\"end\":\"2026-07-21T00:00:00Z\"}]}",
+      "expected": "{\"ok\":true,\"value\":{\"allocation\":{\"deviceId\":\"device-local\",\"deviceSequence\":8,\"hlc\":{\"counter\":0,\"wallMs\":1784548810000},\"lastUuid\":\"019f7f65-dd10-7000-8000-000000000001\"},\"atomicCommandIds\":[\"019f7f65-dd10-7000-8000-000000000001\"],\"commandOutcomes\":[{\"id\":\"019f7f65-dd10-7000-8000-000000000001\",\"outcome\":\"applied\"}],\"commands\":[{\"deviceId\":\"device-local\",\"deviceSequence\":8,\"hlcCounter\":0,\"hlcWallMs\":1784548810000,\"id\":\"019f7f65-dd10-7000-8000-000000000001\",\"observedElapsedMs\":0,\"occurredAt\":\"2026-07-20T12:00:10.000Z\",\"phase\":\"focus\",\"plannedDurationMs\":60000,\"timerId\":\"12345678-1234-4234-8234-123456789012\",\"type\":\"start\"}],\"effectsAfterCommit\":[{\"kind\":\"launchSync\"},{\"durationMs\":60000,\"kind\":\"scheduleAlarm\",\"phase\":\"focus\",\"timerId\":\"12345678-1234-4234-8234-123456789012\"}],\"observation\":{\"canonicalAnchorAt\":null,\"commandTimes\":{\"019f7f65-dd10-7000-8000-000000000001\":\"2026-07-20T12:00:10Z\"}},\"outcome\":\"planned\",\"ownershipWrites\":[{\"deviceId\":\"device-local\",\"kind\":\"recordStart\",\"startCommandId\":\"019f7f65-dd10-7000-8000-000000000001\",\"timerId\":\"12345678-1234-4234-8234-123456789012\"}],\"projection\":{\"autoStartBreaks\":false,\"canonicalTimer\":{\"anchorAt\":\"2026-07-20T12:00:10Z\",\"elapsedAtAnchorMs\":0,\"id\":\"12345678-1234-4234-8234-123456789012\",\"lastIntent\":{\"commandId\":\"019f7f65-dd10-7000-8000-000000000001\",\"deviceId\":\"device-local\",\"occurredAt\":\"2026-07-20T12:00:10Z\",\"type\":\"start\"},\"phase\":\"focus\",\"plannedDurationMs\":60000,\"startedByDeviceId\":\"device-local\",\"status\":\"running\"},\"durationsMs\":{\"focus\":60000,\"long_break\":180000,\"short_break\":120000},\"history\":[],\"selectedTaskId\":null,\"tasks\":[],\"timerOutcomes\":{\"019f7f65-dd10-7000-8000-000000000001\":{\"outcome\":\"applied\",\"reason\":\"\"}},\"winningOperationIds\":{\"autoStart\":null,\"durations\":{},\"selectedTask\":null,\"tasks\":{}}},\"reason\":\"\",\"schemaVersion\":1,\"selection\":{\"explicit\":true,\"generation\":\"5\",\"phase\":\"focus\"},\"timerObservation\":{\"deadlineAt\":\"2026-07-20T12:01:10.000Z\",\"elapsedMs\":0,\"remainingMs\":60000,\"timerId\":\"12345678-1234-4234-8234-123456789012\"},\"workspace\":{\"base\":{\"autoStartBreaks\":false,\"canonicalTimer\":null,\"durationsMs\":{\"focus\":60000,\"long_break\":180000,\"short_break\":120000},\"history\":[],\"selectedTaskId\":null,\"tasks\":[]},\"canonicalHead\":{\"counter\":0,\"wallMs\":1784548800000},\"local\":{\"autoStartOperations\":[],\"commands\":[{\"deviceId\":\"device-local\",\"deviceSequence\":8,\"hlcCounter\":0,\"hlcWallMs\":1784548810000,\"id\":\"019f7f65-dd10-7000-8000-000000000001\",\"observedElapsedMs\":0,\"occurredAt\":\"2026-07-20T12:00:10.000Z\",\"phase\":\"focus\",\"plannedDurationMs\":60000,\"timerId\":\"12345678-1234-4234-8234-123456789012\",\"type\":\"start\"}],\"durationOperations\":[],\"selectedTaskOperations\":[],\"taskOperations\":[]},\"neverSent\":{\"commands\":[\"019f7f65-dd10-7000-8000-000000000001\"]},\"timerDependencies\":[]}}}"
+    },
+    {
+      "name": "workspace.intent.v1-empty-object",
+      "kind": "control",
+      "operation": "workspace.intent.v1",
+      "input": "{}",
+      "expected": "{\"error\":\"invalid shared-core JSON: missing field `compatibility`\",\"ok\":false}"
+    },
+    {
+      "name": "sync.batchPlan.v1-root-array-empty",
+      "kind": "root",
+      "operation": "sync.batchPlan.v1",
+      "input": "[]",
+      "expected": "{\"error\":\"invalid shared-core input: batch plan must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "sync.batchPlan.v1-root-array-positional",
+      "kind": "root",
+      "operation": "sync.batchPlan.v1",
+      "input": "[{}]",
+      "expected": "{\"error\":\"invalid shared-core input: batch plan must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "sync.batchPlan.v1-root-null",
+      "kind": "root",
+      "operation": "sync.batchPlan.v1",
+      "input": "null",
+      "expected": "{\"error\":\"invalid shared-core input: batch plan must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "sync.batchPlan.v1-root-number",
+      "kind": "root",
+      "operation": "sync.batchPlan.v1",
+      "input": "7",
+      "expected": "{\"error\":\"invalid shared-core input: batch plan must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "sync.batchPlan.v1-root-string",
+      "kind": "root",
+      "operation": "sync.batchPlan.v1",
+      "input": "\"x\"",
+      "expected": "{\"error\":\"invalid shared-core input: batch plan must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "sync.batchPlan.v1-root-boolean",
+      "kind": "root",
+      "operation": "sync.batchPlan.v1",
+      "input": "true",
+      "expected": "{\"error\":\"invalid shared-core input: batch plan must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "sync.batchPlan.v1-valid",
+      "kind": "control",
+      "operation": "sync.batchPlan.v1",
+      "input": "{\"kind\":\"new\",\"mode\":\"sync\",\"nextDomain\":\"commands\",\"limits\":{\"perDomain\":256,\"total\":512},\"queues\":{\"commands\":[],\"taskOperations\":[],\"durationOperations\":[],\"autoStartOperations\":[],\"selectedTaskOperations\":[]},\"timerDependencies\":[]}",
+      "expected": "{\"ok\":true,\"value\":{\"counts\":{\"autoStartOperations\":0,\"commands\":0,\"durationOperations\":0,\"selectedTaskOperations\":0,\"taskOperations\":0},\"heldTimerOperationId\":null,\"nextDomain\":\"commands\",\"selected\":{\"autoStartOperations\":[],\"commands\":[],\"durationOperations\":[],\"selectedTaskOperations\":[],\"taskOperations\":[]},\"status\":\"planned\",\"total\":0}}"
+    },
+    {
+      "name": "sync.batchPlan.v1-empty-object",
+      "kind": "control",
+      "operation": "sync.batchPlan.v1",
+      "input": "{}",
+      "expected": "{\"error\":\"invalid shared-core JSON: missing field `kind`\",\"ok\":false}"
+    },
+    {
+      "name": "timer.completionPlan.v1-root-array-empty",
+      "kind": "root",
+      "operation": "timer.completionPlan.v1",
+      "input": "[]",
+      "expected": "{\"error\":\"invalid shared-core input: completion plan must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "timer.completionPlan.v1-root-array-positional",
+      "kind": "root",
+      "operation": "timer.completionPlan.v1",
+      "input": "[\"expiry\"]",
+      "expected": "{\"error\":\"invalid shared-core input: completion plan must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "timer.completionPlan.v1-root-null",
+      "kind": "root",
+      "operation": "timer.completionPlan.v1",
+      "input": "null",
+      "expected": "{\"error\":\"invalid shared-core input: completion plan must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "timer.completionPlan.v1-root-number",
+      "kind": "root",
+      "operation": "timer.completionPlan.v1",
+      "input": "7",
+      "expected": "{\"error\":\"invalid shared-core input: completion plan must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "timer.completionPlan.v1-root-string",
+      "kind": "root",
+      "operation": "timer.completionPlan.v1",
+      "input": "\"x\"",
+      "expected": "{\"error\":\"invalid shared-core input: completion plan must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "timer.completionPlan.v1-root-boolean",
+      "kind": "root",
+      "operation": "timer.completionPlan.v1",
+      "input": "true",
+      "expected": "{\"error\":\"invalid shared-core input: completion plan must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "timer.completionPlan.v1-valid",
+      "kind": "control",
+      "operation": "timer.completionPlan.v1",
+      "input": "{\"kind\":\"expiry\",\"beforeTimer\":{\"id\":\"timer-4\",\"phase\":\"focus\",\"status\":\"running\",\"plannedDurationMs\":1500000,\"elapsedAtAnchorMs\":0,\"anchorAt\":\"2026-08-25T12:00:00.000Z\",\"startedByDeviceId\":\"owner\"},\"projectedTimer\":{\"id\":\"timer-4\",\"phase\":\"focus\",\"status\":\"completed\",\"plannedDurationMs\":1500000,\"elapsedAtAnchorMs\":1500000,\"anchorAt\":\"2026-08-25T12:00:00.000Z\",\"startedByDeviceId\":\"owner\"},\"history\":[],\"selectedPhase\":\"focus\",\"autoStartBreaks\":true,\"localDeviceId\":\"owner\",\"ownership\":{\"timerId\":\"timer-4\",\"ownerDeviceId\":\"owner\"},\"dayStart\":\"2026-08-25T00:00:00.000Z\",\"dayEnd\":\"2026-08-26T00:00:00.000Z\"}",
+      "expected": "{\"ok\":true,\"value\":{\"commandEligible\":false,\"expired\":true,\"generatedBreakEligible\":false,\"generatedBreakPhase\":\"short_break\",\"queueAutoBreak\":false,\"reserveGeneratedBreak\":false,\"selectedPhase\":\"short_break\",\"sourceAlreadyAccepted\":false}}"
+    },
+    {
+      "name": "timer.completionPlan.v1-empty-object",
+      "kind": "control",
+      "operation": "timer.completionPlan.v1",
+      "input": "{}",
+      "expected": "{\"error\":\"invalid shared-core JSON: missing field `kind` at line 1 column 2\",\"ok\":false}"
+    },
+    {
+      "name": "timer.completionState.v1-root-array-empty",
+      "kind": "root",
+      "operation": "timer.completionState.v1",
+      "input": "[]",
+      "expected": "{\"error\":\"invalid shared-core input: completion state must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "timer.completionState.v1-root-array-positional",
+      "kind": "root",
+      "operation": "timer.completionState.v1",
+      "input": "[\"install\"]",
+      "expected": "{\"error\":\"invalid shared-core input: completion state must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "timer.completionState.v1-root-null",
+      "kind": "root",
+      "operation": "timer.completionState.v1",
+      "input": "null",
+      "expected": "{\"error\":\"invalid shared-core input: completion state must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "timer.completionState.v1-root-number",
+      "kind": "root",
+      "operation": "timer.completionState.v1",
+      "input": "7",
+      "expected": "{\"error\":\"invalid shared-core input: completion state must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "timer.completionState.v1-root-string",
+      "kind": "root",
+      "operation": "timer.completionState.v1",
+      "input": "\"x\"",
+      "expected": "{\"error\":\"invalid shared-core input: completion state must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "timer.completionState.v1-root-boolean",
+      "kind": "root",
+      "operation": "timer.completionState.v1",
+      "input": "true",
+      "expected": "{\"error\":\"invalid shared-core input: completion state must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "timer.completionState.v1-valid",
+      "kind": "control",
+      "operation": "timer.completionState.v1",
+      "input": "{\"kind\":\"install\",\"compatibility\":\"appleAp04\",\"beforeHistory\":[],\"afterHistory\":[{\"id\":\"history-a\",\"timerId\":\"a\",\"commandId\":\"finish-a\",\"phase\":\"focus\",\"status\":\"completed\",\"plannedDurationMs\":60000,\"completedAt\":\"2026-08-25T12:00:00.000Z\"}],\"canonicalTimer\":null,\"selection\":{\"phase\":\"focus\",\"generation\":\"0\",\"explicit\":true},\"pending\":{\"commandIds\":[],\"sendableCommandIds\":[],\"otherOperationIds\":[]},\"advances\":[],\"acknowledgements\":[],\"discardedCommandIds\":[],\"referenceTime\":\"2026-08-25T12:00:00.000Z\",\"calendarIntervals\":[{\"start\":\"2026-08-25T00:00:00Z\",\"end\":\"2026-08-26T00:00:00Z\"}]}",
+      "expected": "{\"ok\":true,\"value\":{\"advances\":[],\"reason\":\"explicitSelection\",\"retiredAdvanceIds\":[],\"rolledBackAdvanceIds\":[],\"selection\":{\"explicit\":true,\"generation\":\"0\",\"phase\":\"focus\"},\"source\":{\"commandId\":\"finish-a\",\"historyId\":\"history-a\",\"occurredAt\":\"2026-08-25T12:00:00.000Z\",\"phase\":\"focus\",\"timerId\":\"a\"}}}"
+    },
+    {
+      "name": "timer.completionState.v1-empty-object",
+      "kind": "control",
+      "operation": "timer.completionState.v1",
+      "input": "{}",
+      "expected": "{\"error\":\"invalid shared-core JSON: missing field `kind`\",\"ok\":false}"
+    },
+    {
+      "name": "clock.observe.v1-root-array-empty",
+      "kind": "root",
+      "operation": "clock.observe.v1",
+      "input": "[]",
+      "expected": "{\"error\":\"invalid shared-core input: clock observation must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "clock.observe.v1-root-array-positional",
+      "kind": "root",
+      "operation": "clock.observe.v1",
+      "input": "[{}]",
+      "expected": "{\"error\":\"invalid shared-core input: clock observation must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "clock.observe.v1-root-null",
+      "kind": "root",
+      "operation": "clock.observe.v1",
+      "input": "null",
+      "expected": "{\"error\":\"invalid shared-core input: clock observation must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "clock.observe.v1-root-number",
+      "kind": "root",
+      "operation": "clock.observe.v1",
+      "input": "7",
+      "expected": "{\"error\":\"invalid shared-core input: clock observation must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "clock.observe.v1-root-string",
+      "kind": "root",
+      "operation": "clock.observe.v1",
+      "input": "\"x\"",
+      "expected": "{\"error\":\"invalid shared-core input: clock observation must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "clock.observe.v1-root-boolean",
+      "kind": "root",
+      "operation": "clock.observe.v1",
+      "input": "true",
+      "expected": "{\"error\":\"invalid shared-core input: clock observation must be a JSON object\",\"ok\":false}"
+    },
+    {
+      "name": "clock.observe.v1-valid",
+      "kind": "control",
+      "operation": "clock.observe.v1",
+      "input": "{\"schemaVersion\":1,\"compatibility\":\"appleTrustedClock\",\"action\":\"current\",\"state\":{},\"reading\":{\"wallSeconds\":1000,\"uptimeSeconds\":20}}",
+      "expected": "{\"ok\":true,\"value\":{\"compatibility\":\"appleTrustedClock\",\"occurrenceWallMs\":1000000,\"physicalAnchorMs\":null,\"physicalAnchorSeconds\":null,\"physicalDeltaMs\":null,\"schemaVersion\":1,\"state\":{\"anchorMs\":null,\"anchorUptime\":null,\"lastEmittedMs\":null,\"offsetMs\":null,\"uncertaintyMs\":null},\"trustedDateSeconds\":1000.0,\"trustedNowMs\":1000000}}"
+    },
+    {
+      "name": "clock.observe.v1-empty-object",
+      "kind": "control",
+      "operation": "clock.observe.v1",
+      "input": "{}",
+      "expected": "{\"error\":\"invalid shared-core input: clock.observe.v1: missing compatibility\",\"ok\":false}"
+    }
+  ]
+}

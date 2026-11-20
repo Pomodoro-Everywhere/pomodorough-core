@@ -35,6 +35,36 @@ export function assertSelectionPreservation(cases, expected) {
   // the timer), three early-finish terminal cases are added, and six structural
   // rejections cover the new `elapsedMs` scalar. No error envelope of a
   // retained case changes.
-  assert.equal(JSON.stringify(preservationMetadata(cases, expected)), JSON.stringify(fixture("pwa-selection-preservation-v3")),
+  //
+  // v4 supersedes v3 for R55-C05. The v3 file stays immutable. Inputs and
+  // count are identical. Exactly 12 error envelopes change: a request root
+  // that is not a JSON object now names the request ("completion mutation",
+  // "read model", "ownership plan") instead of "invalid shared-core input:
+  //  must be a JSON object" with an empty path. Those are the null, array and
+  // populated-array roots of workspace.completionMutation.v1 (2),
+  // workspace.readModel.v1 (3) and workspace.ownershipPlan.v1 (6) plus the
+  // completionMutation structural-root case (1). Every other envelope is
+  // byte-identical.
+  //
+  // v5 supersedes v4 for R55-C07. The v4 file stays immutable. Inputs and
+  // count are identical. Exactly 9 error envelopes change: a request root
+  // that is not a JSON object now gets the shared "invalid shared-core input:
+  // <name> must be a JSON object" message instead of raw Serde text. Those are
+  // the malformed-null and malformed-[] roots of workspace.intent.v1
+  // ("workspace intent"), sync.batchPlan.v1 ("batch plan"),
+  // timer.completionState.v1 ("completion state") and clock.observe.v1
+  // ("clock observation"), plus the completionState structural-root case.
+  // Every other envelope is byte-identical.
+  //
+  // v6 supersedes v5 for R55-C11. The v5 file stays immutable. Inputs and
+  // count are identical. Exactly 8 error envelopes change: a stored display
+  // context with another profile or an extra field now gets a Core message
+  // naming its path instead of raw Serde text. Those are the
+  // pwa-display-wrong-profile cases ("displayContext.profile must be a JSON
+  // string enum") and the pwa-display-eligibility cases ("unknown JSON field
+  // displayContext.eligible") of workspace.project.v1, workspace.readModel.v1,
+  // workspace.intent.v1 and workspace.completionMutation.v1. Every other
+  // envelope is byte-identical.
+  assert.equal(JSON.stringify(preservationMetadata(cases, expected)), JSON.stringify(fixture("pwa-selection-preservation-v6")),
     "The complete 2151 prior inputs and envelopes must remain preserved.");
 }

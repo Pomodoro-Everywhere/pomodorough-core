@@ -90,6 +90,24 @@ struct CanonicalResponse {
     server_time: String,
     server_hlc_wall_ms: i64,
     server_hlc_counter: i64,
+    #[serde(default)]
+    canonical_hlc_wall_ms: Option<i64>,
+    #[serde(default)]
+    canonical_hlc_counter: Option<i64>,
+}
+
+impl CanonicalResponse {
+    /// The head that hides never-sent operations. `serverHlc*` also covers the
+    /// server's physical clock, so it would hide a Start queued while this
+    /// response was in flight; the canonical pair covers only ordered
+    /// operations. Older servers send no pair. Request validation proved the
+    /// pair complete, JavaScript-safe and not above the server HLC.
+    fn canonical_head(&self) -> (i64, i64) {
+        match (self.canonical_hlc_wall_ms, self.canonical_hlc_counter) {
+            (Some(wall_ms), Some(counter)) => (wall_ms, counter),
+            _ => (self.server_hlc_wall_ms, self.server_hlc_counter),
+        }
+    }
 }
 
 #[derive(Deserialize)]

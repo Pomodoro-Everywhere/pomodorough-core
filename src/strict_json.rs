@@ -1,6 +1,6 @@
 use std::fmt;
 
-use serde::de::{DeserializeSeed, Error as _, MapAccess, SeqAccess, Visitor};
+use serde::de::{DeserializeOwned, DeserializeSeed, Error as _, MapAccess, SeqAccess, Visitor};
 use serde_json::{Map, Number, Value};
 
 use crate::CoreError;
@@ -22,6 +22,46 @@ pub(crate) fn object<'a>(
     value
         .as_object()
         .ok_or_else(|| invalid_container(path, "object"))
+}
+
+/// Rejects a non-object top level before an operation decodes its input with
+/// Serde, which would read a JSON array into a struct field by field. A root
+/// whose first token opens an object goes to the caller's decoder untouched,
+/// so its results and its field and syntax errors stay byte-identical. Any
+/// other root reports `parse` errors first and then the `object` message, like
+/// the operations that already parse to a value.
+pub(crate) fn object_root(input: &str, path: &str) -> Result<(), CoreError> {
+    if input
+        .trim_start_matches([' ', '\n', '\t', '\r'])
+        .starts_with('{')
+    {
+        return Ok(());
+    }
+    object(&parse(input)?, path).map(|_| ())
+}
+
+/// Decodes an operation input with Serde after refusing a non-object at the
+/// root (`object_root`) and at every nested object position `objects` names.
+/// Serde reads a JSON array into a struct field by field, at any depth, so
+/// those positions are checked over a plain value first. Valid objects and
+/// field errors still come from the typed decoder over the original text, so
+/// their results and error positions stay byte-identical. Text that is not
+/// JSON keeps the typed decoder's own syntax error.
+pub(crate) fn decode_object<T: DeserializeOwned>(
+    input: &str,
+    root: &str,
+    objects: &shape::Shape,
+) -> Result<T, CoreError> {
+    object_root(input, root)?;
+    match serde_json::from_str::<Value>(input) {
+        Ok(value) => shape::validate(&value, objects, "")?,
+        Err(error) => {
+            serde_json::from_str::<T>(input)?;
+            // Fail closed if the typed decoder accepts what a value cannot hold.
+            return Err(error.into());
+        }
+    }
+    Ok(serde_json::from_str(input)?)
 }
 
 pub(crate) fn object_field<'a>(

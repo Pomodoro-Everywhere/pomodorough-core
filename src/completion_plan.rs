@@ -2,11 +2,38 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use crate::CoreError;
+use crate::strict_json::shape::{Field, Shape};
 pub(crate) mod causal;
 pub(crate) mod state;
 use crate::timer::{
     CanonicalTimer, HistoryItem, parse_time, validate_canonical_timer, validate_history,
 };
+
+const PROJECTION_OBJECTS: Shape = Shape::Fields(&[
+    Field::optional(
+        "canonicalTimer",
+        Shape::Nullable(&crate::timer::TIMER_OBJECTS),
+    ),
+    Field::optional("history", Shape::Array(&Shape::Object)),
+]);
+/// Object positions Serde would otherwise read from a positional JSON array.
+/// Each field name holds the same object in every plan kind that has it.
+const PLAN_OBJECTS: Shape = Shape::Fields(&[
+    Field::optional("beforeTimer", Shape::Nullable(&crate::timer::TIMER_OBJECTS)),
+    Field::optional(
+        "projectedTimer",
+        Shape::Nullable(&crate::timer::TIMER_OBJECTS),
+    ),
+    Field::optional(
+        "requestedTimer",
+        Shape::Nullable(&crate::timer::TIMER_OBJECTS),
+    ),
+    Field::optional("history", Shape::Array(&Shape::Object)),
+    Field::optional("ownership", Shape::Nullable(&Shape::Object)),
+    Field::optional("source", Shape::Object),
+    Field::optional("canonical", PROJECTION_OBJECTS),
+    Field::optional("optimistic", PROJECTION_OBJECTS),
+]);
 
 #[derive(Deserialize)]
 #[serde(tag = "kind", rename_all = "camelCase", deny_unknown_fields)]
@@ -62,7 +89,8 @@ struct CompletionPlan {
 
 pub(crate) fn plan_v1_json(input: &str) -> Result<String, CoreError> {
     crate::check_input_len(input)?;
-    let input: PlanInput = serde_json::from_str(input)?;
+    let input: PlanInput =
+        crate::strict_json::decode_object(input, "completion plan", &PLAN_OBJECTS)?;
     Ok(serde_json::to_string(&plan(input)?)?)
 }
 

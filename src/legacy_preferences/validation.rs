@@ -3,6 +3,12 @@ use std::collections::BTreeSet;
 use serde_json::Value;
 
 use super::{CoreError, DOMAINS, Input, Profile, invalid};
+use crate::strict_json::shape::{Field, Shape};
+
+/// Checked last in `shape`, so every earlier message keeps its precedence.
+/// The identities stay strings for the typed decoder.
+const IDENTITY_ARRAYS: Shape =
+    Shape::Fields(&[Field::optional("operationUuids", Shape::Array(&Shape::Any))]);
 
 pub(super) fn shape(raw: &Value) -> Result<(), CoreError> {
     let root = crate::strict_json::object(raw, "legacy migration")?;
@@ -19,7 +25,7 @@ pub(super) fn shape(raw: &Value) -> Result<(), CoreError> {
             "legacy display context requires pwaStorage profile",
         ));
     }
-    Ok(())
+    crate::strict_json::shape::validate(&raw["identities"], &IDENTITY_ARRAYS, "identities")
 }
 
 pub(super) fn request(input: &Input) -> Result<BTreeSet<String>, CoreError> {

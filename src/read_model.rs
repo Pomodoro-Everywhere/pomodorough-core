@@ -66,6 +66,8 @@ fn invalid(reason: &str) -> CoreError {
 fn parse_input(raw: &str) -> Result<Input, CoreError> {
     // Decode extensions separately to retain the shipped schema's exact error text.
     let mut value = crate::strict_json::parse(raw)?;
+    // Name the root here: the shape path stays empty so nested errors keep their field paths.
+    crate::strict_json::object(&value, "read model")?;
     crate::strict_json::shape::validate(&value, &crate::completion_schema::READ, "")?;
     let lifecycle = value
         .as_object_mut()

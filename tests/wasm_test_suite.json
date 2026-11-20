@@ -9,8 +9,18 @@
     "tests/r53_c01_history_budget.mjs",
     "tests/r54_c01_leap_seconds.mjs",
     "tests/r54_c02_extreme_years.mjs",
+    "tests/r55_c01_malformed_envelopes.mjs",
+    "tests/r55_c02_fixture_offsets.mjs",
+    "tests/r55_c05_non_object_roots.mjs",
+    "tests/r55_c06_fixture_duplicate_ids.mjs",
+    "tests/r55_c07_non_object_roots.mjs",
+    "tests/r55_c08_nested_objects.mjs",
     "tests/task_carry_history_wasm.mjs",
-    "tests/wasm_abi_host.mjs"
+    "tests/task_list_order_wasm.mjs",
+    "tests/wasm_abi_host.mjs",
+    "tests/r55_c10_nested_last_intent.mjs",
+    "tests/r55_c11_display_and_arrays.mjs",
+    "tests/r55_c14_canonical_head.mjs"
   ],
   "historical": [
     "tests/r49_c01_official_baseline.mjs",

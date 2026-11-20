@@ -1,9 +1,18 @@
 use serde::{Deserialize, Serialize};
 
+use crate::strict_json::shape::{Field, Shape};
 use crate::{CoreError, MAX_OBSERVED_CLOCKS, check_input_len};
 
 const MAX_SAFE_INTEGER: i64 = 9_007_199_254_740_991;
 const MAX_UUID_TIMESTAMP: i64 = (1_i64 << 48) - 1;
+
+// Clock positions Serde would otherwise read from a positional JSON array.
+const HEAD_OBJECTS: Shape =
+    Shape::Fields(&[Field::optional("observed", Shape::Array(&Shape::Object))]);
+const TICK_OBJECTS: Shape = Shape::Fields(&[
+    Field::optional("local", Shape::Object),
+    Field::optional("remote", Shape::Nullable(&Shape::Object)),
+]);
 
 #[derive(Clone, Copy, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -13,7 +22,7 @@ struct Hlc {
 }
 
 #[derive(Debug, Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct HlcTickInput {
     local: Hlc,
     #[serde(default)]
@@ -37,7 +46,7 @@ struct HlcHeadInput {
 
 pub(crate) fn head_json(input: &str) -> Result<String, CoreError> {
     check_input_len(input)?;
-    let input: HlcHeadInput = serde_json::from_str(input)?;
+    let input: HlcHeadInput = crate::strict_json::decode_object(input, "hlc head", &HEAD_OBJECTS)?;
     if input.observed.len() > MAX_OBSERVED_CLOCKS {
         return Err(CoreError::InvalidInput(format!(
             "observed exceeds {MAX_OBSERVED_CLOCKS}"
@@ -58,7 +67,7 @@ pub(crate) fn head_json(input: &str) -> Result<String, CoreError> {
 
 pub(crate) fn tick_json(input: &str) -> Result<String, CoreError> {
     check_input_len(input)?;
-    let input: HlcTickInput = serde_json::from_str(input)?;
+    let input: HlcTickInput = crate::strict_json::decode_object(input, "hlc tick", &TICK_OBJECTS)?;
     validate_hlc(input.local)?;
     if let Some(remote) = input.remote {
         validate_hlc(remote)?;
@@ -83,7 +92,7 @@ pub(crate) fn tick_json(input: &str) -> Result<String, CoreError> {
 }
 
 #[derive(Debug, Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct UuidV7Input {
     timestamp_ms: i64,
     random_value_hex: String,
@@ -98,6 +107,7 @@ struct UuidV7Output {
 
 pub(crate) fn uuid_v7_from_parts_json(input: &str) -> Result<String, CoreError> {
     check_input_len(input)?;
+    crate::strict_json::object_root(input, "UUIDv7 parts")?;
     let input: UuidV7Input = serde_json::from_str(input)?;
     if !(0..=MAX_UUID_TIMESTAMP).contains(&input.timestamp_ms) {
         return Err(CoreError::InvalidInput(

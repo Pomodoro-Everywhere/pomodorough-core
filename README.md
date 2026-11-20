@@ -52,6 +52,10 @@ overlap only as a validated terminal pair ([workspace terminal contract](WORKSPA
 The [task rename contract](TASK_RENAME.md) defines the `rename` task operation
 and `task.carryHistory.v1`, which move finished history to a renamed task.
 
+The [task list order](TASK_LIST_ORDER.md) defines the natural, case-insensitive
+title order of every task list Core builds, and names the lists that Core
+passes through in the order it received them.
+
 The [safe workspace projection contract](WORKSPACE_PROJECTION.md) defines
 `workspace.project.v1`, which selects safe queues inside Core for later mutations
 and restart. Its [adapter migration guide](WORKSPACE_PROJECTION_MIGRATION.md)

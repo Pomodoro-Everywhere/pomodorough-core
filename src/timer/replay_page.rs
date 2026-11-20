@@ -22,6 +22,13 @@ impl From<&Command> for Order {
     }
 }
 
+// Page positions Serde would otherwise read from a positional JSON array.
+const PAGE_OBJECTS: Shape = Shape::Fields(&[
+    Field::optional("commands", Shape::Array(&Shape::Object)),
+    Field::optional("sessions", Shape::Array(&super::TIMER_OBJECTS)),
+    Field::optional("after", Shape::Nullable(&Shape::Object)),
+]);
+
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct Input {
@@ -50,7 +57,10 @@ struct Output {
 // not store session fields that this Core does not know. `PAGE_SIZE`/ordering
 // checks remain.
 pub(crate) fn reduce_json(input: &str) -> Result<String, CoreError> {
-    let input: Input = serde_json::from_value(crate::strict_json::parse(input)?)?;
+    let value = crate::strict_json::parse(input)?;
+    crate::strict_json::object(&value, "timer replay page")?;
+    crate::strict_json::shape::validate(&value, &PAGE_OBJECTS, "")?;
+    let input: Input = serde_json::from_value(value)?;
     if input.commands.len() > PAGE_SIZE || input.sessions.len() > PAGE_SIZE + 1 {
         return Err(CoreError::InvalidInput(
             "timer replay page exceeds limit".into(),

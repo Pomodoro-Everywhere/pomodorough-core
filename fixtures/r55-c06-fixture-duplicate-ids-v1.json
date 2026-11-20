@@ -1,0 +1,304 @@
+{
+  "description": "R55-C06: the legacy fixture operation timer.reduce rejects duplicate timer command ids exactly like timer.reduce.v1: after decoding and the command count, before any time or command validation. Each row pairs one timer.reduce request with the timer.reduce.v1 request carrying the same commands (occurredAt = epoch + atMs). duplicate rows: both operations return the duplicate error. control rows: complete envelopes captured before the fix, unchanged by it. Epoch 2026-07-20T12:00:00.000Z. Command ids are unique across devices: row dup-across-devices repeats id c1 on device-a and device-b.",
+  "rows": [
+    {
+      "name": "dup-adjacent",
+      "kind": "duplicate",
+      "note": "two commands share id c1 (R55-C02 verifier probe prec/dup-ids-no-overflow)",
+      "fixture": {
+        "input": "{\"epoch\":\"2026-07-20T12:00:00.000Z\",\"nowMs\":1000,\"commands\":[{\"id\":\"c1\",\"sequence\":1,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"start\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":0,\"wallMs\":101,\"counter\":0,\"elapsedMs\":0},{\"id\":\"c1\",\"sequence\":2,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"pause\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":5,\"wallMs\":102,\"counter\":0,\"elapsedMs\":0}]}",
+        "expected": "{\"error\":\"invalid shared-core input: duplicate timer command\",\"ok\":false}"
+      },
+      "v1": {
+        "input": "{\"commands\":[{\"id\":\"c1\",\"deviceId\":\"device-a\",\"deviceSequence\":1,\"timerId\":\"timer-a\",\"taskId\":null,\"type\":\"start\",\"phase\":\"focus\",\"plannedDurationMs\":60000,\"occurredAt\":\"2026-07-20T12:00:00Z\",\"hlcWallMs\":101,\"hlcCounter\":0,\"observedElapsedMs\":0},{\"id\":\"c1\",\"deviceId\":\"device-a\",\"deviceSequence\":2,\"timerId\":\"timer-a\",\"taskId\":null,\"type\":\"pause\",\"phase\":\"focus\",\"plannedDurationMs\":60000,\"occurredAt\":\"2026-07-20T12:00:00.005Z\",\"hlcWallMs\":102,\"hlcCounter\":0,\"observedElapsedMs\":0}],\"now\":\"2026-07-20T12:00:01Z\"}",
+        "expected": "{\"error\":\"invalid shared-core input: duplicate timer command\",\"ok\":false}"
+      }
+    },
+    {
+      "name": "dup-identical-copies",
+      "kind": "duplicate",
+      "note": "the same command twice",
+      "fixture": {
+        "input": "{\"epoch\":\"2026-07-20T12:00:00.000Z\",\"nowMs\":1000,\"commands\":[{\"id\":\"c1\",\"sequence\":1,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"start\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":0,\"wallMs\":101,\"counter\":0,\"elapsedMs\":0},{\"id\":\"c1\",\"sequence\":1,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"start\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":0,\"wallMs\":101,\"counter\":0,\"elapsedMs\":0}]}",
+        "expected": "{\"error\":\"invalid shared-core input: duplicate timer command\",\"ok\":false}"
+      },
+      "v1": {
+        "input": "{\"commands\":[{\"id\":\"c1\",\"deviceId\":\"device-a\",\"deviceSequence\":1,\"timerId\":\"timer-a\",\"taskId\":null,\"type\":\"start\",\"phase\":\"focus\",\"plannedDurationMs\":60000,\"occurredAt\":\"2026-07-20T12:00:00Z\",\"hlcWallMs\":101,\"hlcCounter\":0,\"observedElapsedMs\":0},{\"id\":\"c1\",\"deviceId\":\"device-a\",\"deviceSequence\":1,\"timerId\":\"timer-a\",\"taskId\":null,\"type\":\"start\",\"phase\":\"focus\",\"plannedDurationMs\":60000,\"occurredAt\":\"2026-07-20T12:00:00Z\",\"hlcWallMs\":101,\"hlcCounter\":0,\"observedElapsedMs\":0}],\"now\":\"2026-07-20T12:00:01Z\"}",
+        "expected": "{\"error\":\"invalid shared-core input: duplicate timer command\",\"ok\":false}"
+      }
+    },
+    {
+      "name": "dup-third-repeats-first",
+      "kind": "duplicate",
+      "note": "c1, c2, c1: the repeat is not adjacent and not in the first two",
+      "fixture": {
+        "input": "{\"epoch\":\"2026-07-20T12:00:00.000Z\",\"nowMs\":1000,\"commands\":[{\"id\":\"c1\",\"sequence\":1,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"start\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":0,\"wallMs\":101,\"counter\":0,\"elapsedMs\":0},{\"id\":\"c2\",\"sequence\":2,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"pause\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":5,\"wallMs\":102,\"counter\":0,\"elapsedMs\":0},{\"id\":\"c1\",\"sequence\":3,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"resume\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":9,\"wallMs\":103,\"counter\":0,\"elapsedMs\":0}]}",
+        "expected": "{\"error\":\"invalid shared-core input: duplicate timer command\",\"ok\":false}"
+      },
+      "v1": {
+        "input": "{\"commands\":[{\"id\":\"c1\",\"deviceId\":\"device-a\",\"deviceSequence\":1,\"timerId\":\"timer-a\",\"taskId\":null,\"type\":\"start\",\"phase\":\"focus\",\"plannedDurationMs\":60000,\"occurredAt\":\"2026-07-20T12:00:00Z\",\"hlcWallMs\":101,\"hlcCounter\":0,\"observedElapsedMs\":0},{\"id\":\"c2\",\"deviceId\":\"device-a\",\"deviceSequence\":2,\"timerId\":\"timer-a\",\"taskId\":null,\"type\":\"pause\",\"phase\":\"focus\",\"plannedDurationMs\":60000,\"occurredAt\":\"2026-07-20T12:00:00.005Z\",\"hlcWallMs\":102,\"hlcCounter\":0,\"observedElapsedMs\":0},{\"id\":\"c1\",\"deviceId\":\"device-a\",\"deviceSequence\":3,\"timerId\":\"timer-a\",\"taskId\":null,\"type\":\"resume\",\"phase\":\"focus\",\"plannedDurationMs\":60000,\"occurredAt\":\"2026-07-20T12:00:00.009Z\",\"hlcWallMs\":103,\"hlcCounter\":0,\"observedElapsedMs\":0}],\"now\":\"2026-07-20T12:00:01Z\"}",
+        "expected": "{\"error\":\"invalid shared-core input: duplicate timer command\",\"ok\":false}"
+      }
+    },
+    {
+      "name": "dup-empty-ids-beat-invalid-command",
+      "kind": "duplicate",
+      "note": "two empty ids: duplicate wins over invalid timer command",
+      "fixture": {
+        "input": "{\"epoch\":\"2026-07-20T12:00:00.000Z\",\"nowMs\":1000,\"commands\":[{\"id\":\"\",\"sequence\":1,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"start\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":0,\"wallMs\":101,\"counter\":0,\"elapsedMs\":0},{\"id\":\"\",\"sequence\":2,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"pause\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":5,\"wallMs\":102,\"counter\":0,\"elapsedMs\":0}]}",
+        "expected": "{\"error\":\"invalid shared-core input: duplicate timer command\",\"ok\":false}"
+      },
+      "v1": {
+        "input": "{\"commands\":[{\"id\":\"\",\"deviceId\":\"device-a\",\"deviceSequence\":1,\"timerId\":\"timer-a\",\"taskId\":null,\"type\":\"start\",\"phase\":\"focus\",\"plannedDurationMs\":60000,\"occurredAt\":\"2026-07-20T12:00:00Z\",\"hlcWallMs\":101,\"hlcCounter\":0,\"observedElapsedMs\":0},{\"id\":\"\",\"deviceId\":\"device-a\",\"deviceSequence\":2,\"timerId\":\"timer-a\",\"taskId\":null,\"type\":\"pause\",\"phase\":\"focus\",\"plannedDurationMs\":60000,\"occurredAt\":\"2026-07-20T12:00:00.005Z\",\"hlcWallMs\":102,\"hlcCounter\":0,\"observedElapsedMs\":0}],\"now\":\"2026-07-20T12:00:01Z\"}",
+        "expected": "{\"error\":\"invalid shared-core input: duplicate timer command\",\"ok\":false}"
+      }
+    },
+    {
+      "name": "dup-beats-invalid-first-command",
+      "kind": "duplicate",
+      "note": "invalid phase in the first command",
+      "fixture": {
+        "input": "{\"epoch\":\"2026-07-20T12:00:00.000Z\",\"nowMs\":1000,\"commands\":[{\"id\":\"c1\",\"sequence\":1,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"start\",\"phase\":\"nap\",\"durationMs\":60000,\"atMs\":0,\"wallMs\":101,\"counter\":0,\"elapsedMs\":0},{\"id\":\"c1\",\"sequence\":2,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"pause\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":5,\"wallMs\":102,\"counter\":0,\"elapsedMs\":0}]}",
+        "expected": "{\"error\":\"invalid shared-core input: duplicate timer command\",\"ok\":false}"
+      },
+      "v1": {
+        "input": "{\"commands\":[{\"id\":\"c1\",\"deviceId\":\"device-a\",\"deviceSequence\":1,\"timerId\":\"timer-a\",\"taskId\":null,\"type\":\"start\",\"phase\":\"nap\",\"plannedDurationMs\":60000,\"occurredAt\":\"2026-07-20T12:00:00Z\",\"hlcWallMs\":101,\"hlcCounter\":0,\"observedElapsedMs\":0},{\"id\":\"c1\",\"deviceId\":\"device-a\",\"deviceSequence\":2,\"timerId\":\"timer-a\",\"taskId\":null,\"type\":\"pause\",\"phase\":\"focus\",\"plannedDurationMs\":60000,\"occurredAt\":\"2026-07-20T12:00:00.005Z\",\"hlcWallMs\":102,\"hlcCounter\":0,\"observedElapsedMs\":0}],\"now\":\"2026-07-20T12:00:01Z\"}",
+        "expected": "{\"error\":\"invalid shared-core input: duplicate timer command\",\"ok\":false}"
+      }
+    },
+    {
+      "name": "dup-beats-invalid-duration",
+      "kind": "duplicate",
+      "note": "duration below the wire bound in the repeat",
+      "fixture": {
+        "input": "{\"epoch\":\"2026-07-20T12:00:00.000Z\",\"nowMs\":1000,\"commands\":[{\"id\":\"c1\",\"sequence\":1,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"start\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":0,\"wallMs\":101,\"counter\":0,\"elapsedMs\":0},{\"id\":\"c1\",\"sequence\":2,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"pause\",\"phase\":\"focus\",\"durationMs\":1,\"atMs\":5,\"wallMs\":102,\"counter\":0,\"elapsedMs\":0}]}",
+        "expected": "{\"error\":\"invalid shared-core input: duplicate timer command\",\"ok\":false}"
+      },
+      "v1": {
+        "input": "{\"commands\":[{\"id\":\"c1\",\"deviceId\":\"device-a\",\"deviceSequence\":1,\"timerId\":\"timer-a\",\"taskId\":null,\"type\":\"start\",\"phase\":\"focus\",\"plannedDurationMs\":60000,\"occurredAt\":\"2026-07-20T12:00:00Z\",\"hlcWallMs\":101,\"hlcCounter\":0,\"observedElapsedMs\":0},{\"id\":\"c1\",\"deviceId\":\"device-a\",\"deviceSequence\":2,\"timerId\":\"timer-a\",\"taskId\":null,\"type\":\"pause\",\"phase\":\"focus\",\"plannedDurationMs\":1,\"occurredAt\":\"2026-07-20T12:00:00.005Z\",\"hlcWallMs\":102,\"hlcCounter\":0,\"observedElapsedMs\":0}],\"now\":\"2026-07-20T12:00:01Z\"}",
+        "expected": "{\"error\":\"invalid shared-core input: duplicate timer command\",\"ok\":false}"
+      }
+    },
+    {
+      "name": "dup-beats-empty-task-identity",
+      "kind": "duplicate",
+      "note": "empty taskId in the repeat",
+      "fixture": {
+        "input": "{\"epoch\":\"2026-07-20T12:00:00.000Z\",\"nowMs\":1000,\"commands\":[{\"id\":\"c1\",\"sequence\":1,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"start\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":0,\"wallMs\":101,\"counter\":0,\"elapsedMs\":0},{\"id\":\"c1\",\"sequence\":2,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"pause\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":5,\"wallMs\":102,\"counter\":0,\"elapsedMs\":0,\"taskId\":\"\"}]}",
+        "expected": "{\"error\":\"invalid shared-core input: duplicate timer command\",\"ok\":false}"
+      },
+      "v1": {
+        "input": "{\"commands\":[{\"id\":\"c1\",\"deviceId\":\"device-a\",\"deviceSequence\":1,\"timerId\":\"timer-a\",\"taskId\":null,\"type\":\"start\",\"phase\":\"focus\",\"plannedDurationMs\":60000,\"occurredAt\":\"2026-07-20T12:00:00Z\",\"hlcWallMs\":101,\"hlcCounter\":0,\"observedElapsedMs\":0},{\"id\":\"c1\",\"deviceId\":\"device-a\",\"deviceSequence\":2,\"timerId\":\"timer-a\",\"taskId\":\"\",\"type\":\"pause\",\"phase\":\"focus\",\"plannedDurationMs\":60000,\"occurredAt\":\"2026-07-20T12:00:00.005Z\",\"hlcWallMs\":102,\"hlcCounter\":0,\"observedElapsedMs\":0}],\"now\":\"2026-07-20T12:00:01Z\"}",
+        "expected": "{\"error\":\"invalid shared-core input: duplicate timer command\",\"ok\":false}"
+      }
+    },
+    {
+      "name": "dup-beats-unknown-kind",
+      "kind": "duplicate",
+      "note": "unknown kind in the repeat (accepted as a rejected outcome when unique)",
+      "fixture": {
+        "input": "{\"epoch\":\"2026-07-20T12:00:00.000Z\",\"nowMs\":1000,\"commands\":[{\"id\":\"c1\",\"sequence\":1,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"start\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":0,\"wallMs\":101,\"counter\":0,\"elapsedMs\":0},{\"id\":\"c1\",\"sequence\":2,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"bogus\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":5,\"wallMs\":102,\"counter\":0,\"elapsedMs\":0}]}",
+        "expected": "{\"error\":\"invalid shared-core input: duplicate timer command\",\"ok\":false}"
+      },
+      "v1": {
+        "input": "{\"commands\":[{\"id\":\"c1\",\"deviceId\":\"device-a\",\"deviceSequence\":1,\"timerId\":\"timer-a\",\"taskId\":null,\"type\":\"start\",\"phase\":\"focus\",\"plannedDurationMs\":60000,\"occurredAt\":\"2026-07-20T12:00:00Z\",\"hlcWallMs\":101,\"hlcCounter\":0,\"observedElapsedMs\":0},{\"id\":\"c1\",\"deviceId\":\"device-a\",\"deviceSequence\":2,\"timerId\":\"timer-a\",\"taskId\":null,\"type\":\"bogus\",\"phase\":\"focus\",\"plannedDurationMs\":60000,\"occurredAt\":\"2026-07-20T12:00:00.005Z\",\"hlcWallMs\":102,\"hlcCounter\":0,\"observedElapsedMs\":0}],\"now\":\"2026-07-20T12:00:01Z\"}",
+        "expected": "{\"error\":\"invalid shared-core input: duplicate timer command\",\"ok\":false}"
+      }
+    },
+    {
+      "name": "dup-beats-bad-epoch",
+      "kind": "duplicate",
+      "note": "fixture epoch / v1 now is not RFC 3339",
+      "fixture": {
+        "input": "{\"epoch\":\"not-a-time\",\"nowMs\":1000,\"commands\":[{\"id\":\"c1\",\"sequence\":1,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"start\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":0,\"wallMs\":101,\"counter\":0,\"elapsedMs\":0},{\"id\":\"c1\",\"sequence\":2,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"pause\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":5,\"wallMs\":102,\"counter\":0,\"elapsedMs\":0}]}",
+        "expected": "{\"error\":\"invalid shared-core input: duplicate timer command\",\"ok\":false}"
+      },
+      "v1": {
+        "input": "{\"commands\":[{\"id\":\"c1\",\"deviceId\":\"device-a\",\"deviceSequence\":1,\"timerId\":\"timer-a\",\"taskId\":null,\"type\":\"start\",\"phase\":\"focus\",\"plannedDurationMs\":60000,\"occurredAt\":\"2026-07-20T12:00:00Z\",\"hlcWallMs\":101,\"hlcCounter\":0,\"observedElapsedMs\":0},{\"id\":\"c1\",\"deviceId\":\"device-a\",\"deviceSequence\":2,\"timerId\":\"timer-a\",\"taskId\":null,\"type\":\"pause\",\"phase\":\"focus\",\"plannedDurationMs\":60000,\"occurredAt\":\"2026-07-20T12:00:00.005Z\",\"hlcWallMs\":102,\"hlcCounter\":0,\"observedElapsedMs\":0}],\"now\":\"not-a-time\"}",
+        "expected": "{\"error\":\"invalid shared-core input: duplicate timer command\",\"ok\":false}"
+      }
+    },
+    {
+      "name": "dup-beats-now-overflow",
+      "kind": "duplicate",
+      "note": "fixture nowMs overflows / v1 now outside four-digit years",
+      "fixture": {
+        "input": "{\"epoch\":\"2026-07-20T12:00:00.000Z\",\"nowMs\":9223372036854775807,\"commands\":[{\"id\":\"c1\",\"sequence\":1,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"start\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":0,\"wallMs\":101,\"counter\":0,\"elapsedMs\":0},{\"id\":\"c1\",\"sequence\":2,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"pause\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":5,\"wallMs\":102,\"counter\":0,\"elapsedMs\":0}]}",
+        "expected": "{\"error\":\"invalid shared-core input: duplicate timer command\",\"ok\":false}"
+      },
+      "v1": {
+        "input": "{\"commands\":[{\"id\":\"c1\",\"deviceId\":\"device-a\",\"deviceSequence\":1,\"timerId\":\"timer-a\",\"taskId\":null,\"type\":\"start\",\"phase\":\"focus\",\"plannedDurationMs\":60000,\"occurredAt\":\"2026-07-20T12:00:00Z\",\"hlcWallMs\":101,\"hlcCounter\":0,\"observedElapsedMs\":0},{\"id\":\"c1\",\"deviceId\":\"device-a\",\"deviceSequence\":2,\"timerId\":\"timer-a\",\"taskId\":null,\"type\":\"pause\",\"phase\":\"focus\",\"plannedDurationMs\":60000,\"occurredAt\":\"2026-07-20T12:00:00.005Z\",\"hlcWallMs\":102,\"hlcCounter\":0,\"observedElapsedMs\":0}],\"now\":\"+10000-01-01T00:00:00Z\"}",
+        "expected": "{\"error\":\"invalid shared-core input: duplicate timer command\",\"ok\":false}"
+      }
+    },
+    {
+      "name": "dup-beats-at-overflow",
+      "kind": "duplicate",
+      "note": "repeat atMs overflows / v1 occurredAt outside four-digit years",
+      "fixture": {
+        "input": "{\"epoch\":\"2026-07-20T12:00:00.000Z\",\"nowMs\":1000,\"commands\":[{\"id\":\"c1\",\"sequence\":1,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"start\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":0,\"wallMs\":101,\"counter\":0,\"elapsedMs\":0},{\"id\":\"c1\",\"sequence\":2,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"pause\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":9223372036854775807,\"wallMs\":102,\"counter\":0,\"elapsedMs\":0}]}",
+        "expected": "{\"error\":\"invalid shared-core input: duplicate timer command\",\"ok\":false}"
+      },
+      "v1": {
+        "input": "{\"commands\":[{\"id\":\"c1\",\"deviceId\":\"device-a\",\"deviceSequence\":1,\"timerId\":\"timer-a\",\"taskId\":null,\"type\":\"start\",\"phase\":\"focus\",\"plannedDurationMs\":60000,\"occurredAt\":\"2026-07-20T12:00:00Z\",\"hlcWallMs\":101,\"hlcCounter\":0,\"observedElapsedMs\":0},{\"id\":\"c1\",\"deviceId\":\"device-a\",\"deviceSequence\":2,\"timerId\":\"timer-a\",\"taskId\":null,\"type\":\"pause\",\"phase\":\"focus\",\"plannedDurationMs\":60000,\"occurredAt\":\"+10000-01-01T00:00:00Z\",\"hlcWallMs\":102,\"hlcCounter\":0,\"observedElapsedMs\":0}],\"now\":\"2026-07-20T12:00:01Z\"}",
+        "expected": "{\"error\":\"invalid shared-core input: duplicate timer command\",\"ok\":false}"
+      }
+    },
+    {
+      "name": "dup-beats-unrepresentable-at",
+      "kind": "duplicate",
+      "note": "repeat lands past year 9999 / v1 occurredAt the same text",
+      "fixture": {
+        "input": "{\"epoch\":\"2026-07-20T12:00:00.000Z\",\"nowMs\":1000,\"commands\":[{\"id\":\"c1\",\"sequence\":1,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"start\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":0,\"wallMs\":101,\"counter\":0,\"elapsedMs\":0},{\"id\":\"c1\",\"sequence\":2,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"pause\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":251617752000000,\"wallMs\":102,\"counter\":0,\"elapsedMs\":0}]}",
+        "expected": "{\"error\":\"invalid shared-core input: duplicate timer command\",\"ok\":false}"
+      },
+      "v1": {
+        "input": "{\"commands\":[{\"id\":\"c1\",\"deviceId\":\"device-a\",\"deviceSequence\":1,\"timerId\":\"timer-a\",\"taskId\":null,\"type\":\"start\",\"phase\":\"focus\",\"plannedDurationMs\":60000,\"occurredAt\":\"2026-07-20T12:00:00Z\",\"hlcWallMs\":101,\"hlcCounter\":0,\"observedElapsedMs\":0},{\"id\":\"c1\",\"deviceId\":\"device-a\",\"deviceSequence\":2,\"timerId\":\"timer-a\",\"taskId\":null,\"type\":\"pause\",\"phase\":\"focus\",\"plannedDurationMs\":60000,\"occurredAt\":\"+10000-01-01T00:00:00Z\",\"hlcWallMs\":102,\"hlcCounter\":0,\"observedElapsedMs\":0}],\"now\":\"2026-07-20T12:00:01Z\"}",
+        "expected": "{\"error\":\"invalid shared-core input: duplicate timer command\",\"ok\":false}"
+      }
+    },
+    {
+      "name": "dup-across-devices",
+      "kind": "duplicate",
+      "note": "two commands share id c1 but come from device-a and device-b; ids are global, not per device",
+      "fixture": {
+        "input": "{\"epoch\":\"2026-07-20T12:00:00.000Z\",\"nowMs\":1000,\"commands\":[{\"id\":\"c1\",\"sequence\":1,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"start\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":0,\"wallMs\":101,\"counter\":0,\"elapsedMs\":0},{\"id\":\"c1\",\"sequence\":1,\"deviceId\":\"device-b\",\"timerId\":\"timer-a\",\"type\":\"pause\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":5,\"wallMs\":102,\"counter\":0,\"elapsedMs\":0}]}",
+        "expected": "{\"error\":\"invalid shared-core input: duplicate timer command\",\"ok\":false}"
+      },
+      "v1": {
+        "input": "{\"commands\":[{\"id\":\"c1\",\"deviceId\":\"device-a\",\"deviceSequence\":1,\"timerId\":\"timer-a\",\"taskId\":null,\"type\":\"start\",\"phase\":\"focus\",\"plannedDurationMs\":60000,\"occurredAt\":\"2026-07-20T12:00:00Z\",\"hlcWallMs\":101,\"hlcCounter\":0,\"observedElapsedMs\":0},{\"id\":\"c1\",\"deviceId\":\"device-b\",\"deviceSequence\":1,\"timerId\":\"timer-a\",\"taskId\":null,\"type\":\"pause\",\"phase\":\"focus\",\"plannedDurationMs\":60000,\"occurredAt\":\"2026-07-20T12:00:00.005Z\",\"hlcWallMs\":102,\"hlcCounter\":0,\"observedElapsedMs\":0}],\"now\":\"2026-07-20T12:00:01Z\"}",
+        "expected": "{\"error\":\"invalid shared-core input: duplicate timer command\",\"ok\":false}"
+      }
+    },
+    {
+      "name": "unique-ids",
+      "kind": "control",
+      "note": "c1 then c2",
+      "fixture": {
+        "input": "{\"epoch\":\"2026-07-20T12:00:00.000Z\",\"nowMs\":1000,\"commands\":[{\"id\":\"c1\",\"sequence\":1,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"start\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":0,\"wallMs\":101,\"counter\":0,\"elapsedMs\":0},{\"id\":\"c2\",\"sequence\":2,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"pause\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":5,\"wallMs\":102,\"counter\":0,\"elapsedMs\":0}]}",
+        "expected": "{\"ok\":true,\"value\":{\"history\":[],\"timer\":{\"anchorMs\":5,\"durationMs\":60000,\"elapsedMs\":0,\"id\":\"timer-a\",\"lastCommandId\":\"c2\",\"phase\":\"focus\",\"status\":\"paused\"}}}"
+      },
+      "v1": {
+        "input": "{\"commands\":[{\"id\":\"c1\",\"deviceId\":\"device-a\",\"deviceSequence\":1,\"timerId\":\"timer-a\",\"taskId\":null,\"type\":\"start\",\"phase\":\"focus\",\"plannedDurationMs\":60000,\"occurredAt\":\"2026-07-20T12:00:00Z\",\"hlcWallMs\":101,\"hlcCounter\":0,\"observedElapsedMs\":0},{\"id\":\"c2\",\"deviceId\":\"device-a\",\"deviceSequence\":2,\"timerId\":\"timer-a\",\"taskId\":null,\"type\":\"pause\",\"phase\":\"focus\",\"plannedDurationMs\":60000,\"occurredAt\":\"2026-07-20T12:00:00.005Z\",\"hlcWallMs\":102,\"hlcCounter\":0,\"observedElapsedMs\":0}],\"now\":\"2026-07-20T12:00:01Z\"}",
+        "expected": "{\"ok\":true,\"value\":{\"canonicalTimer\":{\"anchorAt\":\"2026-07-20T12:00:00.005Z\",\"elapsedAtAnchorMs\":0,\"id\":\"timer-a\",\"lastIntent\":{\"commandId\":\"c2\",\"occurredAt\":\"2026-07-20T12:00:00.005Z\",\"type\":\"pause\"},\"phase\":\"focus\",\"plannedDurationMs\":60000,\"startedByDeviceId\":\"device-a\",\"status\":\"paused\"},\"history\":[],\"outcomes\":{\"c1\":{\"outcome\":\"applied\",\"reason\":\"\"},\"c2\":{\"outcome\":\"applied\",\"reason\":\"\"}},\"sessions\":[{\"anchorAt\":\"2026-07-20T12:00:00.005Z\",\"elapsedAtAnchorMs\":0,\"lastCommandId\":\"c2\",\"lastIntent\":{\"commandId\":\"c2\",\"occurredAt\":\"2026-07-20T12:00:00.005Z\",\"type\":\"pause\"},\"phase\":\"focus\",\"plannedDurationMs\":60000,\"startedAt\":\"2026-07-20T12:00:00Z\",\"startedByDeviceId\":\"device-a\",\"status\":\"paused\",\"timerId\":\"timer-a\"}]}}"
+      }
+    },
+    {
+      "name": "empty-commands",
+      "kind": "control",
+      "note": "no commands",
+      "fixture": {
+        "input": "{\"epoch\":\"2026-07-20T12:00:00.000Z\",\"nowMs\":1000,\"commands\":[]}",
+        "expected": "{\"ok\":true,\"value\":{\"history\":[]}}"
+      },
+      "v1": {
+        "input": "{\"commands\":[],\"now\":\"2026-07-20T12:00:01Z\"}",
+        "expected": "{\"ok\":true,\"value\":{\"canonicalTimer\":null,\"history\":[],\"outcomes\":{},\"sessions\":[]}}"
+      }
+    },
+    {
+      "name": "single-command",
+      "kind": "control",
+      "note": "one command",
+      "fixture": {
+        "input": "{\"epoch\":\"2026-07-20T12:00:00.000Z\",\"nowMs\":1000,\"commands\":[{\"id\":\"c1\",\"sequence\":1,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"start\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":0,\"wallMs\":101,\"counter\":0,\"elapsedMs\":0}]}",
+        "expected": "{\"ok\":true,\"value\":{\"history\":[],\"timer\":{\"anchorMs\":0,\"durationMs\":60000,\"elapsedMs\":0,\"id\":\"timer-a\",\"lastCommandId\":\"c1\",\"phase\":\"focus\",\"status\":\"running\"}}}"
+      },
+      "v1": {
+        "input": "{\"commands\":[{\"id\":\"c1\",\"deviceId\":\"device-a\",\"deviceSequence\":1,\"timerId\":\"timer-a\",\"taskId\":null,\"type\":\"start\",\"phase\":\"focus\",\"plannedDurationMs\":60000,\"occurredAt\":\"2026-07-20T12:00:00Z\",\"hlcWallMs\":101,\"hlcCounter\":0,\"observedElapsedMs\":0}],\"now\":\"2026-07-20T12:00:01Z\"}",
+        "expected": "{\"ok\":true,\"value\":{\"canonicalTimer\":{\"anchorAt\":\"2026-07-20T12:00:00Z\",\"elapsedAtAnchorMs\":0,\"id\":\"timer-a\",\"lastIntent\":{\"commandId\":\"c1\",\"occurredAt\":\"2026-07-20T12:00:00Z\",\"type\":\"start\"},\"phase\":\"focus\",\"plannedDurationMs\":60000,\"startedByDeviceId\":\"device-a\",\"status\":\"running\"},\"history\":[],\"outcomes\":{\"c1\":{\"outcome\":\"applied\",\"reason\":\"\"}},\"sessions\":[{\"anchorAt\":\"2026-07-20T12:00:00Z\",\"elapsedAtAnchorMs\":0,\"lastCommandId\":\"c1\",\"lastIntent\":{\"commandId\":\"c1\",\"occurredAt\":\"2026-07-20T12:00:00Z\",\"type\":\"start\"},\"phase\":\"focus\",\"plannedDurationMs\":60000,\"startedAt\":\"2026-07-20T12:00:00Z\",\"startedByDeviceId\":\"device-a\",\"status\":\"running\",\"timerId\":\"timer-a\"}]}}"
+      }
+    },
+    {
+      "name": "case-distinct-ids",
+      "kind": "control",
+      "note": "c1 and C1 are different ids",
+      "fixture": {
+        "input": "{\"epoch\":\"2026-07-20T12:00:00.000Z\",\"nowMs\":1000,\"commands\":[{\"id\":\"c1\",\"sequence\":1,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"start\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":0,\"wallMs\":101,\"counter\":0,\"elapsedMs\":0},{\"id\":\"C1\",\"sequence\":2,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"pause\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":5,\"wallMs\":102,\"counter\":0,\"elapsedMs\":0}]}",
+        "expected": "{\"ok\":true,\"value\":{\"history\":[],\"timer\":{\"anchorMs\":5,\"durationMs\":60000,\"elapsedMs\":0,\"id\":\"timer-a\",\"lastCommandId\":\"C1\",\"phase\":\"focus\",\"status\":\"paused\"}}}"
+      },
+      "v1": {
+        "input": "{\"commands\":[{\"id\":\"c1\",\"deviceId\":\"device-a\",\"deviceSequence\":1,\"timerId\":\"timer-a\",\"taskId\":null,\"type\":\"start\",\"phase\":\"focus\",\"plannedDurationMs\":60000,\"occurredAt\":\"2026-07-20T12:00:00Z\",\"hlcWallMs\":101,\"hlcCounter\":0,\"observedElapsedMs\":0},{\"id\":\"C1\",\"deviceId\":\"device-a\",\"deviceSequence\":2,\"timerId\":\"timer-a\",\"taskId\":null,\"type\":\"pause\",\"phase\":\"focus\",\"plannedDurationMs\":60000,\"occurredAt\":\"2026-07-20T12:00:00.005Z\",\"hlcWallMs\":102,\"hlcCounter\":0,\"observedElapsedMs\":0}],\"now\":\"2026-07-20T12:00:01Z\"}",
+        "expected": "{\"ok\":true,\"value\":{\"canonicalTimer\":{\"anchorAt\":\"2026-07-20T12:00:00.005Z\",\"elapsedAtAnchorMs\":0,\"id\":\"timer-a\",\"lastIntent\":{\"commandId\":\"C1\",\"occurredAt\":\"2026-07-20T12:00:00.005Z\",\"type\":\"pause\"},\"phase\":\"focus\",\"plannedDurationMs\":60000,\"startedByDeviceId\":\"device-a\",\"status\":\"paused\"},\"history\":[],\"outcomes\":{\"C1\":{\"outcome\":\"applied\",\"reason\":\"\"},\"c1\":{\"outcome\":\"applied\",\"reason\":\"\"}},\"sessions\":[{\"anchorAt\":\"2026-07-20T12:00:00.005Z\",\"elapsedAtAnchorMs\":0,\"lastCommandId\":\"C1\",\"lastIntent\":{\"commandId\":\"C1\",\"occurredAt\":\"2026-07-20T12:00:00.005Z\",\"type\":\"pause\"},\"phase\":\"focus\",\"plannedDurationMs\":60000,\"startedAt\":\"2026-07-20T12:00:00Z\",\"startedByDeviceId\":\"device-a\",\"status\":\"paused\",\"timerId\":\"timer-a\"}]}}"
+      }
+    },
+    {
+      "name": "space-distinct-ids",
+      "kind": "control",
+      "note": "c1 and 'c1 ' are different ids",
+      "fixture": {
+        "input": "{\"epoch\":\"2026-07-20T12:00:00.000Z\",\"nowMs\":1000,\"commands\":[{\"id\":\"c1\",\"sequence\":1,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"start\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":0,\"wallMs\":101,\"counter\":0,\"elapsedMs\":0},{\"id\":\"c1 \",\"sequence\":2,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"pause\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":5,\"wallMs\":102,\"counter\":0,\"elapsedMs\":0}]}",
+        "expected": "{\"ok\":true,\"value\":{\"history\":[],\"timer\":{\"anchorMs\":5,\"durationMs\":60000,\"elapsedMs\":0,\"id\":\"timer-a\",\"lastCommandId\":\"c1 \",\"phase\":\"focus\",\"status\":\"paused\"}}}"
+      },
+      "v1": {
+        "input": "{\"commands\":[{\"id\":\"c1\",\"deviceId\":\"device-a\",\"deviceSequence\":1,\"timerId\":\"timer-a\",\"taskId\":null,\"type\":\"start\",\"phase\":\"focus\",\"plannedDurationMs\":60000,\"occurredAt\":\"2026-07-20T12:00:00Z\",\"hlcWallMs\":101,\"hlcCounter\":0,\"observedElapsedMs\":0},{\"id\":\"c1 \",\"deviceId\":\"device-a\",\"deviceSequence\":2,\"timerId\":\"timer-a\",\"taskId\":null,\"type\":\"pause\",\"phase\":\"focus\",\"plannedDurationMs\":60000,\"occurredAt\":\"2026-07-20T12:00:00.005Z\",\"hlcWallMs\":102,\"hlcCounter\":0,\"observedElapsedMs\":0}],\"now\":\"2026-07-20T12:00:01Z\"}",
+        "expected": "{\"ok\":true,\"value\":{\"canonicalTimer\":{\"anchorAt\":\"2026-07-20T12:00:00.005Z\",\"elapsedAtAnchorMs\":0,\"id\":\"timer-a\",\"lastIntent\":{\"commandId\":\"c1 \",\"occurredAt\":\"2026-07-20T12:00:00.005Z\",\"type\":\"pause\"},\"phase\":\"focus\",\"plannedDurationMs\":60000,\"startedByDeviceId\":\"device-a\",\"status\":\"paused\"},\"history\":[],\"outcomes\":{\"c1\":{\"outcome\":\"applied\",\"reason\":\"\"},\"c1 \":{\"outcome\":\"applied\",\"reason\":\"\"}},\"sessions\":[{\"anchorAt\":\"2026-07-20T12:00:00.005Z\",\"elapsedAtAnchorMs\":0,\"lastCommandId\":\"c1 \",\"lastIntent\":{\"commandId\":\"c1 \",\"occurredAt\":\"2026-07-20T12:00:00.005Z\",\"type\":\"pause\"},\"phase\":\"focus\",\"plannedDurationMs\":60000,\"startedAt\":\"2026-07-20T12:00:00Z\",\"startedByDeviceId\":\"device-a\",\"status\":\"paused\",\"timerId\":\"timer-a\"}]}}"
+      }
+    },
+    {
+      "name": "missing-time-field-beats-dup",
+      "kind": "control",
+      "note": "fixture without nowMs / v1 without now: decoding fails first",
+      "fixture": {
+        "input": "{\"epoch\":\"2026-07-20T12:00:00.000Z\",\"commands\":[{\"id\":\"c1\",\"sequence\":1,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"start\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":0,\"wallMs\":101,\"counter\":0,\"elapsedMs\":0},{\"id\":\"c1\",\"sequence\":2,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"pause\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":5,\"wallMs\":102,\"counter\":0,\"elapsedMs\":0}]}",
+        "expected": "{\"error\":\"invalid shared-core JSON: missing field `nowMs` at line 1 column 379\",\"ok\":false}"
+      },
+      "v1": {
+        "input": "{\"commands\":[{\"id\":\"c1\",\"deviceId\":\"device-a\",\"deviceSequence\":1,\"timerId\":\"timer-a\",\"taskId\":null,\"type\":\"start\",\"phase\":\"focus\",\"plannedDurationMs\":60000,\"occurredAt\":\"2026-07-20T12:00:00Z\",\"hlcWallMs\":101,\"hlcCounter\":0,\"observedElapsedMs\":0},{\"id\":\"c1\",\"deviceId\":\"device-a\",\"deviceSequence\":2,\"timerId\":\"timer-a\",\"taskId\":null,\"type\":\"pause\",\"phase\":\"focus\",\"plannedDurationMs\":60000,\"occurredAt\":\"2026-07-20T12:00:00.005Z\",\"hlcWallMs\":102,\"hlcCounter\":0,\"observedElapsedMs\":0}]}",
+        "expected": "{\"error\":\"invalid shared-core JSON: missing field `now` at line 1 column 484\",\"ok\":false}"
+      }
+    },
+    {
+      "name": "wrong-type-beats-dup",
+      "kind": "control",
+      "note": "a string sequence fails decoding before the duplicate check",
+      "fixture": {
+        "input": "{\"epoch\":\"2026-07-20T12:00:00.000Z\",\"nowMs\":1000,\"commands\":[{\"id\":\"c1\",\"sequence\":1,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"start\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":0,\"wallMs\":101,\"counter\":0,\"elapsedMs\":0},{\"id\":\"c1\",\"sequence\":2,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"pause\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":5,\"wallMs\":102,\"counter\":0,\"elapsedMs\":0},{\"id\":\"c2\",\"sequence\":\"x\",\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"pause\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":9,\"wallMs\":103,\"counter\":0,\"elapsedMs\":0}]}",
+        "expected": "{\"error\":\"invalid shared-core JSON: invalid type: string \\\"x\\\", expected i64 at line 1 column 416\",\"ok\":false}"
+      },
+      "v1": {
+        "input": "{\"commands\":[{\"id\":\"c1\",\"deviceId\":\"device-a\",\"deviceSequence\":1,\"timerId\":\"timer-a\",\"taskId\":null,\"type\":\"start\",\"phase\":\"focus\",\"plannedDurationMs\":60000,\"occurredAt\":\"2026-07-20T12:00:00Z\",\"hlcWallMs\":101,\"hlcCounter\":0,\"observedElapsedMs\":0},{\"id\":\"c1\",\"deviceId\":\"device-a\",\"deviceSequence\":2,\"timerId\":\"timer-a\",\"taskId\":null,\"type\":\"pause\",\"phase\":\"focus\",\"plannedDurationMs\":60000,\"occurredAt\":\"2026-07-20T12:00:00.005Z\",\"hlcWallMs\":102,\"hlcCounter\":0,\"observedElapsedMs\":0},{\"id\":\"c2\",\"deviceId\":\"device-a\",\"deviceSequence\":\"x\",\"timerId\":\"timer-a\",\"taskId\":null,\"type\":\"pause\",\"phase\":\"focus\",\"plannedDurationMs\":60000,\"occurredAt\":\"2026-07-20T12:00:00.009Z\",\"hlcWallMs\":103,\"hlcCounter\":0,\"observedElapsedMs\":0}],\"now\":\"2026-07-20T12:00:01Z\"}",
+        "expected": "{\"error\":\"invalid shared-core JSON: invalid type: string \\\"x\\\", expected i64 at line 1 column 536\",\"ok\":false}"
+      }
+    },
+    {
+      "name": "unique-bad-epoch",
+      "kind": "control",
+      "note": "bad epoch / bad now without duplicates",
+      "fixture": {
+        "input": "{\"epoch\":\"not-a-time\",\"nowMs\":1000,\"commands\":[{\"id\":\"c1\",\"sequence\":1,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"start\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":0,\"wallMs\":101,\"counter\":0,\"elapsedMs\":0},{\"id\":\"c2\",\"sequence\":2,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"pause\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":5,\"wallMs\":102,\"counter\":0,\"elapsedMs\":0}]}",
+        "expected": "{\"error\":\"invalid RFC 3339 timestamp: not-a-time\",\"ok\":false}"
+      },
+      "v1": {
+        "input": "{\"commands\":[{\"id\":\"c1\",\"deviceId\":\"device-a\",\"deviceSequence\":1,\"timerId\":\"timer-a\",\"taskId\":null,\"type\":\"start\",\"phase\":\"focus\",\"plannedDurationMs\":60000,\"occurredAt\":\"2026-07-20T12:00:00Z\",\"hlcWallMs\":101,\"hlcCounter\":0,\"observedElapsedMs\":0},{\"id\":\"c2\",\"deviceId\":\"device-a\",\"deviceSequence\":2,\"timerId\":\"timer-a\",\"taskId\":null,\"type\":\"pause\",\"phase\":\"focus\",\"plannedDurationMs\":60000,\"occurredAt\":\"2026-07-20T12:00:00.005Z\",\"hlcWallMs\":102,\"hlcCounter\":0,\"observedElapsedMs\":0}],\"now\":\"not-a-time\"}",
+        "expected": "{\"error\":\"invalid RFC 3339 timestamp: not-a-time\",\"ok\":false}"
+      }
+    },
+    {
+      "name": "unique-at-overflow",
+      "kind": "control",
+      "note": "atMs overflow without duplicates",
+      "fixture": {
+        "input": "{\"epoch\":\"2026-07-20T12:00:00.000Z\",\"nowMs\":1000,\"commands\":[{\"id\":\"c1\",\"sequence\":1,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"start\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":0,\"wallMs\":101,\"counter\":0,\"elapsedMs\":0},{\"id\":\"c2\",\"sequence\":2,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"pause\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":9223372036854775807,\"wallMs\":102,\"counter\":0,\"elapsedMs\":0}]}",
+        "expected": "{\"error\":\"invalid shared-core input: commands.atMs out of range\",\"ok\":false}"
+      },
+      "v1": {
+        "input": "{\"commands\":[{\"id\":\"c1\",\"deviceId\":\"device-a\",\"deviceSequence\":1,\"timerId\":\"timer-a\",\"taskId\":null,\"type\":\"start\",\"phase\":\"focus\",\"plannedDurationMs\":60000,\"occurredAt\":\"2026-07-20T12:00:00Z\",\"hlcWallMs\":101,\"hlcCounter\":0,\"observedElapsedMs\":0},{\"id\":\"c2\",\"deviceId\":\"device-a\",\"deviceSequence\":2,\"timerId\":\"timer-a\",\"taskId\":null,\"type\":\"pause\",\"phase\":\"focus\",\"plannedDurationMs\":60000,\"occurredAt\":\"+10000-01-01T00:00:00Z\",\"hlcWallMs\":102,\"hlcCounter\":0,\"observedElapsedMs\":0}],\"now\":\"2026-07-20T12:00:01Z\"}",
+        "expected": "{\"error\":\"invalid RFC 3339 timestamp: +10000-01-01T00:00:00Z\",\"ok\":false}"
+      }
+    },
+    {
+      "name": "unique-invalid-command",
+      "kind": "control",
+      "note": "invalid phase without duplicates",
+      "fixture": {
+        "input": "{\"epoch\":\"2026-07-20T12:00:00.000Z\",\"nowMs\":1000,\"commands\":[{\"id\":\"c1\",\"sequence\":1,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"start\",\"phase\":\"nap\",\"durationMs\":60000,\"atMs\":0,\"wallMs\":101,\"counter\":0,\"elapsedMs\":0},{\"id\":\"c2\",\"sequence\":2,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"pause\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":5,\"wallMs\":102,\"counter\":0,\"elapsedMs\":0}]}",
+        "expected": "{\"error\":\"invalid shared-core input: invalid timer command\",\"ok\":false}"
+      },
+      "v1": {
+        "input": "{\"commands\":[{\"id\":\"c1\",\"deviceId\":\"device-a\",\"deviceSequence\":1,\"timerId\":\"timer-a\",\"taskId\":null,\"type\":\"start\",\"phase\":\"nap\",\"plannedDurationMs\":60000,\"occurredAt\":\"2026-07-20T12:00:00Z\",\"hlcWallMs\":101,\"hlcCounter\":0,\"observedElapsedMs\":0},{\"id\":\"c2\",\"deviceId\":\"device-a\",\"deviceSequence\":2,\"timerId\":\"timer-a\",\"taskId\":null,\"type\":\"pause\",\"phase\":\"focus\",\"plannedDurationMs\":60000,\"occurredAt\":\"2026-07-20T12:00:00.005Z\",\"hlcWallMs\":102,\"hlcCounter\":0,\"observedElapsedMs\":0}],\"now\":\"2026-07-20T12:00:01Z\"}",
+        "expected": "{\"error\":\"invalid shared-core input: invalid timer command\",\"ok\":false}"
+      }
+    }
+  ]
+}

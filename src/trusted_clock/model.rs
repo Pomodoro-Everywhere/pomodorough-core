@@ -1,10 +1,28 @@
 use serde::{Deserialize, Serialize};
 use serde_json::value::RawValue;
 
+use crate::strict_json::shape::{Field, Shape};
+
 pub(super) const SAFE: i64 = 9_007_199_254_740_991;
 pub(super) const SKEW: i64 = 300_000;
 pub(super) const UNCERTAINTY: i64 = 30_000;
 pub(super) const DRIFT: i64 = 1_000;
+
+// Every profile's persisted state names these objects; a field one profile
+// lacks is refused by that profile's own decoder.
+const STATE_OBJECTS: Shape = Shape::Fields(&[
+    Field::optional("anchor", Shape::Nullable(&Shape::Object)),
+    Field::optional("requestSample", Shape::Nullable(&Shape::Object)),
+    Field::optional("runtime", Shape::Nullable(&Shape::Object)),
+]);
+/// Object positions Serde would otherwise read from a positional JSON array.
+/// Desktop `sample` and PWA `clockOffset` stay tolerant: each profile treats
+/// malformed persisted samples itself.
+pub(super) const OBSERVATION_OBJECTS: Shape = Shape::Fields(&[
+    Field::optional("state", STATE_OBJECTS),
+    Field::optional("reading", Shape::Object),
+    Field::optional("server", Shape::Nullable(&Shape::Object)),
+]);
 
 #[derive(Clone, Copy, Deserialize, Serialize, PartialEq)]
 pub(super) enum Profile {

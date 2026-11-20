@@ -31,6 +31,7 @@ fn describe(fields: &[Field]) -> Value {
 
 fn name(shape: &Shape) -> String {
     match shape {
+        Shape::Any => "any".into(),
         Shape::Object | Shape::Fields(_) | Shape::Record(_) => "object".into(),
         Shape::String => "string".into(),
         Shape::Scalar => "scalar".into(),

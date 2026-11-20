@@ -19,6 +19,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use crate::CoreError;
+use crate::strict_json::shape::{Field, Shape};
 use crate::sync_projection::{
     TaskOperation, operation_clock_key, renamed_task_id, validate_standalone_timestamps,
     validate_task_log,
@@ -92,8 +93,19 @@ fn strict_carry_input(input: &str) -> Result<serde_json::Value, CoreError> {
     for field in ["history", "sessions", "taskOperations"] {
         crate::strict_json::object_array_field(root, field, field, true)?;
     }
+    crate::strict_json::shape::validate(&value, &CARRY_OBJECTS, "")?;
     Ok(value)
 }
+
+/// Serde would otherwise read a timer's or session's last intent from a
+/// positional JSON array.
+const CARRY_OBJECTS: Shape = Shape::Fields(&[
+    Field::optional(
+        "canonicalTimer",
+        Shape::Nullable(&crate::timer::TIMER_OBJECTS),
+    ),
+    Field::optional("sessions", Shape::Array(&crate::timer::TIMER_OBJECTS)),
+]);
 
 /// Carrying is not idempotent, so the input must be uncarried reducer output.
 /// Reducer sessions keep the raw task, so a row or terminal timer whose

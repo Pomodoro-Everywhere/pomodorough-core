@@ -27,10 +27,10 @@ pub(super) fn request(request: &Request, input: &Input) -> Result<(), CoreError>
     {
         return Err(invalid("observation is later than physical now"));
     }
-    workspace(input, &input.workspace)?;
+    workspace(input, &input.workspace, "workspace")?;
     crate::workspace_intent::validate_observation(input)?;
     if let Some(previous) = &request.previous_workspace {
-        workspace(input, previous)?;
+        workspace(input, previous, "previousWorkspace")?;
         let mut old_input = request.context();
         old_input.workspace = previous.clone();
         old_input.observation = request.previous_observation.clone().unwrap();
@@ -121,7 +121,14 @@ fn reservations(request: &Request) -> Result<(), CoreError> {
     Ok(())
 }
 
-fn workspace(input: &Input, workspace: &serde_json::Value) -> Result<(), CoreError> {
+fn workspace(input: &Input, workspace: &serde_json::Value, path: &str) -> Result<(), CoreError> {
+    // Projection inserts `now` into this raw value. Null becomes an object there
+    // and keeps its established missing-projection error; any other non-object
+    // must fail here under its own field name. For `workspace` that is the
+    // message the finish stages already return.
+    if !workspace.is_null() {
+        crate::strict_json::object(workspace, path)?;
+    }
     if workspace.get("now").is_some() {
         return Err(invalid("workspace.now is owned by completion planner"));
     }

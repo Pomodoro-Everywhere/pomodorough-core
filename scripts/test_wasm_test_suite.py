@@ -14,13 +14,32 @@ from scripts.test_c5_release_contract import load_contract
 from scripts.wasm_test_suite import MANIFEST, ROOT, discover
 
 
+# Every gate that must keep running against the candidate WASM. A gate moved
+# to `historical` or `support` stops running in CI, so each one is named here.
 CANDIDATES = {
     "tests/aggregate_wasm_parity.mjs",
     "tests/c2_round5_wasm_parity.mjs",
     "tests/c3_wasm_parity.mjs",
     "tests/c4_wasm_allocation_contract.mjs",
+    "tests/history_elapsed_wasm_parity.mjs",
+    "tests/pwa_rename_wasm.mjs",
+    "tests/r53_c01_history_budget.mjs",
+    "tests/r54_c01_leap_seconds.mjs",
+    "tests/r54_c02_extreme_years.mjs",
+    "tests/r55_c01_malformed_envelopes.mjs",
+    "tests/r55_c02_fixture_offsets.mjs",
+    "tests/r55_c05_non_object_roots.mjs",
+    "tests/r55_c06_fixture_duplicate_ids.mjs",
+    "tests/r55_c07_non_object_roots.mjs",
+    "tests/r55_c08_nested_objects.mjs",
+    "tests/r55_c10_nested_last_intent.mjs",
+    "tests/r55_c11_display_and_arrays.mjs",
+    "tests/r55_c14_canonical_head.mjs",
+    "tests/task_carry_history_wasm.mjs",
+    "tests/task_list_order_wasm.mjs",
     "tests/wasm_abi_host.mjs",
 }
+SUPPORT_ROOT = "tests/aggregate_artifact/"
 HISTORICAL = {
     "tests/r49_c01_official_baseline.mjs",
     "tests/r49_c01_standalone_parity.mjs",
@@ -88,8 +107,12 @@ class WasmTestSuiteTests(unittest.TestCase):
         return [json.loads(line) for line in path.read_text().splitlines()] if path.exists() else []
 
     def test_repository_classifies_every_script_and_preserves_required_gates(self) -> None:
-        self.assertTrue(CANDIDATES.issubset(self.suite["candidate"]))
+        self.assertTrue(CANDIDATES.issubset(self.suite["candidate"]),
+                        sorted(CANDIDATES - set(self.suite["candidate"])))
         self.assertEqual(set(self.suite["historical"]), HISTORICAL)
+        # Support scripts are imported by the aggregate gate, never run alone.
+        for script in self.suite["support"]:
+            self.assertTrue(script.startswith(SUPPORT_ROOT), script)
         for wrapper, script in (("tests/wasm_contract.rs", "tests/wasm_abi_host.mjs"),
                                 ("tests/c4_wasm_allocation_contract.rs", "tests/c4_wasm_allocation_contract.mjs")):
             self.assertIn(f'.arg("{script}")', (ROOT / wrapper).read_text())

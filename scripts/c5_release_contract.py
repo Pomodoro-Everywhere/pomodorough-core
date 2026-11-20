@@ -9,9 +9,21 @@ import json
 from pathlib import Path
 import re
 import subprocess
+import sys
 import time
-import tomllib
 from typing import NamedTuple, Sequence
+
+# `tomllib` exists only from Python 3.11. Stop with the same message as the
+# test modules instead of a bare import error when run directly on an older
+# interpreter (macOS ships 3.9 as `python3`).
+MINIMUM_PYTHON = (3, 11)
+if sys.version_info < MINIMUM_PYTHON:
+    raise SystemExit(
+        "The Core release and WASM suite checks need Python 3.11 or newer "
+        f"(tomllib); this is Python {sys.version.split()[0]} at {sys.executable}."
+    )
+
+import tomllib  # noqa: E402  (guarded by the version check above)
 
 
 ARTIFACT_NAME = "pomodorough_core.wasm"

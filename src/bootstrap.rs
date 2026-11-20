@@ -3,12 +3,13 @@ use std::collections::BTreeSet;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
+use crate::strict_json::shape::{Field, Shape};
 use crate::{CoreError, check_input_len};
 
 pub(crate) mod workspace;
 
 #[derive(Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct BootstrapPlanInput {
     #[serde(default)]
     local_owner_id: Option<String>,
@@ -23,6 +24,13 @@ struct BootstrapPlanInput {
     #[serde(default)]
     has_remote_state: bool,
 }
+
+/// History arrays Serde would otherwise refuse with its own text. Their rows
+/// stay plain values, so only the array itself is checked.
+const HISTORY_ARRAYS: Shape = Shape::Fields(&[
+    Field::optional("localHistory", Shape::Array(&Shape::Any)),
+    Field::optional("remoteHistory", Shape::Array(&Shape::Any)),
+]);
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -40,7 +48,10 @@ struct BootstrapPlanOutput {
 
 pub(crate) fn plan_v1_json(input: &str) -> Result<String, CoreError> {
     check_input_len(input)?;
-    let input: BootstrapPlanInput = serde_json::from_value(crate::strict_json::parse(input)?)?;
+    let value = crate::strict_json::parse(input)?;
+    crate::strict_json::object(&value, "bootstrap plan")?;
+    crate::strict_json::shape::validate(&value, &HISTORY_ARRAYS, "")?;
+    let input: BootstrapPlanInput = serde_json::from_value(value)?;
     // History stays unbounded so bootstrap never rejects a valid account on
     // row count; the 16 MiB JSON input cap still bounds request memory.
     let output = plan(input)?;

@@ -126,7 +126,7 @@ fn project_tasks(operations: Vec<FixtureTaskOperation>) -> Result<Vec<Task>, Cor
     let operations = operations.into_iter().map(TaskOperation::from).collect();
     let mut tasks = replay_tasks(Vec::new(), operations)?.tasks;
 
-    // Legacy fixture output is ordered by task ID; production output is ordered by title then ID.
+    // Legacy fixture output is ordered by task ID; production output uses the task list order.
     tasks.sort_by(|left, right| left.id.cmp(&right.id));
     Ok(tasks)
 }

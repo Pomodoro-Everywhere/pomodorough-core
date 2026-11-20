@@ -1,6 +1,26 @@
 use serde_json::Value;
 
+use crate::strict_json::shape::{Field, Shape};
 use crate::{CoreError, strict_json};
+
+const SNAPSHOT_OBJECTS: Shape = Shape::Fields(&[Field::optional(
+    "canonicalTimer",
+    Shape::Nullable(&crate::timer::TIMER_OBJECTS),
+)]);
+/// Both timers' nested objects, which Serde would otherwise answer with raw
+/// text for a non-object `lastIntent`. Checked from the request root once both
+/// snapshots are known to be objects, before the remote timer is decoded here
+/// and the local base timer is decoded by the workspace projection.
+const TIMER_POSITIONS: Shape = Shape::Fields(&[
+    Field::optional(
+        "local",
+        Shape::Fields(&[Field::optional(
+            "workspace",
+            Shape::Fields(&[Field::optional("base", SNAPSHOT_OBJECTS)]),
+        )]),
+    ),
+    Field::optional("remote", SNAPSHOT_OBJECTS),
+]);
 
 const DERIVED: [&str; 12] = [
     "hasLocalState",
@@ -32,6 +52,7 @@ pub(super) fn request(value: &Value) -> Result<(), CoreError> {
     raw_object(workspace, "workspace")?;
     snapshot(&workspace["base"], "base")?;
     snapshot(&value["remote"], "remote")?;
+    strict_json::shape::validate(value, &TIMER_POSITIONS, "")?;
     remote_timer(&value["remote"]["canonicalTimer"])?;
     let preferences = &local["preferences"];
     raw_object(preferences, "preferences")?;

@@ -1,0 +1,253 @@
+{
+  "description": "R55-C02: timer.reduce fixture offsets (nowMs, commands.atMs) that made the operation unwind, and controls whose complete envelopes were captured before the fix. Epoch 2026-07-20T12:00:00.000Z; chrono 0.4.45 adds offsets up to +262142-12-31T23:59:59.999Z and down to -262143-01-01T00:00:00Z.",
+  "rows": [
+    {
+      "name": "now-i64-max",
+      "kind": "overflow",
+      "field": "nowMs",
+      "input": "{\"epoch\":\"2026-07-20T12:00:00.000Z\",\"nowMs\":9223372036854775807,\"commands\":[{\"id\":\"c1\",\"sequence\":1,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"start\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":0,\"wallMs\":101,\"counter\":0,\"elapsedMs\":0}]}",
+      "operation": "timer.reduce",
+      "expected": "{\"error\":\"invalid shared-core input: nowMs out of range\",\"ok\":false}"
+    },
+    {
+      "name": "at-i64-max",
+      "kind": "overflow",
+      "field": "commands.atMs",
+      "input": "{\"epoch\":\"2026-07-20T12:00:00.000Z\",\"nowMs\":1000,\"commands\":[{\"id\":\"c1\",\"sequence\":1,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"start\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":9223372036854775807,\"wallMs\":101,\"counter\":0,\"elapsedMs\":0}]}",
+      "operation": "timer.reduce",
+      "expected": "{\"error\":\"invalid shared-core input: commands.atMs out of range\",\"ok\":false}"
+    },
+    {
+      "name": "now-i64-min",
+      "kind": "overflow",
+      "field": "nowMs",
+      "input": "{\"epoch\":\"2026-07-20T12:00:00.000Z\",\"nowMs\":-9223372036854775808,\"commands\":[{\"id\":\"c1\",\"sequence\":1,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"start\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":0,\"wallMs\":101,\"counter\":0,\"elapsedMs\":0}]}",
+      "operation": "timer.reduce",
+      "expected": "{\"error\":\"invalid shared-core input: nowMs out of range\",\"ok\":false}"
+    },
+    {
+      "name": "at-i64-min",
+      "kind": "overflow",
+      "field": "commands.atMs",
+      "input": "{\"epoch\":\"2026-07-20T12:00:00.000Z\",\"nowMs\":1000,\"commands\":[{\"id\":\"c1\",\"sequence\":1,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"start\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":-9223372036854775808,\"wallMs\":101,\"counter\":0,\"elapsedMs\":0}]}",
+      "operation": "timer.reduce",
+      "expected": "{\"error\":\"invalid shared-core input: commands.atMs out of range\",\"ok\":false}"
+    },
+    {
+      "name": "now-first-past-upper",
+      "kind": "overflow",
+      "field": "nowMs",
+      "input": "{\"epoch\":\"2026-07-20T12:00:00.000Z\",\"nowMs\":8208482328000000,\"commands\":[{\"id\":\"c1\",\"sequence\":1,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"start\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":0,\"wallMs\":101,\"counter\":0,\"elapsedMs\":0}]}",
+      "operation": "timer.reduce",
+      "expected": "{\"error\":\"invalid shared-core input: nowMs out of range\",\"ok\":false}"
+    },
+    {
+      "name": "at-first-past-upper",
+      "kind": "overflow",
+      "field": "commands.atMs",
+      "input": "{\"epoch\":\"2026-07-20T12:00:00.000Z\",\"nowMs\":1000,\"commands\":[{\"id\":\"c1\",\"sequence\":1,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"start\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":8208482328000000,\"wallMs\":101,\"counter\":0,\"elapsedMs\":0}]}",
+      "operation": "timer.reduce",
+      "expected": "{\"error\":\"invalid shared-core input: commands.atMs out of range\",\"ok\":false}"
+    },
+    {
+      "name": "now-first-past-lower",
+      "kind": "overflow",
+      "field": "nowMs",
+      "input": "{\"epoch\":\"2026-07-20T12:00:00.000Z\",\"nowMs\":-8336385777600001,\"commands\":[{\"id\":\"c1\",\"sequence\":1,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"start\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":0,\"wallMs\":101,\"counter\":0,\"elapsedMs\":0}]}",
+      "operation": "timer.reduce",
+      "expected": "{\"error\":\"invalid shared-core input: nowMs out of range\",\"ok\":false}"
+    },
+    {
+      "name": "at-first-past-lower",
+      "kind": "overflow",
+      "field": "commands.atMs",
+      "input": "{\"epoch\":\"2026-07-20T12:00:00.000Z\",\"nowMs\":1000,\"commands\":[{\"id\":\"c1\",\"sequence\":1,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"start\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":-8336385777600001,\"wallMs\":101,\"counter\":0,\"elapsedMs\":0}]}",
+      "operation": "timer.reduce",
+      "expected": "{\"error\":\"invalid shared-core input: commands.atMs out of range\",\"ok\":false}"
+    },
+    {
+      "name": "now-audit-9e18",
+      "kind": "overflow",
+      "field": "nowMs",
+      "input": "{\"epoch\":\"2026-07-20T12:00:00.000Z\",\"nowMs\":9000000000000000000,\"commands\":[{\"id\":\"c1\",\"sequence\":1,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"start\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":0,\"wallMs\":101,\"counter\":0,\"elapsedMs\":0}]}",
+      "operation": "timer.reduce",
+      "expected": "{\"error\":\"invalid shared-core input: nowMs out of range\",\"ok\":false}"
+    },
+    {
+      "name": "at-audit-9e18",
+      "kind": "overflow",
+      "field": "commands.atMs",
+      "input": "{\"epoch\":\"2026-07-20T12:00:00.000Z\",\"nowMs\":1000,\"commands\":[{\"id\":\"c1\",\"sequence\":1,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"start\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":9000000000000000000,\"wallMs\":101,\"counter\":0,\"elapsedMs\":0}]}",
+      "operation": "timer.reduce",
+      "expected": "{\"error\":\"invalid shared-core input: commands.atMs out of range\",\"ok\":false}"
+    },
+    {
+      "name": "now-overflow-before-invalid-command",
+      "kind": "overflow",
+      "field": "nowMs",
+      "input": "{\"epoch\":\"2026-07-20T12:00:00.000Z\",\"nowMs\":9223372036854775807,\"commands\":[{\"id\":\"\",\"sequence\":1,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"start\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":0,\"wallMs\":101,\"counter\":0,\"elapsedMs\":0}]}",
+      "operation": "timer.reduce",
+      "expected": "{\"error\":\"invalid shared-core input: nowMs out of range\",\"ok\":false}"
+    },
+    {
+      "name": "at-overflow-on-invalid-command",
+      "kind": "overflow",
+      "field": "commands.atMs",
+      "input": "{\"epoch\":\"2026-07-20T12:00:00.000Z\",\"nowMs\":1000,\"commands\":[{\"id\":\"\",\"sequence\":1,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"start\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":-9223372036854775808,\"wallMs\":101,\"counter\":0,\"elapsedMs\":0}]}",
+      "operation": "timer.reduce",
+      "expected": "{\"error\":\"invalid shared-core input: commands.atMs out of range\",\"ok\":false}"
+    },
+    {
+      "name": "at-overflow-on-second-command",
+      "kind": "overflow",
+      "field": "commands.atMs",
+      "input": "{\"epoch\":\"2026-07-20T12:00:00.000Z\",\"nowMs\":1000,\"commands\":[{\"id\":\"c1\",\"sequence\":1,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"start\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":0,\"wallMs\":101,\"counter\":0,\"elapsedMs\":0},{\"id\":\"c2\",\"sequence\":2,\"deviceId\":\"device-a\",\"timerId\":\"timer-b\",\"type\":\"start\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":9223372036854775807,\"wallMs\":102,\"counter\":0,\"elapsedMs\":0}]}",
+      "operation": "timer.reduce",
+      "expected": "{\"error\":\"invalid shared-core input: commands.atMs out of range\",\"ok\":false}"
+    },
+    {
+      "name": "base",
+      "kind": "control",
+      "field": "",
+      "input": "{\"epoch\":\"2026-07-20T12:00:00.000Z\",\"nowMs\":1000,\"commands\":[{\"id\":\"c1\",\"sequence\":1,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"start\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":0,\"wallMs\":101,\"counter\":0,\"elapsedMs\":0}]}",
+      "operation": "timer.reduce",
+      "expected": "{\"ok\":true,\"value\":{\"history\":[],\"timer\":{\"anchorMs\":0,\"durationMs\":60000,\"elapsedMs\":0,\"id\":\"timer-a\",\"lastCommandId\":\"c1\",\"phase\":\"focus\",\"status\":\"running\"}}}"
+    },
+    {
+      "name": "now-last-upper",
+      "kind": "control",
+      "field": "nowMs",
+      "input": "{\"epoch\":\"2026-07-20T12:00:00.000Z\",\"nowMs\":8208482327999999,\"commands\":[{\"id\":\"c1\",\"sequence\":1,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"start\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":0,\"wallMs\":101,\"counter\":0,\"elapsedMs\":0}]}",
+      "operation": "timer.reduce",
+      "expected": "{\"ok\":true,\"value\":{\"history\":[{\"durationMs\":60000,\"elapsedMs\":60000,\"endedMs\":60000,\"phase\":\"focus\",\"status\":\"completed\",\"timerId\":\"timer-a\"}],\"timer\":{\"anchorMs\":60000,\"durationMs\":60000,\"elapsedMs\":60000,\"id\":\"timer-a\",\"lastCommandId\":\"c1\",\"phase\":\"focus\",\"status\":\"completed\"}}}"
+    },
+    {
+      "name": "now-last-lower",
+      "kind": "control",
+      "field": "nowMs",
+      "input": "{\"epoch\":\"2026-07-20T12:00:00.000Z\",\"nowMs\":-8336385777600000,\"commands\":[{\"id\":\"c1\",\"sequence\":1,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"start\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":0,\"wallMs\":101,\"counter\":0,\"elapsedMs\":0}]}",
+      "operation": "timer.reduce",
+      "expected": "{\"ok\":true,\"value\":{\"history\":[],\"timer\":{\"anchorMs\":0,\"durationMs\":60000,\"elapsedMs\":0,\"id\":\"timer-a\",\"lastCommandId\":\"c1\",\"phase\":\"focus\",\"status\":\"running\"}}}"
+    },
+    {
+      "name": "at-last-upper",
+      "kind": "control",
+      "field": "commands.atMs",
+      "input": "{\"epoch\":\"2026-07-20T12:00:00.000Z\",\"nowMs\":1000,\"commands\":[{\"id\":\"c1\",\"sequence\":1,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"start\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":8208482327999999,\"wallMs\":101,\"counter\":0,\"elapsedMs\":0}]}",
+      "operation": "timer.reduce",
+      "expected": "{\"error\":\"invalid RFC 3339 timestamp: +262142-12-31T23:59:59.999Z\",\"ok\":false}"
+    },
+    {
+      "name": "at-last-lower",
+      "kind": "control",
+      "field": "commands.atMs",
+      "input": "{\"epoch\":\"2026-07-20T12:00:00.000Z\",\"nowMs\":1000,\"commands\":[{\"id\":\"c1\",\"sequence\":1,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"start\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":-8336385777600000,\"wallMs\":101,\"counter\":0,\"elapsedMs\":0}]}",
+      "operation": "timer.reduce",
+      "expected": "{\"error\":\"invalid RFC 3339 timestamp: -262143-01-01T00:00:00Z\",\"ok\":false}"
+    },
+    {
+      "name": "at-rfc-last-upper",
+      "kind": "control",
+      "field": "commands.atMs",
+      "input": "{\"epoch\":\"2026-07-20T12:00:00.000Z\",\"nowMs\":251617751999999,\"commands\":[{\"id\":\"c1\",\"sequence\":1,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"start\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":251617751999999,\"wallMs\":101,\"counter\":0,\"elapsedMs\":0}]}",
+      "operation": "timer.reduce",
+      "expected": "{\"ok\":true,\"value\":{\"history\":[],\"timer\":{\"anchorMs\":251617751999999,\"durationMs\":60000,\"elapsedMs\":0,\"id\":\"timer-a\",\"lastCommandId\":\"c1\",\"phase\":\"focus\",\"status\":\"running\"}}}"
+    },
+    {
+      "name": "at-rfc-last-lower",
+      "kind": "control",
+      "field": "commands.atMs",
+      "input": "{\"epoch\":\"2026-07-20T12:00:00.000Z\",\"nowMs\":-63951768000000,\"commands\":[{\"id\":\"c1\",\"sequence\":1,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"start\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":-63951768000000,\"wallMs\":101,\"counter\":0,\"elapsedMs\":0}]}",
+      "operation": "timer.reduce",
+      "expected": "{\"ok\":true,\"value\":{\"history\":[],\"timer\":{\"anchorMs\":-63951768000000,\"durationMs\":60000,\"elapsedMs\":0,\"id\":\"timer-a\",\"lastCommandId\":\"c1\",\"phase\":\"focus\",\"status\":\"running\"}}}"
+    },
+    {
+      "name": "at-rfc-past-upper",
+      "kind": "control",
+      "field": "commands.atMs",
+      "input": "{\"epoch\":\"2026-07-20T12:00:00.000Z\",\"nowMs\":1000,\"commands\":[{\"id\":\"c1\",\"sequence\":1,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"start\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":251617752000000,\"wallMs\":101,\"counter\":0,\"elapsedMs\":0}]}",
+      "operation": "timer.reduce",
+      "expected": "{\"error\":\"invalid RFC 3339 timestamp: +10000-01-01T00:00:00Z\",\"ok\":false}"
+    },
+    {
+      "name": "at-rfc-past-lower",
+      "kind": "control",
+      "field": "commands.atMs",
+      "input": "{\"epoch\":\"2026-07-20T12:00:00.000Z\",\"nowMs\":1000,\"commands\":[{\"id\":\"c1\",\"sequence\":1,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"start\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":-63951768000001,\"wallMs\":101,\"counter\":0,\"elapsedMs\":0}]}",
+      "operation": "timer.reduce",
+      "expected": "{\"error\":\"invalid RFC 3339 timestamp: -0001-12-31T23:59:59.999Z\",\"ok\":false}"
+    },
+    {
+      "name": "invalid-command-before-at-overflow",
+      "kind": "control",
+      "field": "commands.atMs",
+      "input": "{\"epoch\":\"2026-07-20T12:00:00.000Z\",\"nowMs\":1000,\"commands\":[{\"id\":\"\",\"sequence\":1,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"start\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":0,\"wallMs\":101,\"counter\":0,\"elapsedMs\":0},{\"id\":\"c2\",\"sequence\":2,\"deviceId\":\"device-a\",\"timerId\":\"timer-b\",\"type\":\"start\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":9223372036854775807,\"wallMs\":102,\"counter\":0,\"elapsedMs\":0}]}",
+      "operation": "timer.reduce",
+      "expected": "{\"error\":\"invalid shared-core input: invalid timer command\",\"ok\":false}"
+    },
+    {
+      "name": "now-u64-past-i64-max",
+      "kind": "control",
+      "field": "nowMs",
+      "input": "{\"epoch\":\"2026-07-20T12:00:00.000Z\",\"nowMs\":9223372036854775808,\"commands\":[{\"id\":\"c1\",\"sequence\":1,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"start\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":0,\"wallMs\":101,\"counter\":0,\"elapsedMs\":0}]}",
+      "operation": "timer.reduce",
+      "expected": "{\"error\":\"invalid shared-core JSON: invalid value: integer `9223372036854775808`, expected i64 at line 1 column 63\",\"ok\":false}"
+    },
+    {
+      "name": "at-u64-past-i64-max",
+      "kind": "control",
+      "field": "commands.atMs",
+      "input": "{\"epoch\":\"2026-07-20T12:00:00.000Z\",\"nowMs\":1000,\"commands\":[{\"id\":\"c1\",\"sequence\":1,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"start\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":9223372036854775808,\"wallMs\":101,\"counter\":0,\"elapsedMs\":0}]}",
+      "operation": "timer.reduce",
+      "expected": "{\"error\":\"invalid shared-core JSON: invalid value: integer `9223372036854775808`, expected i64 at line 1 column 203\",\"ok\":false}"
+    },
+    {
+      "name": "now-past-i64-min",
+      "kind": "control",
+      "field": "nowMs",
+      "input": "{\"epoch\":\"2026-07-20T12:00:00.000Z\",\"nowMs\":-9223372036854775809,\"commands\":[{\"id\":\"c1\",\"sequence\":1,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"start\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":0,\"wallMs\":101,\"counter\":0,\"elapsedMs\":0}]}",
+      "operation": "timer.reduce",
+      "expected": "{\"error\":\"invalid shared-core JSON: invalid type: floating point `-9.223372036854776e+18`, expected i64 at line 1 column 64\",\"ok\":false}"
+    },
+    {
+      "name": "at-past-i64-min",
+      "kind": "control",
+      "field": "commands.atMs",
+      "input": "{\"epoch\":\"2026-07-20T12:00:00.000Z\",\"nowMs\":1000,\"commands\":[{\"id\":\"c1\",\"sequence\":1,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"start\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":-9223372036854775809,\"wallMs\":101,\"counter\":0,\"elapsedMs\":0}]}",
+      "operation": "timer.reduce",
+      "expected": "{\"error\":\"invalid shared-core JSON: invalid type: floating point `-9.223372036854776e+18`, expected i64 at line 1 column 204\",\"ok\":false}"
+    },
+    {
+      "name": "now-float-1e300",
+      "kind": "control",
+      "field": "nowMs",
+      "input": "{\"epoch\":\"2026-07-20T12:00:00.000Z\",\"nowMs\":1e300,\"commands\":[{\"id\":\"c1\",\"sequence\":1,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"start\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":0,\"wallMs\":101,\"counter\":0,\"elapsedMs\":0}]}",
+      "operation": "timer.reduce",
+      "expected": "{\"error\":\"invalid shared-core JSON: invalid type: floating point `1e+300`, expected i64 at line 1 column 49\",\"ok\":false}"
+    },
+    {
+      "name": "at-float-1e300",
+      "kind": "control",
+      "field": "commands.atMs",
+      "input": "{\"epoch\":\"2026-07-20T12:00:00.000Z\",\"nowMs\":1000,\"commands\":[{\"id\":\"c1\",\"sequence\":1,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"start\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":1e300,\"wallMs\":101,\"counter\":0,\"elapsedMs\":0}]}",
+      "operation": "timer.reduce",
+      "expected": "{\"error\":\"invalid shared-core JSON: invalid type: floating point `1e+300`, expected i64 at line 1 column 189\",\"ok\":false}"
+    },
+    {
+      "name": "now-fraction",
+      "kind": "control",
+      "field": "nowMs",
+      "input": "{\"epoch\":\"2026-07-20T12:00:00.000Z\",\"nowMs\":1.5,\"commands\":[{\"id\":\"c1\",\"sequence\":1,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"start\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":0,\"wallMs\":101,\"counter\":0,\"elapsedMs\":0}]}",
+      "operation": "timer.reduce",
+      "expected": "{\"error\":\"invalid shared-core JSON: invalid type: floating point `1.5`, expected i64 at line 1 column 47\",\"ok\":false}"
+    },
+    {
+      "name": "at-fraction",
+      "kind": "control",
+      "field": "commands.atMs",
+      "input": "{\"epoch\":\"2026-07-20T12:00:00.000Z\",\"nowMs\":1000,\"commands\":[{\"id\":\"c1\",\"sequence\":1,\"deviceId\":\"device-a\",\"timerId\":\"timer-a\",\"type\":\"start\",\"phase\":\"focus\",\"durationMs\":60000,\"atMs\":1.5,\"wallMs\":101,\"counter\":0,\"elapsedMs\":0}]}",
+      "operation": "timer.reduce",
+      "expected": "{\"error\":\"invalid shared-core JSON: invalid type: floating point `1.5`, expected i64 at line 1 column 187\",\"ok\":false}"
+    }
+  ]
+}

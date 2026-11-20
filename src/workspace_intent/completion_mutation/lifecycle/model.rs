@@ -1,9 +1,10 @@
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
+use crate::strict_json::shape::{Field, Shape};
 use crate::workspace_intent::model::{
-    Allocation, Clock, Compatibility, Identities, Input, Intent, Interval, Observation,
-    ReplicationMode, Selection,
+    ALLOCATION_OBJECTS, Allocation, Clock, Compatibility, Identities, Input, Intent, Interval,
+    OBSERVATION_OBJECTS, Observation, ReplicationMode, Selection,
 };
 
 #[derive(Clone, Default, Deserialize, Serialize, PartialEq, Eq)]
@@ -126,6 +127,54 @@ pub(super) struct Session {
     pub user_id: Option<String>,
     pub authenticated: bool,
 }
+
+const FINISH_EVIDENCE_OBJECTS: Shape = Shape::Fields(&[
+    Field::optional("command", Shape::Object),
+    Field::optional("sourceTimer", crate::timer::TIMER_OBJECTS),
+    Field::optional("sourceHistory", Shape::Object),
+]);
+const STATE_OBJECTS: Shape = Shape::Fields(&[
+    Field::optional("consumedCompletions", Shape::Array(&Shape::Object)),
+    Field::optional("pendingBreaks", Shape::Array(&Shape::Object)),
+    Field::optional(
+        "finishEvidence",
+        Shape::Nullable(&Shape::Array(&FINISH_EVIDENCE_OBJECTS)),
+    ),
+]);
+/// Object positions of a lifecycle-stage request, which Serde would otherwise
+/// read from a positional JSON array. `workspace` and `previousWorkspace` keep
+/// their own downstream checks and their shipped messages.
+pub(super) const REQUEST_OBJECTS: Shape = Shape::Fields(&[
+    Field::optional("previousObservation", Shape::Nullable(&OBSERVATION_OBJECTS)),
+    Field::optional(
+        "requestedTimer",
+        Shape::Nullable(&crate::timer::TIMER_OBJECTS),
+    ),
+    Field::optional("selection", Shape::Object),
+    Field::optional("allocation", ALLOCATION_OBJECTS),
+    Field::optional("observation", OBSERVATION_OBJECTS),
+    Field::optional("clock", Shape::Object),
+    Field::optional("identities", Shape::Object),
+    Field::optional("calendarIntervals", Shape::Array(&Shape::Object)),
+    Field::optional("ownership", Shape::Nullable(&Shape::Object)),
+    Field::optional("lifecycle", STATE_OBJECTS),
+    Field::optional(
+        "event",
+        Shape::Fields(&[Field::optional(
+            "acknowledgements",
+            Shape::Array(&Shape::Object),
+        )]),
+    ),
+    Field::optional("centralizedSession", Shape::Object),
+]);
+
+/// Array positions of a lifecycle-stage request that Serde would otherwise
+/// refuse with its own text. Checked after `REQUEST_OBJECTS`, so its messages
+/// keep their precedence.
+pub(super) const REQUEST_ARRAYS: Shape = Shape::Fields(&[Field::optional(
+    "identities",
+    crate::workspace_intent::model::IDENTITY_ARRAYS,
+)]);
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]

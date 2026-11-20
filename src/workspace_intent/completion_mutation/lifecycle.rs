@@ -22,6 +22,8 @@ pub(super) fn plan_json(value: Value) -> Result<String, CoreError> {
     if value.get("ownership").is_none() {
         return Err(invalid("missing completion ownership"));
     }
+    crate::strict_json::shape::validate(&value, &model::REQUEST_OBJECTS, "")?;
+    crate::strict_json::shape::validate(&value, &model::REQUEST_ARRAYS, "")?;
     let request: Request = serde_json::from_value(value)?;
     let input = request.context();
     validation::request(&request, &input)?;

@@ -199,16 +199,18 @@ pub(crate) fn replay_tasks(
     let mut tasks = apply_task_operations(base_tasks, winners)?
         .into_values()
         .collect::<Vec<_>>();
-    tasks.sort_by(|left, right| {
-        left.title
-            .cmp(&right.title)
-            .then_with(|| left.id.cmp(&right.id))
-    });
+    tasks.sort_by(task_list_order);
 
     Ok(TaskReductionOutput {
         tasks,
         winning_operation_ids,
     })
+}
+
+/// The order of every task list the task reducer builds: natural,
+/// case-insensitive title order, then the raw title, then the ID.
+fn task_list_order(left: &Task, right: &Task) -> Ordering {
+    crate::task::compare_titles(&left.title, &right.title).then_with(|| left.id.cmp(&right.id))
 }
 
 pub(crate) fn validate_task_id(task_id: &str) -> Result<(), CoreError> {
@@ -572,5 +574,28 @@ mod tests {
                 if message == "invalid task operation type"),
             "expected InvalidInput, got {error}"
         );
+    }
+
+    fn task(id: &str, title: &str) -> Task {
+        Task {
+            id: id.to_owned(),
+            title: title.to_owned(),
+        }
+    }
+
+    #[test]
+    fn task_list_order_breaks_equal_titles_by_id() {
+        let first = task("task-a", "Same title");
+        let second = task("task-b", "Same title");
+        assert_eq!(task_list_order(&first, &second), Ordering::Less);
+        assert_eq!(task_list_order(&second, &first), Ordering::Greater);
+        assert_eq!(task_list_order(&first, &first), Ordering::Equal);
+    }
+
+    #[test]
+    fn task_list_order_puts_the_title_before_the_id() {
+        let two = task("task-z", "Bulk task 2");
+        let ten = task("task-a", "Bulk task 10");
+        assert_eq!(task_list_order(&two, &ten), Ordering::Less);
     }
 }

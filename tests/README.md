@@ -13,6 +13,12 @@ python3 scripts/wasm_test_suite.py --list
 python3 scripts/wasm_test_suite.py target/wasm32-unknown-unknown/release/pomodorough_core.wasm
 ```
 
+The discovery contract test needs Python 3.11 or newer, because it loads the release contract, which reads `Cargo.toml` with `tomllib`. On an older `python3` (macOS ships 3.9) it stops with a message naming the minimum, so name a 3.11 or newer interpreter explicitly:
+
+```sh
+python3.12 -m unittest scripts/test_wasm_test_suite.py -v
+```
+
 The historical scripts retain their existing paths and imports. Native R49 regressions still run through `cargo test --all-targets --locked`.
 
 ```sh

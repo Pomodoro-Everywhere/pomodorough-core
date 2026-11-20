@@ -3,6 +3,50 @@ use std::collections::BTreeMap;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
+use crate::strict_json::shape::{Field, Shape};
+
+pub(super) const ALLOCATION_OBJECTS: Shape =
+    Shape::Fields(&[Field::optional("hlc", Shape::Object)]);
+pub(super) const OBSERVATION_OBJECTS: Shape = Shape::Fields(&[
+    Field::optional("commandTimes", Shape::Object),
+    Field::optional("monotonicAnchor", Shape::Nullable(&Shape::Object)),
+]);
+/// Object positions of a request without the opt-in lifecycle, which Serde
+/// would otherwise read from a positional JSON array. The lifecycle request
+/// is admitted by `completion_schema::intent::REQUEST` instead. `workspace`
+/// keeps its own downstream checks and their shipped messages.
+pub(super) const LEGACY_OBJECTS: Shape = Shape::Fields(&[
+    Field::optional("intent", Shape::Object),
+    Field::optional(
+        "requestedTimer",
+        Shape::Nullable(&crate::timer::TIMER_OBJECTS),
+    ),
+    Field::optional("selection", Shape::Object),
+    Field::optional("allocation", ALLOCATION_OBJECTS),
+    Field::optional("observation", OBSERVATION_OBJECTS),
+    Field::optional("clock", Shape::Object),
+    Field::optional("identities", Shape::Object),
+    Field::optional("calendarIntervals", Shape::Array(&Shape::Object)),
+    Field::optional("ownership", Shape::Nullable(&Shape::Object)),
+    Field::optional("durability", Shape::Nullable(&Shape::Object)),
+    Field::optional("localDurationsMs", Shape::Nullable(&Shape::Object)),
+    Field::optional("knownTasks", Shape::Nullable(&Shape::Array(&Shape::Object))),
+]);
+
+/// Array positions Serde would otherwise refuse with its own text. They are
+/// checked after the object positions above, so every message those checks
+/// return keeps its precedence. Elements keep their typed decoder messages.
+pub(super) const IDENTITY_ARRAYS: Shape =
+    Shape::Fields(&[Field::optional("commandUuids", Shape::Array(&Shape::Any))]);
+const DURABILITY_ARRAYS: Shape = Shape::Fields(&[Field::optional(
+    "outgoingDurationOperationIds",
+    Shape::Array(&Shape::Any),
+)]);
+pub(super) const INTENT_ARRAYS: Shape = Shape::Fields(&[
+    Field::optional("identities", IDENTITY_ARRAYS),
+    Field::optional("durability", Shape::Nullable(&DURABILITY_ARRAYS)),
+]);
+
 #[derive(Clone, Copy, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub(super) enum Compatibility {

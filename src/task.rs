@@ -5,10 +5,15 @@ use unicode_normalization::UnicodeNormalization;
 
 use crate::CoreError;
 
+mod order;
+
+pub(crate) use order::compare_titles;
+
 const TASK_NAMESPACE: &[u8] = b"pomodorough.task.v1\0";
 const MAX_TASK_TITLE_BYTES: usize = 512;
 
 #[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
 struct TaskIdentityInput {
     title: String,
 }
@@ -40,6 +45,7 @@ pub(crate) fn identity(title: &str) -> Result<(String, String), CoreError> {
 
 pub(crate) fn identity_json(input: &str) -> Result<String, CoreError> {
     crate::check_input_len(input)?;
+    crate::strict_json::object_root(input, "task identity")?;
     let input: TaskIdentityInput = serde_json::from_str(input)?;
     let (id, title) = identity(&input.title)?;
     let utf8_bytes = title.len();

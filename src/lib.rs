@@ -93,7 +93,7 @@ impl SelectedTaskField {
 }
 
 #[derive(Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct SelectedTaskEnvelope {
     #[serde(default)]
     selected_task_id: SelectedTaskField,
@@ -101,6 +101,7 @@ struct SelectedTaskEnvelope {
 
 pub fn classify_selected_task_field_json(input: &str) -> Result<String, CoreError> {
     check_input_len(input)?;
+    strict_json::object_root(input, "selected task envelope")?;
     let envelope: SelectedTaskEnvelope = serde_json::from_str(input)?;
     Ok(match envelope.selected_task_id {
         SelectedTaskField::Omitted => "omitted".into(),

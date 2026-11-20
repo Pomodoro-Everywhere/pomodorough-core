@@ -52,6 +52,8 @@ pub(super) fn observe(input: &Input) -> Result<Value, CoreError> {
 }
 
 fn valid_sample(value: &Value) -> Option<Sample> {
+    // A positional JSON array is malformed like any other non-object sample.
+    value.as_object()?;
     let sample: Sample = serde_json::from_value(value.clone()).ok()?;
     signed(sample.offset_ms).ok()?;
     uncertainty(sample.uncertainty_ms).ok()?;

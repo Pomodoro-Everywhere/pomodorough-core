@@ -131,6 +131,7 @@ fn name(shape: &Shape) -> String {
         Shape::Object | Shape::Record(_) | Shape::Fields(_) | Shape::TaggedObject { .. } => {
             "object".into()
         }
+        Shape::Any => "any".into(),
         Shape::Scalar => "scalar".into(),
         Shape::String => "string".into(),
         Shape::Integer => "integer".into(),

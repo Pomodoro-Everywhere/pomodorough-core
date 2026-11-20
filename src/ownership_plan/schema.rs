@@ -97,6 +97,8 @@ pub(super) const RELEASE_REQUEST: Shape =
     )])));
 
 pub(super) fn validate(raw: &serde_json::Value) -> Result<(), crate::CoreError> {
+    // Name the root here: the shape path stays empty so nested errors keep their field paths.
+    crate::strict_json::object(raw, "ownership plan")?;
     let shape = if raw["action"]["kind"] == "release" {
         &RELEASE_REQUEST
     } else {

@@ -209,30 +209,14 @@ fn json_error(message: String) -> CoreError {
 }
 
 pub(super) fn validate_shape(raw: &Value) -> Result<(), CoreError> {
-    // Repeat Serde's internally-tagged-enum and deny_unknown_fields envelopes
-    // for the request root exactly: the preservation baseline pins them
-    // byte-for-byte. Nested shapes keep the generic messages; they have no
-    // previously accepted baseline.
+    // A non-object root gets the shared root message, like every operation.
+    // For an object root, repeat Serde's internally-tagged-enum and
+    // deny_unknown_fields envelopes exactly: the preservation baseline pins
+    // them byte-for-byte. Nested shapes keep the generic messages; they have
+    // no previously accepted baseline.
     // Wrap as Serde JSON errors so the envelope prefix stays
     // `invalid shared-core JSON:`, exactly as before.
-    if !raw.is_object() {
-        // Serde reports a missing tag for sequences; keep its exact envelope.
-        if raw.is_array() {
-            return Err(json_error("missing field `kind`".into()));
-        }
-        return Err(json_error(format!(
-            "invalid type: {}, expected internally tagged enum Request",
-            match raw {
-                Value::Null => "null",
-                Value::Bool(_) => "boolean",
-                Value::Number(_) => "number",
-                Value::String(_) => "string",
-                Value::Array(_) => "sequence",
-                Value::Object(_) => "map",
-            }
-        )));
-    }
-    let root = raw.as_object().expect("checked object");
+    let root = crate::strict_json::object(raw, "batch plan")?;
     match root.get("kind").and_then(Value::as_str) {
         None => return Err(json_error("missing field `kind`".into())),
         Some("new") | Some("saved") => {}

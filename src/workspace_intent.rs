@@ -26,6 +26,7 @@ pub(crate) fn plan_json(raw: &str) -> Result<String, CoreError> {
 
 fn plan_raw(raw: &str) -> Result<String, CoreError> {
     let value = crate::strict_json::parse(raw)?;
+    crate::strict_json::object(&value, "workspace intent")?;
     let mut input = pwa_selection::parse(&value)?;
     known_tasks::validate(&input, &value)?;
     validate_intent_metadata(&input, &value)?;

@@ -3,12 +3,27 @@ use std::collections::{BTreeMap, BTreeSet};
 use chrono::{DateTime, Datelike, Duration, Timelike, Utc};
 use serde::{Deserialize, Serialize};
 
+use crate::strict_json::shape::{Field, Shape};
 use crate::{CoreError, MAX_COMMANDS, check_input_len};
 
 pub(crate) mod replay_page;
 pub(crate) mod workspace;
 
 const MAX_SAFE_INTEGER: i64 = 9_007_199_254_740_991;
+
+/// A canonical timer or reducer session: Serde would otherwise read its last
+/// intent from a positional JSON array.
+pub(crate) const TIMER_OBJECTS: Shape = Shape::Fields(&[Field::optional(
+    "lastIntent",
+    Shape::Nullable(&Shape::Object),
+)]);
+const REDUCTION_OBJECTS: Shape = Shape::Fields(&[
+    Field::optional("commands", Shape::Array(&Shape::Object)),
+    Field::optional("canonicalTimer", Shape::Nullable(&TIMER_OBJECTS)),
+    Field::optional("history", Shape::Array(&Shape::Object)),
+]);
+const FIXTURE_OBJECTS: Shape =
+    Shape::Fields(&[Field::optional("commands", Shape::Array(&Shape::Object))]);
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -263,7 +278,8 @@ pub(crate) struct WireSession {
 
 pub(crate) fn reduce_timer_v1_json(input: &str) -> Result<String, CoreError> {
     check_input_len(input)?;
-    let input: TimerReductionInput = serde_json::from_str(input)?;
+    let input: TimerReductionInput =
+        crate::strict_json::decode_object(input, "timer reduction", &REDUCTION_OBJECTS)?;
     check_command_counts(input.commands.len())?;
     Ok(serde_json::to_string(&replay_public(
         input.canonical_timer,
@@ -975,7 +991,7 @@ pub(crate) fn format_time(value: &DateTime<Utc>) -> String {
 }
 
 #[derive(Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct FixtureInput {
     epoch: String,
     now_ms: i64,
@@ -1039,10 +1055,13 @@ struct FixtureHistory {
 
 pub fn reduce_timer_fixture_case_json(input: &str) -> Result<String, CoreError> {
     check_input_len(input)?;
-    let input: FixtureInput = serde_json::from_str(input)?;
+    let input: FixtureInput =
+        crate::strict_json::decode_object(input, "timer fixture", &FIXTURE_OBJECTS)?;
     check_command_counts(input.commands.len())?;
+    // Same up-front order as `timer.reduce.v1`: count, duplicate ids, then times.
+    check_unique_command_ids(input.commands.iter().map(|command| command.id.as_str()))?;
     let epoch = parse_time(&input.epoch)?;
-    let now = epoch + Duration::milliseconds(input.now_ms);
+    let now = fixture_instant(epoch, input.now_ms, "nowMs")?;
     let reduction = reduce(fixture_commands(input.commands, epoch)?, now)?;
     let timer = reduction
         .canonical_timer
@@ -1050,6 +1069,20 @@ pub fn reduce_timer_fixture_case_json(input: &str) -> Result<String, CoreError> 
         .transpose()?;
     let history = fixture_history(reduction.history, epoch)?;
     Ok(serde_json::to_string(&FixtureOutput { timer, history })?)
+}
+
+/// Fixture times are caller-supplied millisecond offsets from `epoch`. An offset
+/// that `DateTime<Utc>` cannot represent is an input error, never a panic. An
+/// instant that fits but lies outside four-digit years keeps its own handling:
+/// a command time then fails `parse_time` like any other wire time.
+fn fixture_instant(
+    epoch: DateTime<Utc>,
+    offset_ms: i64,
+    field: &str,
+) -> Result<DateTime<Utc>, CoreError> {
+    Duration::try_milliseconds(offset_ms)
+        .and_then(|offset| epoch.checked_add_signed(offset))
+        .ok_or_else(|| CoreError::InvalidInput(format!("{field} out of range")))
 }
 
 fn fixture_commands(
@@ -1067,6 +1100,7 @@ fn fixture_commands(
                 crate::SelectedTaskField::Deselected,
                 crate::SelectedTaskField::Selected,
             );
+            let occurred_at = fixture_instant(epoch, command.at_ms, "commands.atMs")?;
             WireCommand {
                 id: command.id,
                 device_id: command.device_id,
@@ -1076,7 +1110,7 @@ fn fixture_commands(
                 kind: command.kind,
                 phase: command.phase,
                 planned_duration_ms: command.duration_ms,
-                occurred_at: format_time(&(epoch + Duration::milliseconds(command.at_ms))),
+                occurred_at: format_time(&occurred_at),
                 hlc_wall_ms: command.wall_ms,
                 hlc_counter: command.counter,
                 observed_elapsed_ms: command.elapsed_ms,
@@ -1130,3 +1164,7 @@ fn fixture_history(
     }
     Ok(history)
 }
+
+#[cfg(test)]
+#[path = "timer/tests/unique_command_ids.rs"]
+mod unique_command_ids_tests;

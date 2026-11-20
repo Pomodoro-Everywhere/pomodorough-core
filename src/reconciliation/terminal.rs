@@ -21,12 +21,14 @@ pub(crate) fn rebase_json(input: &str) -> Result<String, CoreError> {
     crate::timer::workspace::validate_native_device(&json!({"base": base}))?;
     let policy = delivery::Policy::from_request(&raw)?;
     let input: RebaseInput = serde_json::from_value(raw.clone())?;
-    let display = display_before(&raw, &base)?;
+    let (wall_ms, counter) = input.response.canonical_head();
+    let head = json!({"wallMs": wall_ms, "counter": counter});
+    let display = display_before(&raw, &base, &head)?;
     let typed_local = serde_json::to_value(&input.local)?;
     let output = rebase(input, Some(&policy), Boundary::Workspace)?;
     let mut output: Value = serde_json::from_str(&policy.serialize(output)?)?;
     preserve_pending(&mut output, &raw, &typed_local);
-    let workspace = display_after(&raw, &base, display, &mut output)?;
+    let workspace = display_after(&raw, &base, &head, display, &mut output)?;
     install_projection(&mut output, &raw["response"], workspace);
     Ok(serde_json::to_string(&output)?)
 }
@@ -53,13 +55,13 @@ fn validate_controls(raw: &Value) -> Result<(), CoreError> {
     Ok(())
 }
 
-fn display_before(raw: &Value, base: &Value) -> Result<Option<Value>, CoreError> {
+fn display_before(raw: &Value, base: &Value, head: &Value) -> Result<Option<Value>, CoreError> {
     if raw.get("displayContext").is_none() {
         return Ok(None);
     }
     let local = raw.get("local").unwrap_or(&raw["pending"]);
     let request = json!({"base": base, "local": local,
-        "canonicalHead": {"wallMs": raw["response"]["serverHlcWallMs"], "counter": raw["response"]["serverHlcCounter"]},
+        "canonicalHead": head,
         "neverSent": raw.get("neverSent").cloned().unwrap_or(json!({})),
         "timerDependencies": raw.get("timerDependencies").cloned().unwrap_or(json!([])),
         "now": raw["response"]["serverTime"], "displayContext": raw["displayContext"]});
@@ -73,6 +75,7 @@ fn display_before(raw: &Value, base: &Value) -> Result<Option<Value>, CoreError>
 fn display_after(
     raw: &Value,
     base: &Value,
+    head: &Value,
     stored: Option<Value>,
     output: &mut Value,
 ) -> Result<Value, CoreError> {
@@ -88,7 +91,8 @@ fn display_after(
         .map(|(queue, field)| ((*queue).to_owned(), output[*field].clone()))
         .collect();
     let proof = never_sent_proof(raw, &local);
-    let request = terminal_projection_request(base, local, proof, raw, output, &stored);
+    let mut request = terminal_projection_request(base, local, proof, raw, output, &stored);
+    request.insert("canonicalHead".into(), head.clone());
     let mut projected = super::workspace::project_value(serde_json::Value::Object(request))?;
     output["displayContext"] = projected["displayContext"].take();
     Ok(projected["workspace"].take())
@@ -125,10 +129,6 @@ fn terminal_projection_request(
     request.insert("base".into(), base.clone());
     request.insert("local".into(), local);
     request.insert("neverSent".into(), proof);
-    request.insert(
-        "canonicalHead".into(),
-        json!({"wallMs": raw["response"]["serverHlcWallMs"], "counter": raw["response"]["serverHlcCounter"]}),
-    );
     request.insert(
         "timerDependencies".into(),
         output["pendingTimerDependencies"].clone(),

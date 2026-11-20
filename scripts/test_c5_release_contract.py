@@ -5,9 +5,20 @@ import hashlib
 import json
 from pathlib import Path
 import subprocess
+import sys
 import tempfile
 import unittest
 from unittest import mock
+
+# `c5_release_contract.py` reads Cargo.toml with `tomllib`, which exists only
+# from Python 3.11. This module and `test_wasm_test_suite.py`, which imports it,
+# stop here once by name instead of erroring in every test.
+MINIMUM_PYTHON = (3, 11)
+if sys.version_info < MINIMUM_PYTHON:
+    raise SystemExit(
+        "The Core release and WASM suite checks need Python 3.11 or newer "
+        f"(tomllib); this is Python {sys.version.split()[0]} at {sys.executable}."
+    )
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -42,6 +53,45 @@ def commit_file(repository: Path, name: str, contents: str, message: str) -> str
     git(repository, "add", name)
     git(repository, "commit", "-q", "-m", message)
     return git(repository, "rev-parse", "HEAD")
+
+
+class PythonVersionGuardTests(unittest.TestCase):
+    """The 3.11 guard in this module and in the release contract script."""
+
+    MESSAGE_PREFIX = (
+        "The Core release and WASM suite checks need Python 3.11 or newer "
+        "(tomllib); this is Python "
+    )
+
+    def load_under(self, path: Path, version: tuple[int, int, int]) -> None:
+        spec = importlib.util.spec_from_file_location(f"guard_probe_{path.stem}", path)
+        if spec is None or spec.loader is None:
+            raise RuntimeError(f"could not load {path}")
+        module = importlib.util.module_from_spec(spec)
+        with mock.patch.object(sys, "version_info", version):
+            spec.loader.exec_module(module)
+
+    def assert_guard(self, path: Path) -> None:
+        for version in ((3, 9, 6), (3, 10, 14)):
+            with self.subTest(path=path.name, version=version):
+                # Python before 3.11 has no tomllib, so the guard must stop the
+                # load before any tomllib import is attempted.
+                without_tomllib = mock.patch.dict(sys.modules, {"tomllib": None})
+                with without_tomllib, self.assertRaises(SystemExit) as stopped:
+                    self.load_under(path, version)
+                message = str(stopped.exception.code)
+                self.assertTrue(message.startswith(self.MESSAGE_PREFIX), message)
+                self.assertIn(f" at {sys.executable}.", message)
+        with self.subTest(path=path.name, version=(3, 11, 0)):
+            self.load_under(path, (3, 11, 0))
+
+    def test_test_module_requires_python_3_11(self) -> None:
+        self.assertEqual(MINIMUM_PYTHON, (3, 11))
+        self.assert_guard(Path(__file__))
+
+    def test_release_contract_requires_python_3_11(self) -> None:
+        self.assertEqual(load_contract().MINIMUM_PYTHON, (3, 11))
+        self.assert_guard(SCRIPT)
 
 
 class TaggedSourceTests(unittest.TestCase):
