@@ -12,22 +12,28 @@
 //! characters that fold to the same text, such as "A" and "a", "ß" and "ss", or
 //! "ı" and "i". The raw bytes break that tie, so two titles compare equal only
 //! when they are the same string. The result is a total order.
+//!
+//! A sort builds one `TitleOrderKey` per title and compares the keys. Comparing
+//! tokens directly folds both titles again at every comparison, which made a
+//! sort of hundreds of titles several times slower than the bytewise sort
+//! before it (R55-C15).
 
 use std::char::{ToLowercase, ToUppercase};
-use std::cmp::Ordering;
 use std::iter::FlatMap;
 
 type FoldedChars = FlatMap<ToUppercase, ToLowercase, fn(char) -> ToLowercase>;
 
 /// A digit run ranks where the character `0` would, so digits keep their
-/// usual place after spaces and most punctuation and before letters.
-const DIGIT_RUN_RANK: u32 = '0' as u32;
+/// usual place after spaces and most punctuation and before letters. No text
+/// token is `0`: ASCII digits always form a digit run, and no other character
+/// folds to an ASCII digit.
+const DIGIT_RUN_RANK: char = '0';
 
 /// One comparison unit of a title. Field order is comparison order.
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
 struct TitleToken<'a> {
-    /// The folded code point, or `DIGIT_RUN_RANK` for a digit run.
-    rank: u32,
+    /// The folded character, or `DIGIT_RUN_RANK` for a digit run.
+    rank: char,
     /// Digit count without leading zeros; a longer number is larger. This
     /// compares runs of any length without parsing them into an integer.
     significant_digits: usize,
@@ -38,7 +44,7 @@ struct TitleToken<'a> {
 impl<'a> TitleToken<'a> {
     fn text(folded: char) -> Self {
         Self {
-            rank: u32::from(folded),
+            rank: folded,
             significant_digits: 0,
             digits: "",
         }
@@ -51,6 +57,22 @@ impl<'a> TitleToken<'a> {
             significant_digits: digits.len(),
             digits,
         }
+    }
+
+    /// Appends bytes whose bytewise order is this token's order, and which
+    /// never form a prefix of another token's bytes. Text is its UTF-8, which
+    /// sorts by code point. A digit run is `0`, then its significant digit
+    /// count as eight big-endian bytes, then those digits; equal counts mean
+    /// equal lengths, so the digits compare like the numbers.
+    fn encode(&self, key: &mut Vec<u8>) {
+        if self.rank != DIGIT_RUN_RANK {
+            let mut utf8 = [0; 4];
+            key.extend_from_slice(self.rank.encode_utf8(&mut utf8).as_bytes());
+            return;
+        }
+        key.push(b'0');
+        key.extend_from_slice(&(self.significant_digits as u64).to_be_bytes());
+        key.extend_from_slice(self.digits.as_bytes());
     }
 }
 
@@ -93,6 +115,10 @@ impl<'a> Iterator for TitleTokens<'a> {
                 return Some(self.take_digit_run());
             }
             self.rest = &self.rest[character.len_utf8()..];
+            if character.is_ascii() {
+                // The fold of an ASCII character is its ASCII lowercase.
+                return Some(TitleToken::text(character.to_ascii_lowercase()));
+            }
             self.folded = Some(fold_case(character));
         }
     }
@@ -111,11 +137,54 @@ fn fold_case(character: char) -> FoldedChars {
     character.to_uppercase().flat_map(char::to_lowercase)
 }
 
+/// A title's tokens as bytes whose bytewise order is the token order: a title
+/// whose tokens are a prefix of another's lists first. Titles with equal keys
+/// differ only in leading zeros or case; the raw title must break that tie.
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub(crate) struct TitleOrderKey(Vec<u8>);
+
+impl TitleOrderKey {
+    pub(crate) fn new(title: &str) -> Self {
+        // A title of ASCII text without digits takes one byte per byte.
+        let mut key = Vec::with_capacity(title.len());
+        if title.is_ascii() {
+            encode_ascii_title(title, &mut key);
+        } else {
+            for token in TitleTokens::new(title) {
+                token.encode(&mut key);
+            }
+        }
+        Self(key)
+    }
+}
+
+/// The encoding of `TitleTokens` for an ASCII title, without decoding chars:
+/// most titles are ASCII, and every client sorts its task list on each replay.
+fn encode_ascii_title(title: &str, key: &mut Vec<u8>) {
+    let bytes = title.as_bytes();
+    let mut index = 0;
+    while let Some(&byte) = bytes.get(index) {
+        if !byte.is_ascii_digit() {
+            // The fold of an ASCII character is its ASCII lowercase.
+            key.push(byte.to_ascii_lowercase());
+            index += 1;
+            continue;
+        }
+        let run_length = bytes[index..]
+            .iter()
+            .position(|byte| !byte.is_ascii_digit())
+            .unwrap_or(bytes.len() - index);
+        TitleToken::digit_run(&title[index..index + run_length]).encode(key);
+        index += run_length;
+    }
+}
+
 /// Natural, case-insensitive order of two task titles, with the raw bytes as
 /// the tiebreak.
-pub(crate) fn compare_titles(left: &str, right: &str) -> Ordering {
-    TitleTokens::new(left)
-        .cmp(TitleTokens::new(right))
+#[cfg(test)]
+pub(crate) fn compare_titles(left: &str, right: &str) -> std::cmp::Ordering {
+    TitleOrderKey::new(left)
+        .cmp(&TitleOrderKey::new(right))
         .then_with(|| left.cmp(right))
 }
 

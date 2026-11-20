@@ -7,7 +7,7 @@ use crate::CoreError;
 
 mod order;
 
-pub(crate) use order::compare_titles;
+pub(crate) use order::TitleOrderKey;
 
 const TASK_NAMESPACE: &[u8] = b"pomodorough.task.v1\0";
 const MAX_TASK_TITLE_BYTES: usize = 512;

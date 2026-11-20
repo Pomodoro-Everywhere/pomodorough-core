@@ -1,4 +1,4 @@
-use super::{compare_titles, fold_case};
+use super::{TitleTokens, compare_titles, encode_ascii_title, fold_case};
 use std::cmp::Ordering;
 
 fn listed(titles: &[&str]) -> Vec<String> {
@@ -252,5 +252,84 @@ fn generated_titles_agree_with_a_reference_that_parses_numbers() {
                 .then_with(|| left.cmp(right));
             assert_eq!(compare_titles(left, right), expected, "{left:?} {right:?}");
         }
+    }
+}
+
+/// The comparator before order keys: it compared the token sequences.
+fn token_sequence_order(left: &str, right: &str) -> Ordering {
+    TitleTokens::new(left)
+        .cmp(TitleTokens::new(right))
+        .then_with(|| left.cmp(right))
+}
+
+/// Titles where a key encoding could go wrong: digit runs next to text that
+/// ranks just around `0`, zero runs, runs with counts on both sides of a byte
+/// boundary, and characters that fold to several or to multibyte characters.
+fn key_edge_titles() -> Vec<String> {
+    let mut titles = [
+        "", "0", "00", "007", "7", "9", "10", "a0", "a00", "a 1", "a1b", "A1B", "a/", "a:", "/",
+        "/a", "a/b", "a:b", ":", "1/", "1:", "1a", "ẞ", "ß", "ss", "ﬀ", "ff", "İ", "i\u{307}",
+        "\u{7f}", "\u{80}", "Ā",
+    ]
+    .map(str::to_owned)
+    .to_vec();
+    for length in [254, 255, 256, 300] {
+        titles.push("1".repeat(length));
+        titles.push(format!("{}x", "9".repeat(length)));
+        titles.push(format!("0{}", "1".repeat(length)));
+    }
+    titles
+}
+
+#[test]
+fn order_keys_agree_with_comparing_token_sequences() {
+    let mut titles = generated_titles(300);
+    titles.extend(key_edge_titles());
+    for left in &titles {
+        for right in &titles {
+            let expected = token_sequence_order(left, right);
+            assert_eq!(compare_titles(left, right), expected, "{left:?} {right:?}");
+        }
+    }
+}
+
+fn token_encoding(title: &str) -> Vec<u8> {
+    let mut key = Vec::new();
+    for token in TitleTokens::new(title) {
+        token.encode(&mut key);
+    }
+    key
+}
+
+#[test]
+fn ascii_titles_encode_like_their_tokens() {
+    let characters = (0..=127_u8).map(char::from).collect::<Vec<_>>();
+    let mut titles = key_edge_titles();
+    titles.retain(|title| title.is_ascii());
+    titles.extend(
+        generated_titles(300)
+            .into_iter()
+            .filter(|title| title.is_ascii()),
+    );
+    for first in &characters {
+        titles.extend(characters.iter().map(|second| format!("{first}{second}")));
+    }
+    for title in &titles {
+        let mut key = Vec::new();
+        encode_ascii_title(title, &mut key);
+        assert_eq!(key, token_encoding(title), "{title:?}");
+    }
+}
+
+#[test]
+fn only_ascii_digits_fold_to_ascii_digits() {
+    // A digit run encodes as the byte `0`, so no text token may be `0`.
+    let characters = (0..=u32::from(char::MAX)).filter_map(char::from_u32);
+    for character in characters.filter(|character| !character.is_ascii_digit()) {
+        let mut folded = fold_case(character);
+        assert!(
+            !folded.any(|folded| folded.is_ascii_digit()),
+            "{character:?}"
+        );
     }
 }

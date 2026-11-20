@@ -6,7 +6,7 @@ use chrono::DateTime;
 use serde::de::{Error as _, MapAccess, Visitor};
 use serde::{Deserialize, Deserializer, Serialize};
 
-use crate::{CoreError, SelectedTaskField, clock::validate_hlc_values};
+use crate::{CoreError, SelectedTaskField, clock::validate_hlc_values, task::TitleOrderKey};
 
 pub(crate) const DURATION_PHASES: [&str; 3] = ["focus", "short_break", "long_break"];
 
@@ -196,10 +196,8 @@ pub(crate) fn replay_tasks(
         .iter()
         .map(|(task_id, operation)| (task_id.clone(), operation.clock.id.clone()))
         .collect();
-    let mut tasks = apply_task_operations(base_tasks, winners)?
-        .into_values()
-        .collect::<Vec<_>>();
-    tasks.sort_by(task_list_order);
+    let tasks = apply_task_operations(base_tasks, winners)?.into_values();
+    let tasks = sort_task_list(tasks);
 
     Ok(TaskReductionOutput {
         tasks,
@@ -207,10 +205,22 @@ pub(crate) fn replay_tasks(
     })
 }
 
-/// The order of every task list the task reducer builds: natural,
-/// case-insensitive title order, then the raw title, then the ID.
-fn task_list_order(left: &Task, right: &Task) -> Ordering {
-    crate::task::compare_titles(&left.title, &right.title).then_with(|| left.id.cmp(&right.id))
+/// Sorts in the order of every task list the task reducer builds: natural,
+/// case-insensitive title order, then the raw title, then the ID. Each title
+/// is folded once into its key; folding both titles inside every comparison
+/// made a list of hundreds of tasks sort several times slower.
+fn sort_task_list(tasks: impl IntoIterator<Item = Task>) -> Vec<Task> {
+    let mut keyed = tasks
+        .into_iter()
+        .map(|task| (TitleOrderKey::new(&task.title), task))
+        .collect::<Vec<_>>();
+    keyed.sort_by(|(left_key, left), (right_key, right)| {
+        left_key
+            .cmp(right_key)
+            .then_with(|| left.title.cmp(&right.title))
+            .then_with(|| left.id.cmp(&right.id))
+    });
+    keyed.into_iter().map(|(_, task)| task).collect()
 }
 
 pub(crate) fn validate_task_id(task_id: &str) -> Result<(), CoreError> {
@@ -583,19 +593,36 @@ mod tests {
         }
     }
 
+    fn sorted_ids(tasks: Vec<Task>) -> Vec<String> {
+        sort_task_list(tasks)
+            .into_iter()
+            .map(|task| task.id)
+            .collect()
+    }
+
     #[test]
     fn task_list_order_breaks_equal_titles_by_id() {
         let first = task("task-a", "Same title");
         let second = task("task-b", "Same title");
-        assert_eq!(task_list_order(&first, &second), Ordering::Less);
-        assert_eq!(task_list_order(&second, &first), Ordering::Greater);
-        assert_eq!(task_list_order(&first, &first), Ordering::Equal);
+        assert_eq!(sorted_ids(vec![second, first]), ["task-a", "task-b"]);
     }
 
     #[test]
     fn task_list_order_puts_the_title_before_the_id() {
         let two = task("task-z", "Bulk task 2");
         let ten = task("task-a", "Bulk task 10");
-        assert_eq!(task_list_order(&two, &ten), Ordering::Less);
+        assert_eq!(sorted_ids(vec![ten, two]), ["task-z", "task-a"]);
+    }
+
+    #[test]
+    fn task_list_order_puts_the_raw_title_before_the_id() {
+        // Equal keys: the titles differ only in case and leading zeros.
+        let lower = task("task-a", "task 7");
+        let upper = task("task-b", "Task 7");
+        let padded = task("task-c", "Task 07");
+        assert_eq!(
+            sorted_ids(vec![lower, upper, padded]),
+            ["task-c", "task-b", "task-a"]
+        );
     }
 }
